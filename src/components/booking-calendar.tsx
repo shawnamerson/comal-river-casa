@@ -14,14 +14,18 @@ export function BookingCalendar() {
   const router = useRouter()
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
-  const [isMobile, setIsMobile] = useState(false)
+  const [numberOfMonths, setNumberOfMonths] = useState(2)
 
-  // Detect mobile screen size
+  // Detect mobile screen size - run only on client
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      setNumberOfMonths(window.innerWidth < 768 ? 1 : 2)
     }
+
+    // Initial check
     checkMobile()
+
+    // Add resize listener
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
@@ -136,7 +140,7 @@ export function BookingCalendar() {
             selected={range}
             onSelect={setRange}
             disabled={disabledDays}
-            numberOfMonths={isMobile ? 1 : 2}
+            numberOfMonths={numberOfMonths}
             className="border rounded-lg p-3"
           />
         </div>
