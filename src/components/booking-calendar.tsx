@@ -117,6 +117,9 @@ export function BookingCalendar() {
         {/* Date Picker */}
         <div>
           <label className="text-sm font-semibold mb-2 block">Select Dates</label>
+          <p className="text-xs text-gray-500 mb-3">
+            Greyed out dates are unavailable. Select your check-in and check-out dates.
+          </p>
           <DayPicker
             mode="range"
             selected={range}
