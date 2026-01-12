@@ -14,13 +14,17 @@ export function BookingCalendar() {
   const router = useRouter()
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
+  const [errorDisplay, setErrorDisplay] = useState<string | null>(null)
 
   // Safe date range handler
   const handleDateSelect = (newRange: DateRange | undefined) => {
     try {
+      setErrorDisplay(null) // Clear any previous errors
       setRange(newRange)
     } catch (error) {
+      const errorMsg = `Date selection error: ${error instanceof Error ? error.message : String(error)}`
       console.error('Error selecting dates:', error)
+      setErrorDisplay(errorMsg)
     }
   }
 
@@ -41,7 +45,9 @@ export function BookingCalendar() {
 
             // Validate dates
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              const errorMsg = `Invalid booking dates detected`
               console.warn('Invalid booking dates:', booking)
+              setErrorDisplay(errorMsg)
               return
             }
 
@@ -51,7 +57,9 @@ export function BookingCalendar() {
             })
             disabled.push(...dates)
           } catch (error) {
+            const errorMsg = `Error processing booking: ${error instanceof Error ? error.message : String(error)}`
             console.error('Error processing booking:', booking, error)
+            setErrorDisplay(errorMsg)
           }
         })
       }
@@ -65,7 +73,9 @@ export function BookingCalendar() {
 
             // Validate dates
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              const errorMsg = `Invalid blocked dates detected`
               console.warn('Invalid blocked dates:', blocked)
+              setErrorDisplay(errorMsg)
               return
             }
 
@@ -75,12 +85,16 @@ export function BookingCalendar() {
             })
             disabled.push(...dates)
           } catch (error) {
+            const errorMsg = `Error processing blocked date: ${error instanceof Error ? error.message : String(error)}`
             console.error('Error processing blocked date:', blocked, error)
+            setErrorDisplay(errorMsg)
           }
         })
       }
     } catch (error) {
+      const errorMsg = `Error calculating disabled dates: ${error instanceof Error ? error.message : String(error)}`
       console.error('Error calculating disabled dates:', error)
+      setErrorDisplay(errorMsg)
     }
 
     return disabled
@@ -153,6 +167,20 @@ export function BookingCalendar() {
         <CardTitle>Book Your Stay</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Error Display - Visible on Mobile */}
+        {errorDisplay && (
+          <div className="bg-red-100 border-2 border-red-500 text-red-900 p-4 rounded-lg">
+            <p className="font-bold text-lg mb-2">🔴 Error Detected</p>
+            <p className="text-sm break-words">{errorDisplay}</p>
+            <button
+              onClick={() => setErrorDisplay(null)}
+              className="mt-2 text-xs underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* Date Picker */}
         <div>
           <label className="text-sm font-semibold mb-2 block">Select Dates</label>
