@@ -17,6 +17,7 @@ interface PropertyCardProps {
   images: { url: string; altText: string | null }[]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function PropertyCard(_props: PropertyCardProps) {
   return (
     <Card>
