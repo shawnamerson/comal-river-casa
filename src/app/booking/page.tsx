@@ -31,8 +31,18 @@ function BookingForm() {
 
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (booking) => {
-      alert(`Booking confirmed! Booking ID: ${booking.id}`)
-      router.push('/')
+      // Navigate to confirmation page with booking details
+      const confirmationParams = new URLSearchParams({
+        bookingId: booking.id,
+        guestName: formData.guestName,
+        guestEmail: formData.guestEmail,
+        checkIn: checkIn || '',
+        checkOut: checkOut || '',
+        guests: numberOfGuests || '',
+        nights: numberOfNights || '',
+        total: totalPrice || '',
+      })
+      router.push(`/booking/confirmation?${confirmationParams.toString()}`)
     },
     onError: (error) => {
       alert(`Error creating booking: ${error.message}`)
