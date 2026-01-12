@@ -14,21 +14,15 @@ export function BookingCalendar() {
   const router = useRouter()
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
-  const [numberOfMonths, setNumberOfMonths] = useState(2)
 
-  // Detect mobile screen size - run only on client
-  useEffect(() => {
-    const checkMobile = () => {
-      setNumberOfMonths(window.innerWidth < 768 ? 1 : 2)
+  // Safe date range handler
+  const handleDateSelect = (newRange: DateRange | undefined) => {
+    try {
+      setRange(newRange)
+    } catch (error) {
+      console.error('Error selecting dates:', error)
     }
-
-    // Initial check
-    checkMobile()
-
-    // Add resize listener
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }
 
   // Fetch booked dates
   const { data: bookedData } = trpc.booking.getBookedDates.useQuery()
@@ -138,9 +132,9 @@ export function BookingCalendar() {
           <DayPicker
             mode="range"
             selected={range}
-            onSelect={setRange}
+            onSelect={handleDateSelect}
             disabled={disabledDays}
-            numberOfMonths={numberOfMonths}
+            numberOfMonths={1}
             className="border rounded-lg p-3"
           />
         </div>
