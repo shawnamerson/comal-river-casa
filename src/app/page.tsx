@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PROPERTY } from '@/config/property'
 import { BookingCalendar } from '@/components/booking-calendar'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function Home() {
   const [showBooking, setShowBooking] = useState(false)
@@ -553,7 +554,9 @@ export default function Home() {
                 Select your dates and start planning your perfect getaway
               </p>
             </div>
-            <BookingCalendar />
+            <ErrorBoundary>
+              <BookingCalendar />
+            </ErrorBoundary>
           </div>
         </section>
       )}
