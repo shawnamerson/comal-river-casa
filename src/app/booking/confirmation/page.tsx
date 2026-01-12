@@ -72,7 +72,7 @@ function ConfirmationContent() {
             {/* Booking ID */}
             <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
               <p className="text-sm text-gray-600 mb-1">Confirmation Number</p>
-              <p className="text-2xl font-bold text-gray-900 font-mono">{bookingId}</p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900 font-mono break-all">{bookingId}</p>
             </div>
 
             {/* Property Info */}
