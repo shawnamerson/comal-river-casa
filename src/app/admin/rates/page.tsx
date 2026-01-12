@@ -16,7 +16,12 @@ export default function RatesManagementPage() {
   const [editingRate, setEditingRate] = useState<string | null>(null)
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    pricePerNight: number
+    cleaningFee: number
+    minNights: number
+  }>({
     name: '',
     pricePerNight: PROPERTY.basePrice,
     cleaningFee: PROPERTY.cleaningFee,
