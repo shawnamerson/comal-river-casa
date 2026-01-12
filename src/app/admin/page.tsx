@@ -9,7 +9,6 @@ import { trpc } from '@/lib/trpc/client'
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [selectedBooking, setSelectedBooking] = useState<string | null>(null)
 
   // Fetch data
   const { data: stats } = trpc.admin.getStats.useQuery()

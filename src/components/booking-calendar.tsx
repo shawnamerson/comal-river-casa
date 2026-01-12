@@ -1,26 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
-import { format, differenceInDays, addDays, eachDayOfInterval } from 'date-fns'
+import { format, differenceInDays, eachDayOfInterval } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
 
-interface BookingCalendarProps {
-  onBook?: (booking: {
-    checkIn: Date
-    checkOut: Date
-    numberOfGuests: number
-    numberOfNights: number
-    totalPrice: number
-  }) => void
-}
-
-export function BookingCalendar({ onBook }: BookingCalendarProps) {
+export function BookingCalendar() {
   const router = useRouter()
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
@@ -243,7 +233,7 @@ export function BookingCalendar({ onBook }: BookingCalendarProps) {
         </Button>
 
         <p className="text-xs text-center text-gray-500">
-          You won't be charged yet
+          You won&apos;t be charged yet
         </p>
       </CardContent>
     </Card>

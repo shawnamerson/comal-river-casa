@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
-import { format, eachDayOfInterval, isSameDay } from 'date-fns'
+import { format, eachDayOfInterval } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ export default function AvailabilityManagementPage() {
   const [showBlockForm, setShowBlockForm] = useState(false)
 
   // Fetch data
-  const { data: bookings, refetch: refetchBookings } = trpc.admin.getAllBookings.useQuery()
+  const { data: bookings } = trpc.admin.getAllBookings.useQuery()
   const { data: blockedDates, refetch: refetchBlocked } = trpc.admin.getBlockedDates.useQuery()
 
   // Mutations

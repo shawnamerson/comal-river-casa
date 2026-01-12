@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -231,7 +231,7 @@ export default function BookingPage() {
                 </div>
 
                 <p className="text-xs text-gray-500 mt-4">
-                  By confirming this booking, you agree to the property's cancellation policy
+                  By confirming this booking, you agree to the property&apos;s cancellation policy
                   and house rules.
                 </p>
               </CardContent>

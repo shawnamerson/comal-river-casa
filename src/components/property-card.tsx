@@ -18,7 +18,6 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({
-  id,
   name,
   slug,
   description,

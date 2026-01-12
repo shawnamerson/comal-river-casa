@@ -118,7 +118,7 @@ export default function Home() {
                 {property.description}
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
-                Whether you're seeking adventure on the crystal-clear Comal River or a peaceful escape
+                Whether you&apos;re seeking adventure on the crystal-clear Comal River or a peaceful escape
                 under the Texas stars, our casa offers the perfect blend of comfort and natural beauty.
                 Wake up to stunning views, spend your days floating down the river, and end each evening
                 on the patio watching the sunset paint the Hill Country sky.
@@ -138,8 +138,8 @@ export default function Home() {
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Every detail has been carefully considered to ensure your stay is nothing short of
-                exceptional. From premium bedding to modern appliances, we've thought of everything
-                so you don't have to.
+                exceptional. From premium bedding to modern appliances, we&apos;ve thought of everything
+                so you don&apos;t have to.
               </p>
             </div>
             <div className="relative h-96 md:h-[500px] rounded-2xl overflow-hidden shadow-2xl order-1 md:order-2">
@@ -251,14 +251,14 @@ export default function Home() {
                 Fully Equipped for Your Comfort
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
-                From the moment you arrive, you'll find everything you need for a comfortable and
+                From the moment you arrive, you&apos;ll find everything you need for a comfortable and
                 convenient stay. Our fully equipped kitchen features modern appliances perfect for
                 preparing family meals, while high-speed WiFi keeps you connected when needed.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Relax in climate-controlled comfort, enjoy your favorite shows on smart TVs throughout
                 the property, and take advantage of our in-unit washer and dryer for ultimate convenience.
-                We've stocked the essentials so you can focus on making memories.
+                We&apos;ve stocked the essentials so you can focus on making memories.
               </p>
             </div>
           </div>
@@ -307,7 +307,7 @@ export default function Home() {
                 <h3 className="text-2xl font-bold mb-4">Outdoor Adventures</h3>
                 <p className="text-gray-600 leading-relaxed mb-4">
                   Direct access to world-class tubing, kayaking, and swimming on the crystal-clear Comal River.
-                  Just steps from your door, you'll find tube rentals, river access points, and peaceful spots
+                  Just steps from your door, you&apos;ll find tube rentals, river access points, and peaceful spots
                   perfect for a morning coffee or sunset viewing.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
@@ -331,11 +331,11 @@ export default function Home() {
                 <p className="text-gray-600 leading-relaxed mb-4">
                   Explore nearby restaurants serving authentic Texas BBQ, German cuisine, and modern fusion.
                   Visit local breweries, wine bars, and the famous Schlitterbahn Waterpark, consistently
-                  rated one of America's best water parks.
+                  rated one of America&apos;s best water parks.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
                   Historic downtown New Braunfels offers charming shops, live music venues, and seasonal festivals
-                  celebrating the area's rich German heritage.
+                  celebrating the area&apos;s rich German heritage.
                 </p>
               </CardContent>
             </Card>
@@ -375,8 +375,8 @@ export default function Home() {
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-4">Easy Access</h3>
                 <p className="text-gray-600 leading-relaxed mb-4">
-                  Just 30 minutes from San Antonio's River Walk and historic Alamo, and less than an hour
-                  from Austin's vibrant music scene. Perfect for day trips while maintaining a peaceful
+                  Just 30 minutes from San Antonio&apos;s River Walk and historic Alamo, and less than an hour
+                  from Austin&apos;s vibrant music scene. Perfect for day trips while maintaining a peaceful
                   retreat to return to each evening.
                 </p>
                 <p className="text-gray-600 leading-relaxed">
@@ -468,7 +468,7 @@ export default function Home() {
                       </div>
                     </div>
                     <p className="text-gray-700 leading-relaxed italic">
-                      "{review.comment}"
+                      &ldquo;{review.comment}&rdquo;
                     </p>
                   </CardContent>
                 </Card>

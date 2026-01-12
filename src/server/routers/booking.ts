@@ -12,7 +12,7 @@ export const bookingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { checkIn, checkOut, numberOfGuests } = input
+      const { checkIn, checkOut } = input
       const { eachDayOfInterval, differenceInDays } = await import('date-fns')
 
       const nights = differenceInDays(checkOut, checkIn)
@@ -50,7 +50,6 @@ export const bookingRouter = router({
 
       let totalNightlyPrice = 0
       let effectiveRate = null
-      let effectiveMinNights = null
 
       for (const date of nights_dates) {
         // Find if any seasonal rate applies to this date

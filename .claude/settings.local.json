@@ -27,7 +27,9 @@
       "Bash(if [ -f \"nul\" ])",
       "Bash(then rm nul)",
       "Bash(fi)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
