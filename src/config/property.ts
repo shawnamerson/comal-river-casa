@@ -21,8 +21,8 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
   // Booking Rules
   minNights: 2,
   maxNights: 14,
-  checkInTime: '16:00',
-  checkOutTime: '11:00',
+  checkInTime: '4:00 PM',
+  checkOutTime: '11:00 AM',
 
   // Property Images
   images: [
