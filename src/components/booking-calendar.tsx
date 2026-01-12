@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
 import { format, differenceInDays, eachDayOfInterval } from 'date-fns'
@@ -14,6 +14,17 @@ export function BookingCalendar() {
   const router = useRouter()
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Fetch booked dates
   const { data: bookedData } = trpc.booking.getBookedDates.useQuery()
@@ -125,7 +136,7 @@ export function BookingCalendar() {
             selected={range}
             onSelect={setRange}
             disabled={disabledDays}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             className="border rounded-lg p-3"
           />
         </div>

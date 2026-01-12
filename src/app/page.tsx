@@ -592,7 +592,7 @@ export default function Home() {
 
           {/* Previous Button */}
           <button
-            className="absolute left-4 text-white text-5xl hover:text-gray-300 transition-colors z-50"
+            className="absolute left-2 md:left-4 text-white text-4xl md:text-5xl hover:text-gray-300 transition-colors z-50 bg-black/30 w-12 h-12 rounded-full flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation()
               previousImage()
@@ -604,7 +604,7 @@ export default function Home() {
 
           {/* Image */}
           <div
-            className="relative w-full h-full max-w-7xl max-h-[90vh] mx-auto"
+            className="relative w-full h-full max-w-7xl max-h-[90vh] mx-auto px-16"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
@@ -618,7 +618,7 @@ export default function Home() {
 
           {/* Next Button */}
           <button
-            className="absolute right-4 text-white text-5xl hover:text-gray-300 transition-colors z-50"
+            className="absolute right-2 md:right-4 text-white text-4xl md:text-5xl hover:text-gray-300 transition-colors z-50 bg-black/30 w-12 h-12 rounded-full flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation()
               nextImage()
@@ -629,13 +629,13 @@ export default function Home() {
           </button>
 
           {/* Image Counter */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg bg-black/50 px-4 py-2 rounded-full">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm md:text-lg bg-black/50 px-3 md:px-4 py-1 md:py-2 rounded-full">
             {lightboxImage + 1} / {property.images.length}
           </div>
 
           {/* Image Caption */}
-          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-white text-center max-w-2xl">
-            <p className="text-lg">{property.images[lightboxImage].altText}</p>
+          <div className="absolute bottom-14 md:bottom-16 left-1/2 transform -translate-x-1/2 text-white text-center max-w-2xl px-4">
+            <p className="text-sm md:text-lg">{property.images[lightboxImage].altText}</p>
           </div>
         </div>
       )}
