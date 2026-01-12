@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
 
-export default function BookingPage() {
+function BookingForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -240,5 +240,21 @@ export default function BookingPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center">
+            <p className="text-gray-600">Loading booking information...</p>
+          </div>
+        </div>
+      </main>
+    }>
+      <BookingForm />
+    </Suspense>
   )
 }
