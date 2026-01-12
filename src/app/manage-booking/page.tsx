@@ -8,13 +8,37 @@ import { Button } from '@/components/ui/button'
 import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
 
+interface BookingData {
+  id: string
+  userId: string
+  checkIn: string
+  checkOut: string
+  numberOfGuests: number
+  guestName: string
+  guestEmail: string
+  guestPhone: string | null
+  numberOfNights: number
+  pricePerNight: number
+  subtotal: number
+  cleaningFee: number
+  serviceFee: number
+  totalPrice: number
+  specialRequests: string | null
+  status: string
+  paymentStatus: string
+  cancelledAt: string | null
+  cancellationReason: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export default function ManageBookingPage() {
   const router = useRouter()
   const [lookupData, setLookupData] = useState({
     bookingId: '',
     email: '',
   })
-  const [booking, setBooking] = useState<any>(null)
+  const [booking, setBooking] = useState<BookingData | null>(null)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const lookupBooking = trpc.booking.lookup.useMutation({
