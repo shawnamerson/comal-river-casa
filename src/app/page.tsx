@@ -568,6 +568,15 @@ export default function Home() {
           <p className="text-gray-400 mb-8">
             {property.city}, {property.state}
           </p>
+          <div className="mb-8">
+            <Button
+              onClick={() => router.push('/manage-booking')}
+              variant="outline"
+              className="bg-transparent border-white text-white hover:bg-white hover:text-gray-900"
+            >
+              Manage My Booking
+            </Button>
+          </div>
           <div className="border-t border-gray-800 pt-8">
             <p className="text-gray-400">
               &copy; 2026 Comal River Casa. All rights reserved.

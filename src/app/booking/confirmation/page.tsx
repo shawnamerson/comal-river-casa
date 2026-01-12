@@ -180,6 +180,14 @@ function ConfirmationContent() {
             Return to Home
           </Button>
           <Button
+            onClick={() => router.push('/manage-booking')}
+            variant="outline"
+            className="flex-1"
+            size="lg"
+          >
+            Manage Booking
+          </Button>
+          <Button
             onClick={() => window.print()}
             variant="outline"
             className="flex-1"

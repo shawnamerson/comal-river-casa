@@ -335,4 +335,87 @@ export const bookingRouter = router({
       console.log('Returning serialized booking result')
       return result
     }),
+
+  // Look up a booking by ID and email
+  lookup: publicProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+        email: z.string().email(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findFirst({
+        where: {
+          id: input.bookingId,
+          guestEmail: input.email,
+        },
+      })
+
+      if (!booking) {
+        throw new Error('Booking not found. Please check your confirmation number and email address.')
+      }
+
+      // Convert Decimals to numbers and Dates to strings for serialization
+      return {
+        id: booking.id,
+        userId: booking.userId,
+        checkIn: booking.checkIn.toISOString(),
+        checkOut: booking.checkOut.toISOString(),
+        numberOfGuests: booking.numberOfGuests,
+        guestName: booking.guestName,
+        guestEmail: booking.guestEmail,
+        guestPhone: booking.guestPhone,
+        numberOfNights: booking.numberOfNights,
+        pricePerNight: Number(booking.pricePerNight),
+        subtotal: Number(booking.subtotal),
+        cleaningFee: Number(booking.cleaningFee),
+        serviceFee: Number(booking.serviceFee),
+        totalPrice: Number(booking.totalPrice),
+        specialRequests: booking.specialRequests,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        cancelledAt: booking.cancelledAt?.toISOString() || null,
+        cancellationReason: booking.cancellationReason,
+        createdAt: booking.createdAt.toISOString(),
+        updatedAt: booking.updatedAt.toISOString(),
+      }
+    }),
+
+  // Cancel a booking
+  cancel: publicProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { id: input.bookingId },
+      })
+
+      if (!booking) {
+        throw new Error('Booking not found')
+      }
+
+      if (booking.status === 'CANCELLED') {
+        throw new Error('This booking is already cancelled')
+      }
+
+      // Update booking status to cancelled
+      const updated = await ctx.prisma.booking.update({
+        where: { id: input.bookingId },
+        data: {
+          status: 'CANCELLED',
+          cancelledAt: new Date(),
+          cancellationReason: 'Cancelled by guest',
+        },
+      })
+
+      return {
+        id: updated.id,
+        status: updated.status,
+        cancelledAt: updated.cancelledAt?.toISOString() || null,
+      }
+    }),
 })
