@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(git -C \"C:\\\\Users\\\\shawn\\\\comal-river-casa\" status)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --eslint --no-git --import-alias \"@/*\")",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 5)",
+      "Bash(ping:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill /F /PID 6856)",
+      "Bash(powershell -Command \"Stop-Process -Id 6856 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 16660 -Force\")",
+      "Bash(del c:Usersshawncomal-river-casasrcserverroutersproperty.ts)",
+      "Bash(powershell -Command \"Get-Process node | Where-Object {$_Path -like ''*comal-river-casa*''} | Stop-Process -Force\")",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(if [ -f \"nul\" ])",
+      "Bash(then rm nul)",
+      "Bash(fi)",
+      "Bash(git reset:*)"
+    ]
+  }
+}

@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & USER MANAGEMENT
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials provider
+  role          UserRole  @default(GUEST)
+
+  accounts      Account[]
+  sessions      Session[]
+  bookings      Booking[]
+  reviews       Review[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+enum UserRole {
+  GUEST
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// AVAILABILITY MANAGEMENT
+// ============================================
+// Note: Property details are hardcoded in src/config/property.ts
+
+model BlockedDate {
+  id         String   @id @default(cuid())
+  startDate  DateTime
+  endDate    DateTime
+  reason     String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([startDate, endDate])
+}
+
+model SeasonalRate {
+  id            String   @id @default(cuid())
+  name          String   // e.g., "Summer Peak", "Holiday Season"
+  startDate     DateTime
+  endDate       DateTime
+  pricePerNight Decimal  @db.Decimal(10, 2)
+  cleaningFee   Decimal? @db.Decimal(10, 2)
+  minNights     Int?     // Override minimum nights for this period
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([startDate, endDate])
+}
+
+// ============================================
+// BOOKING MANAGEMENT
+// ============================================
+
+model Booking {
+  id              String        @id @default(cuid())
+  userId          String
+
+  // Dates
+  checkIn         DateTime
+  checkOut        DateTime
+
+  // Guest info
+  numberOfGuests  Int
+  guestName       String
+  guestEmail      String
+  guestPhone      String?
+
+  // Pricing breakdown
+  numberOfNights  Int
+  pricePerNight   Decimal       @db.Decimal(10, 2)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  cleaningFee     Decimal       @db.Decimal(10, 2)
+  serviceFee      Decimal       @db.Decimal(10, 2)
+  totalPrice      Decimal       @db.Decimal(10, 2)
+
+  // Payment
+  stripePaymentIntentId String? @unique
+  stripeSessionId       String? @unique
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  // Booking status
+  status          BookingStatus @default(PENDING)
+
+  // Special requests
+  specialRequests String?       @db.Text
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id])
+  review          Review?
+
+  // Cancellation
+  cancelledAt     DateTime?
+  cancellationReason String?    @db.Text
+  refundAmount    Decimal?      @db.Decimal(10, 2)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([checkIn, checkOut])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+// ============================================
+// REVIEW SYSTEM
+// ============================================
+
+model Review {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  userId      String
+
+  // Ratings (1-5)
+  overallRating   Int
+  cleanlinessRating Int
+  accuracyRating  Int
+  checkInRating   Int
+  communicationRating Int
+  locationRating  Int
+  valueRating     Int
+
+  // Review content
+  comment     String?  @db.Text
+
+  // Response from host
+  hostResponse String? @db.Text
+  hostResponseDate DateTime?
+
+  // Status
+  isPublished Boolean  @default(false)
+
+  // Relations
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublished])
+}
