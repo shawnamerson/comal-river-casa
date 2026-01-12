@@ -31,26 +31,56 @@ export function BookingCalendar() {
   const getDisabledDates = () => {
     const disabled: Date[] = []
 
-    if (bookedData?.bookings) {
-      // Add booked dates
-      bookedData.bookings.forEach((booking) => {
-        const dates = eachDayOfInterval({
-          start: new Date(booking.checkIn),
-          end: new Date(booking.checkOut),
-        })
-        disabled.push(...dates)
-      })
-    }
+    try {
+      if (bookedData?.bookings) {
+        // Add booked dates
+        bookedData.bookings.forEach((booking) => {
+          try {
+            const startDate = new Date(booking.checkIn)
+            const endDate = new Date(booking.checkOut)
 
-    if (bookedData?.blockedDates) {
-      // Add blocked dates
-      bookedData.blockedDates.forEach((blocked) => {
-        const dates = eachDayOfInterval({
-          start: new Date(blocked.startDate),
-          end: new Date(blocked.endDate),
+            // Validate dates
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              console.warn('Invalid booking dates:', booking)
+              return
+            }
+
+            const dates = eachDayOfInterval({
+              start: startDate,
+              end: endDate,
+            })
+            disabled.push(...dates)
+          } catch (error) {
+            console.error('Error processing booking:', booking, error)
+          }
         })
-        disabled.push(...dates)
-      })
+      }
+
+      if (bookedData?.blockedDates) {
+        // Add blocked dates
+        bookedData.blockedDates.forEach((blocked) => {
+          try {
+            const startDate = new Date(blocked.startDate)
+            const endDate = new Date(blocked.endDate)
+
+            // Validate dates
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+              console.warn('Invalid blocked dates:', blocked)
+              return
+            }
+
+            const dates = eachDayOfInterval({
+              start: startDate,
+              end: endDate,
+            })
+            disabled.push(...dates)
+          } catch (error) {
+            console.error('Error processing blocked date:', blocked, error)
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Error calculating disabled dates:', error)
     }
 
     return disabled
