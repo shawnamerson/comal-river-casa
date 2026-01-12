@@ -17,7 +17,7 @@ interface PropertyCardProps {
   images: { url: string; altText: string | null }[]
 }
 
-export function PropertyCard(props: PropertyCardProps) {
+export function PropertyCard(_props: PropertyCardProps) {
   return (
     <Card>
       <CardContent className="p-6">
