@@ -122,7 +122,7 @@ export function BookingCalendar() {
   )
 
   const calculateTotalPrice = () => {
-    if (!pricingData) {
+    if (!pricingData || !pricingData.totalPrice) {
       // Fallback to default calculation if pricing data not loaded
       if (numberOfNights === 0) return 0
       const subtotal = numberOfNights * PROPERTY.basePrice
@@ -153,9 +153,9 @@ export function BookingCalendar() {
       guests: numberOfGuests.toString(),
       nights: numberOfNights.toString(),
       total: totalPrice.toString(),
-      pricePerNight: pricingData?.pricePerNight.toString() || PROPERTY.basePrice.toString(),
-      subtotal: pricingData?.subtotal.toString() || (numberOfNights * PROPERTY.basePrice).toString(),
-      cleaningFee: pricingData?.cleaningFee.toString() || PROPERTY.cleaningFee.toString(),
+      pricePerNight: (pricingData?.pricePerNight ?? PROPERTY.basePrice).toString(),
+      subtotal: (pricingData?.subtotal ?? numberOfNights * PROPERTY.basePrice).toString(),
+      cleaningFee: (pricingData?.cleaningFee ?? PROPERTY.cleaningFee).toString(),
     })
 
     router.push(`/booking?${params.toString()}`)
@@ -240,15 +240,15 @@ export function BookingCalendar() {
             )}
             <div className="flex justify-between text-sm">
               <span>
-                {pricingData ? `$${pricingData.pricePerNight.toFixed(0)} avg` : `$${PROPERTY.basePrice}`} × {numberOfNights} nights
+                {pricingData?.pricePerNight ? `$${pricingData.pricePerNight.toFixed(0)} avg` : `$${PROPERTY.basePrice}`} × {numberOfNights} nights
               </span>
-              <span>${pricingData ? pricingData.subtotal : numberOfNights * PROPERTY.basePrice}</span>
+              <span>${pricingData?.subtotal ?? numberOfNights * PROPERTY.basePrice}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Cleaning fee</span>
-              <span>${pricingData ? pricingData.cleaningFee : PROPERTY.cleaningFee}</span>
+              <span>${pricingData?.cleaningFee ?? PROPERTY.cleaningFee}</span>
             </div>
-            {pricingData && pricingData.serviceFee > 0 && (
+            {pricingData?.serviceFee && pricingData.serviceFee > 0 && (
               <div className="flex justify-between text-sm">
                 <span>Service fee</span>
                 <span>${pricingData.serviceFee}</span>
