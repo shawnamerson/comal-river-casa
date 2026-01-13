@@ -167,7 +167,7 @@ export default function Home() {
           {/* Natural Wonders - Image Right */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900">Natural Wonders</h3>
+              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Natural Wonders</h3>
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
                 Explore Natural Bridge Caverns, one of the largest underground cave systems in Texas.
                 Hike scenic trails through Hill Country landscapes, discover hidden swimming holes,
@@ -199,7 +199,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900">Entertainment & Events</h3>
+              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Entertainment & Events</h3>
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
                 Experience live music at historic Gruene Hall where legends like Willie Nelson have played.
                 Enjoy seasonal festivals celebrating German heritage, wine country tours through nearby
