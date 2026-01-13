@@ -192,8 +192,8 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src={property.images[10].url}
-                alt="Texas Hill Country Patio"
+                src="/images/property/live_music.jpg"
+                alt="Live Music and Entertainment"
                 fill
                 className="object-cover"
               />
