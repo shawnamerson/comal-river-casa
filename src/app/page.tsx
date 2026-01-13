@@ -119,7 +119,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">River Tubing Paradise</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">River Tubing Paradise</h3>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Float down the pristine Comal River, one of the shortest and most beautiful rivers in Texas.
                 Crystal-clear spring-fed waters maintain a perfect 72°F year-round. Tube chutes, rope swings,
@@ -131,7 +131,7 @@ export default function Home() {
           {/* Schlitterbahn - Image Right */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Schlitterbahn Waterpark</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">Schlitterbahn Waterpark</h3>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Home to America&apos;s #1 rated waterpark! Experience thrilling water slides, the world&apos;s
                 first uphill water coaster, lazy rivers, and family-friendly attractions. Just minutes from
@@ -159,7 +159,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900">Texas Hill Country Culture</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">Texas Hill Country Culture</h3>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Savor authentic Texas BBQ, explore German heritage in historic Gruene, browse local wineries
                 and breweries, and discover live music venues. Shop antique stores, artisan boutiques, and
@@ -171,7 +171,7 @@ export default function Home() {
           {/* Natural Wonders - Image Right */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Natural Wonders</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">Natural Wonders</h3>
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
                 Explore Natural Bridge Caverns, one of the largest underground cave systems in Texas.
                 Hike scenic trails through Hill Country landscapes, discover hidden swimming holes,
@@ -203,7 +203,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Entertainment & Events</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">Entertainment & Events</h3>
               <p className="text-lg text-gray-700 leading-relaxed mb-4">
                 Experience live music at historic Gruene Hall where legends like Willie Nelson have played.
                 Enjoy seasonal festivals celebrating German heritage, wine country tours through nearby
@@ -241,7 +241,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900 text-center whitespace-nowrap">
+              <h3 className="text-xl md:text-3xl font-bold text-gray-900 text-center md:whitespace-nowrap">
                 Your Hill Country Haven Awaits
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -258,7 +258,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">
                 Comfort Meets Luxury
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -307,7 +307,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-              <div className="text-5xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl md:text-5xl font-bold text-blue-600 mb-2">
                 {property.bedrooms}
               </div>
               <div className="text-gray-600 uppercase tracking-wide text-sm font-semibold">
@@ -318,7 +318,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-              <div className="text-5xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl md:text-5xl font-bold text-blue-600 mb-2">
                 {property.bathrooms}
               </div>
               <div className="text-gray-600 uppercase tracking-wide text-sm font-semibold">
@@ -329,7 +329,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-              <div className="text-5xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl md:text-5xl font-bold text-blue-600 mb-2">
                 {property.maxGuests}
               </div>
               <div className="text-gray-600 uppercase tracking-wide text-sm font-semibold">
@@ -340,7 +340,7 @@ export default function Home() {
               </div>
             </div>
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-              <div className="text-5xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl md:text-5xl font-bold text-blue-600 mb-2">
                 {property.squareFeet}
               </div>
               <div className="text-gray-600 uppercase tracking-wide text-sm font-semibold">
@@ -377,7 +377,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900 text-center whitespace-nowrap">
+              <h3 className="text-xl md:text-3xl font-bold text-gray-900 text-center md:whitespace-nowrap">
                 Fully Equipped for Your Comfort
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -522,7 +522,7 @@ export default function Home() {
 
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-2xl mb-8">
               <div className="inline-block mb-8">
-                <div className="text-5xl md:text-6xl font-bold text-blue-600">
+                <div className="text-4xl md:text-6xl font-bold text-blue-600">
                   ${property.basePrice}
                 </div>
                 <div className="text-xl text-gray-600">per night</div>
@@ -583,7 +583,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h3 className="text-3xl font-bold mb-4">{property.name}</h3>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4">{property.name}</h3>
           <p className="text-gray-400 mb-8">
             {property.city}, {property.state}
           </p>
