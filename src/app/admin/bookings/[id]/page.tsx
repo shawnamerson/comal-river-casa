@@ -5,6 +5,8 @@ import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function BookingDetailPage() {
   const router = useRouter()
@@ -99,9 +101,13 @@ export default function BookingDetailPage() {
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="mb-8 flex justify-between items-center">
-          <Button variant="outline" onClick={() => router.push('/admin')}>
-            ← Back to Dashboard
-          </Button>
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Admin
+          </Link>
           <div
             className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
               booking.status

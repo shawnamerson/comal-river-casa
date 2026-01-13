@@ -8,6 +8,8 @@ import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function BlockDatesPage() {
   const router = useRouter()
@@ -42,11 +44,13 @@ export default function BlockDatesPage() {
   return (
     <main className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="mb-8">
-          <Button variant="outline" onClick={() => router.push('/admin')}>
-            ← Back to Dashboard
-          </Button>
-        </div>
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Admin
+        </Link>
 
         <Card>
           <CardHeader>

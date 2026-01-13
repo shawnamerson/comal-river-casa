@@ -8,6 +8,8 @@ import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default function AvailabilityManagementPage() {
   const router = useRouter()
@@ -105,13 +107,13 @@ export default function AvailabilityManagementPage() {
   return (
     <main className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <Button variant="outline" onClick={() => router.push('/admin')}>
-              ← Back to Dashboard
-            </Button>
-          </div>
-        </div>
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Admin
+        </Link>
 
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Availability Management</h1>
