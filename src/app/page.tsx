@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -13,6 +13,10 @@ export default function Home() {
   const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<number | null>(null)
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const handleBookingClick = () => {
     setShowBooking(true)
