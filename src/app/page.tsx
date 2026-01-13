@@ -237,7 +237,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900">
+              <h3 className="text-3xl font-bold text-gray-900 text-center whitespace-nowrap">
                 Your Hill Country Haven Awaits
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
@@ -373,7 +373,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900">
+              <h3 className="text-3xl font-bold text-gray-900 text-center whitespace-nowrap">
                 Fully Equipped for Your Comfort
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
