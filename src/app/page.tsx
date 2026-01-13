@@ -115,7 +115,7 @@ export default function Home() {
               />
             </div>
             <div className="space-y-6">
-              <h3 className="text-3xl font-bold text-gray-900">River Tubing Paradise</h3>
+              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">River Tubing Paradise</h3>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Float down the pristine Comal River, one of the shortest and most beautiful rivers in Texas.
                 Crystal-clear spring-fed waters maintain a perfect 72°F year-round. Tube chutes, rope swings,
@@ -127,7 +127,7 @@ export default function Home() {
           {/* Schlitterbahn - Image Right */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900">Schlitterbahn Waterpark</h3>
+              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">Schlitterbahn Waterpark</h3>
               <p className="text-lg text-gray-700 leading-relaxed">
                 Home to America&apos;s #1 rated waterpark! Experience thrilling water slides, the world&apos;s
                 first uphill water coaster, lazy rivers, and family-friendly attractions. Just minutes from
@@ -254,7 +254,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 md:order-1">
-              <h3 className="text-3xl font-bold text-gray-900">
+              <h3 className="text-3xl font-bold text-gray-900 text-center md:text-left">
                 Comfort Meets Luxury
               </h3>
               <p className="text-lg text-gray-700 leading-relaxed">
