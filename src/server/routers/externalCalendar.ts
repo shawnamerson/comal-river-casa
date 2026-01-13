@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc'
+import { fetchAndParseICal } from '@/lib/ical-parser'
 
 export const externalCalendarRouter = router({
   // List all external calendars
@@ -80,32 +81,16 @@ export const externalCalendarRouter = router({
       }
 
       try {
-        // Dynamically import node-ical to avoid BigInt issues during build
-        const ical = await import('node-ical')
-
         // Fetch and parse the iCal feed
-        const events = await ical.async.fromURL(calendar.icalUrl)
+        const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates: Array<{
-          startDate: Date
-          endDate: Date
-          reason: string
-          externalCalendarId: string
-          externalEventId: string
-        }> = []
-
-        // Extract all VEVENT entries
-        for (const event of Object.values(events)) {
-          if (event.type === 'VEVENT' && event.start && event.end) {
-            blockedDates.push({
-              startDate: new Date(event.start),
-              endDate: new Date(event.end),
-              reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-              externalCalendarId: calendar.id,
-              externalEventId: event.uid || '',
-            })
-          }
-        }
+        const blockedDates = events.map((event) => ({
+          startDate: event.start,
+          endDate: event.end,
+          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+          externalCalendarId: calendar.id,
+          externalEventId: event.uid || '',
+        }))
 
         // Delete old blocked dates from this calendar
         await ctx.prisma.blockedDate.deleteMany({
@@ -153,9 +138,6 @@ export const externalCalendarRouter = router({
 
   // Sync all active calendars
   syncAll: publicProcedure.mutation(async ({ ctx }) => {
-    // Dynamically import node-ical to avoid BigInt issues during build
-    const ical = await import('node-ical')
-
     const calendars = await ctx.prisma.externalCalendar.findMany({
       where: { isActive: true },
     })
@@ -164,27 +146,15 @@ export const externalCalendarRouter = router({
 
     for (const calendar of calendars) {
       try {
-        const events = await ical.async.fromURL(calendar.icalUrl)
+        const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates: Array<{
-          startDate: Date
-          endDate: Date
-          reason: string
-          externalCalendarId: string
-          externalEventId: string
-        }> = []
-
-        for (const event of Object.values(events)) {
-          if (event.type === 'VEVENT' && event.start && event.end) {
-            blockedDates.push({
-              startDate: new Date(event.start),
-              endDate: new Date(event.end),
-              reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-              externalCalendarId: calendar.id,
-              externalEventId: event.uid || '',
-            })
-          }
-        }
+        const blockedDates = events.map((event) => ({
+          startDate: event.start,
+          endDate: event.end,
+          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+          externalCalendarId: calendar.id,
+          externalEventId: event.uid || '',
+        }))
 
         await ctx.prisma.blockedDate.deleteMany({
           where: { externalCalendarId: calendar.id },

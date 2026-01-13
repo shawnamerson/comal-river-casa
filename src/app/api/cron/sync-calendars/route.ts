@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
+import { fetchAndParseICal } from '@/lib/ical-parser'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +14,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Dynamically import node-ical
-    const ical = await import('node-ical')
-
     const calendars = await prisma.externalCalendar.findMany({
       where: { isActive: true },
     })
@@ -24,27 +22,15 @@ export async function GET(request: NextRequest) {
 
     for (const calendar of calendars) {
       try {
-        const events = await ical.async.fromURL(calendar.icalUrl)
+        const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates: Array<{
-          startDate: Date
-          endDate: Date
-          reason: string
-          externalCalendarId: string
-          externalEventId: string
-        }> = []
-
-        for (const event of Object.values(events)) {
-          if (event.type === 'VEVENT' && event.start && event.end) {
-            blockedDates.push({
-              startDate: new Date(event.start),
-              endDate: new Date(event.end),
-              reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-              externalCalendarId: calendar.id,
-              externalEventId: event.uid || '',
-            })
-          }
-        }
+        const blockedDates = events.map((event) => ({
+          startDate: event.start,
+          endDate: event.end,
+          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+          externalCalendarId: calendar.id,
+          externalEventId: event.uid || '',
+        }))
 
         // Delete old blocked dates from this calendar
         await prisma.blockedDate.deleteMany({
