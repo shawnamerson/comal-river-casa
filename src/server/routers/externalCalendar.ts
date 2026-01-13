@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc'
-import * as ical from 'node-ical'
 
 export const externalCalendarRouter = router({
   // List all external calendars
@@ -81,6 +80,9 @@ export const externalCalendarRouter = router({
       }
 
       try {
+        // Dynamically import node-ical to avoid BigInt issues during build
+        const ical = await import('node-ical')
+
         // Fetch and parse the iCal feed
         const events = await ical.async.fromURL(calendar.icalUrl)
 
@@ -151,6 +153,9 @@ export const externalCalendarRouter = router({
 
   // Sync all active calendars
   syncAll: publicProcedure.mutation(async ({ ctx }) => {
+    // Dynamically import node-ical to avoid BigInt issues during build
+    const ical = await import('node-ical')
+
     const calendars = await ctx.prisma.externalCalendar.findMany({
       where: { isActive: true },
     })
