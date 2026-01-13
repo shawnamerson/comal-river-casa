@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc'
+import { stripe } from '@/lib/stripe'
 
 export const bookingRouter = router({
   // Calculate pricing for a date range including seasonal rates
@@ -416,6 +417,106 @@ export const bookingRouter = router({
         id: updated.id,
         status: updated.status,
         cancelledAt: updated.cancelledAt?.toISOString() || null,
+      }
+    }),
+
+  // Create a payment intent for a booking
+  createPaymentIntent: publicProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { id: input.bookingId },
+      })
+
+      if (!booking) {
+        throw new Error('Booking not found')
+      }
+
+      if (booking.stripePaymentIntentId) {
+        // Return existing payment intent client secret
+        const existingIntent = await stripe.paymentIntents.retrieve(
+          booking.stripePaymentIntentId
+        )
+        return {
+          clientSecret: existingIntent.client_secret,
+          paymentIntentId: existingIntent.id,
+        }
+      }
+
+      // Create new payment intent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(Number(booking.totalPrice) * 100), // Convert to cents
+        currency: 'usd',
+        metadata: {
+          bookingId: booking.id,
+          guestEmail: booking.guestEmail,
+          guestName: booking.guestName,
+          checkIn: booking.checkIn.toISOString(),
+          checkOut: booking.checkOut.toISOString(),
+        },
+        receipt_email: booking.guestEmail,
+        description: `Booking for ${booking.guestName} - ${booking.checkIn.toLocaleDateString()} to ${booking.checkOut.toLocaleDateString()}`,
+      })
+
+      // Update booking with payment intent ID
+      await ctx.prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          stripePaymentIntentId: paymentIntent.id,
+        },
+      })
+
+      return {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      }
+    }),
+
+  // Confirm payment was successful (called after Stripe confirms)
+  confirmPayment: publicProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+        paymentIntentId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { id: input.bookingId },
+      })
+
+      if (!booking) {
+        throw new Error('Booking not found')
+      }
+
+      // Verify payment intent status with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId)
+
+      if (paymentIntent.status === 'succeeded') {
+        // Update booking status
+        const updated = await ctx.prisma.booking.update({
+          where: { id: booking.id },
+          data: {
+            status: 'CONFIRMED',
+            paymentStatus: 'SUCCEEDED',
+          },
+        })
+
+        return {
+          success: true,
+          status: updated.status,
+          paymentStatus: updated.paymentStatus,
+        }
+      } else {
+        return {
+          success: false,
+          status: booking.status,
+          paymentStatus: paymentIntent.status,
+        }
       }
     }),
 })
