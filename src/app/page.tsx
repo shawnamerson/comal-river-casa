@@ -48,7 +48,7 @@ export default function Home() {
   }
 
   const property = PROPERTY
-  const heroImage = '/images/property/historic-gruene-new-braunfels-tx.jpg'
+  const heroImage = '/images/property/gruene.jpg'
   const heroAlt = 'Historic Gruene, New Braunfels, Texas'
 
   return (
