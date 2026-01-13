@@ -48,8 +48,8 @@ export default function Home() {
   }
 
   const property = PROPERTY
-  const heroImage = property.images[0].url
-  const heroAlt = property.images[0].altText
+  const heroImage = '/images/property/historic-gruene-new-braunfels-tx.jpg'
+  const heroAlt = 'Historic Gruene, New Braunfels, Texas'
 
   return (
     <main className="min-h-screen bg-white">
@@ -91,16 +91,103 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Welcome Story Section */}
+      {/* New Braunfels Experience Section */}
+      <section className="py-24 px-4 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Discover New Braunfels
+            </h2>
+            <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
+            <p className="text-xl max-w-3xl mx-auto">
+              Where Texas Hill Country charm meets endless adventure on the crystal-clear waters of the Comal River
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all">
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4">🌊</div>
+                <h3 className="text-2xl font-bold mb-4">River Tubing Paradise</h3>
+                <p className="leading-relaxed opacity-90">
+                  Float down the pristine Comal River, one of the shortest and most beautiful rivers in Texas.
+                  Crystal-clear spring-fed waters maintain a perfect 72°F year-round. Tube chutes, rope swings,
+                  and lazy river sections create the ultimate tubing experience.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all">
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4">🎢</div>
+                <h3 className="text-2xl font-bold mb-4">Schlitterbahn Waterpark</h3>
+                <p className="leading-relaxed opacity-90">
+                  Home to America&apos;s #1 rated waterpark! Experience thrilling water slides, the world&apos;s
+                  first uphill water coaster, lazy rivers, and family-friendly attractions. Just minutes from
+                  your door to endless summer fun.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all">
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4">🍖</div>
+                <h3 className="text-2xl font-bold mb-4">Texas Hill Country Culture</h3>
+                <p className="leading-relaxed opacity-90">
+                  Savor authentic Texas BBQ, explore German heritage in historic Gruene, browse local wineries
+                  and breweries, and discover live music venues. Shop antique stores, artisan boutiques, and
+                  the famous Gruene Hall, Texas&apos; oldest dance hall.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all">
+              <CardContent className="p-8">
+                <div className="text-4xl mb-4">🏞️</div>
+                <h3 className="text-2xl font-bold mb-4">Natural Wonders</h3>
+                <p className="leading-relaxed opacity-90 mb-4">
+                  Explore Natural Bridge Caverns, one of the largest underground cave systems in Texas.
+                  Hike scenic trails through Hill Country landscapes, discover hidden swimming holes,
+                  and witness spectacular sunsets over rolling hills.
+                </p>
+                <p className="leading-relaxed opacity-90">
+                  Landa Park offers 51 acres of spring-fed swimming, miniature golf, paddleboats,
+                  and shaded picnic areas perfect for family outings.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all">
+              <CardContent className="p-8">
+                <div className="text-4xl mb-4">🎵</div>
+                <h3 className="text-2xl font-bold mb-4">Entertainment & Events</h3>
+                <p className="leading-relaxed opacity-90 mb-4">
+                  Experience live music at historic Gruene Hall where legends like Willie Nelson have played.
+                  Enjoy seasonal festivals celebrating German heritage, wine country tours through nearby
+                  vineyards, and vibrant downtown nightlife.
+                </p>
+                <p className="leading-relaxed opacity-90">
+                  Year-round events include Wurstfest, Christmas markets, and outdoor concerts under
+                  the Texas stars.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Your Perfect Home Base Section */}
       <section className="py-24 px-4 bg-gray-50">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Welcome to Paradise
+              Your Perfect Home Base
             </h2>
             <div className="w-24 h-1 bg-blue-600 mx-auto mb-8"></div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover your perfect riverside retreat where relaxation meets adventure
+              After a day of adventure, retreat to your riverside haven with stunning views and modern comforts
             </p>
           </div>
 
@@ -278,116 +365,6 @@ export default function Home() {
                 <p className="text-center font-medium text-gray-800">{amenity}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Location Highlights */}
-      <section className="py-24 px-4 bg-white">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              The Perfect Location
-            </h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto mb-8"></div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nestled in the heart of New Braunfels, steps from the Comal River and minutes
-              from everything the Texas Hill Country has to offer
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="border-2 hover:border-blue-300 transition-colors overflow-hidden">
-              <div className="relative h-64">
-                <Image
-                  src={property.images[8].url}
-                  alt={property.images[8].altText}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">Outdoor Adventures</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Direct access to world-class tubing, kayaking, and swimming on the crystal-clear Comal River.
-                  Just steps from your door, you&apos;ll find tube rentals, river access points, and peaceful spots
-                  perfect for a morning coffee or sunset viewing.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  The river maintains a refreshing 72 degrees year-round, making it perfect for summer fun and
-                  winter relaxation.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 hover:border-blue-300 transition-colors overflow-hidden">
-              <div className="relative h-64">
-                <Image
-                  src={property.images[9].url}
-                  alt={property.images[9].altText}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">Dining & Entertainment</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Explore nearby restaurants serving authentic Texas BBQ, German cuisine, and modern fusion.
-                  Visit local breweries, wine bars, and the famous Schlitterbahn Waterpark, consistently
-                  rated one of America&apos;s best water parks.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Historic downtown New Braunfels offers charming shops, live music venues, and seasonal festivals
-                  celebrating the area&apos;s rich German heritage.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 hover:border-blue-300 transition-colors overflow-hidden">
-              <div className="relative h-64">
-                <Image
-                  src={property.images[10].url}
-                  alt={property.images[10].altText}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">Natural Beauty</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Experience the stunning Texas Hill Country with its rolling hills, limestone cliffs, and
-                  abundant wildlife. Wake up to birdsong and fall asleep under star-filled skies far from
-                  city lights.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Nearby hiking trails, natural swimming holes, and scenic drives offer endless opportunities
-                  to connect with nature.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 hover:border-blue-300 transition-colors overflow-hidden">
-              <div className="relative h-64">
-                <Image
-                  src={property.images[11].url}
-                  alt={property.images[11].altText}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-4">Easy Access</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Just 30 minutes from San Antonio&apos;s River Walk and historic Alamo, and less than an hour
-                  from Austin&apos;s vibrant music scene. Perfect for day trips while maintaining a peaceful
-                  retreat to return to each evening.
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  Convenient to major highways, yet tucked away in a quiet neighborhood that feels worlds
-                  away from the hustle and bustle.
-                </p>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
