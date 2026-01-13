@@ -53,10 +53,11 @@ export default function ExternalCalendarsPage() {
       refetch()
       const successCount = results.filter((r) => r.success).length
       const failCount = results.filter((r) => !r.success).length
+      const totalEvents = results
+        .filter((r) => r.success)
+        .reduce((sum, r) => sum + ('syncedEvents' in r ? r.syncedEvents : 0), 0)
       alert(
-        `Sync complete!\nSuccessful: ${successCount}\nFailed: ${failCount}\n\nTotal events: ${results
-          .filter((r) => r.success)
-          .reduce((sum, r) => sum + (r.syncedEvents || 0), 0)}`
+        `Sync complete!\nSuccessful: ${successCount}\nFailed: ${failCount}\n\nTotal events: ${totalEvents}`
       )
     },
     onError: (error) => {
