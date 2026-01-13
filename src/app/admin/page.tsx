@@ -80,12 +80,15 @@ export default function AdminDashboard() {
               <p className="text-gray-600">Manage bookings and property availability</p>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Button onClick={() => router.push('/admin/availability')}>
               📅 Manage Availability
             </Button>
             <Button onClick={() => router.push('/admin/rates')} variant="outline">
               💰 Manage Rates
+            </Button>
+            <Button onClick={() => router.push('/admin/calendars')} variant="outline">
+              🔄 Calendar Sync
             </Button>
           </div>
         </div>

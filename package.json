@@ -37,6 +37,7 @@
     "next": "^14.2.0",
     "next-auth": "^5.0.0-beta.30",
     "next-cloudinary": "^6.17.5",
+    "node-ical": "^0.23.1",
     "react": "^18.2.0",
     "react-day-picker": "^9.13.0",
     "react-dom": "^18.2.0",
