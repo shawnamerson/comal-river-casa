@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PROPERTY } from '@/config/property'
@@ -9,6 +10,7 @@ import { BookingCalendar } from '@/components/booking-calendar'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function Home() {
+  const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<number | null>(null)
 
