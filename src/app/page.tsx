@@ -148,8 +148,8 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/images/property/historic-gruene-new-braunfels-tx.jpg"
-                alt="Historic Gruene"
+                src="/images/property/wurst.jpg"
+                alt="German Wurstfest Culture"
                 fill
                 className="object-cover"
               />
@@ -180,8 +180,8 @@ export default function Home() {
             </div>
             <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl order-1 md:order-2">
               <Image
-                src={property.images[1].url}
-                alt="Natural Beauty - River View"
+                src="/images/property/NaturalBridgeCaverns_feature.jpg"
+                alt="Natural Bridge Caverns"
                 fill
                 className="object-cover"
               />
