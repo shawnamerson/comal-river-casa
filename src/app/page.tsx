@@ -180,7 +180,7 @@ export default function Home() {
             </div>
             <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl order-1 md:order-2">
               <Image
-                src="/images/property/NaturalBridgeCaverns_feature.jpg"
+                src="/images/property/natural-bridge-caverns.jpg"
                 alt="Natural Bridge Caverns"
                 fill
                 className="object-cover"
@@ -192,7 +192,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/images/property/live_music.jpg"
+                src="/images/property/live-music.jpg"
                 alt="Live Music and Entertainment"
                 fill
                 className="object-cover"
