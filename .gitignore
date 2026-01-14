@@ -40,3 +40,10 @@ next-env.d.ts
 
 # claude temp files
 tmpclaude-*
+
+# IDE/editor
+.vs/
+.claude/settings.local.json
+
+# Windows artifacts
+nul
