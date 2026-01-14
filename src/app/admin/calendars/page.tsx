@@ -10,11 +10,26 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function ExternalCalendarsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
+  const [exportUrlCopied, setExportUrlCopied] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     platform: 'AIRBNB' as 'AIRBNB' | 'VRBO' | 'BOOKING_COM' | 'OTHER',
     icalUrl: '',
   })
+
+  const getExportUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/api/calendar/export`
+    }
+    return ''
+  }
+
+  const handleCopyExportUrl = async () => {
+    const url = getExportUrl()
+    await navigator.clipboard.writeText(url)
+    setExportUrlCopied(true)
+    setTimeout(() => setExportUrlCopied(false), 2000)
+  }
 
   const { data: calendars, refetch } = trpc.externalCalendar.list.useQuery()
 
@@ -114,10 +129,37 @@ export default function ExternalCalendarsPage() {
         </div>
       </div>
 
+      {/* Export Your Bookings */}
+      <Card className="mb-6 bg-green-50 border-green-200">
+        <CardHeader>
+          <CardTitle className="text-lg">Export Your Bookings to Airbnb/VRBO</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-700">
+            Share this iCal URL with Airbnb, VRBO, and other platforms to automatically block dates when guests book directly on your site.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={getExportUrl()}
+              className="flex-1 px-4 py-2 border rounded-lg bg-white text-sm font-mono"
+            />
+            <Button onClick={handleCopyExportUrl} variant="outline">
+              {exportUrlCopied ? 'Copied!' : 'Copy URL'}
+            </Button>
+          </div>
+          <div className="text-xs text-gray-600 space-y-1">
+            <p><strong>Airbnb:</strong> Calendar → Availability settings → Import calendar → Paste URL</p>
+            <p><strong>VRBO:</strong> Calendar → Import/Export → Import calendar → Paste URL</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* How to Get iCal URLs */}
       <Card className="mb-6 bg-blue-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-lg">How to Get Your iCal URL</CardTitle>
+          <CardTitle className="text-lg">How to Get Your iCal URL (for importing)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <div>
