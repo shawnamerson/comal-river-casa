@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 
 interface PaymentFormProps {
   bookingId: string
-  onSuccess: () => void
+  onSuccess: (paymentIntentId: string) => void
   onError: (error: string) => void
 }
 
@@ -43,7 +43,7 @@ export function PaymentForm({ bookingId, onSuccess, onError }: PaymentFormProps)
         setErrorMessage(error.message || 'Payment failed')
         onError(error.message || 'Payment failed')
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        onSuccess()
+        onSuccess(paymentIntent.id)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Payment failed'

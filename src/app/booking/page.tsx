@@ -115,24 +115,12 @@ function BookingForm() {
     createBooking.mutate(bookingData)
   }
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = (paymentIntentId: string) => {
     if (bookingId) {
       confirmPayment.mutate({
         bookingId,
-        paymentIntentId: '', // Will be retrieved from the payment intent
+        paymentIntentId,
       })
-      // Navigate directly since webhook will confirm
-      const confirmationParams = new URLSearchParams({
-        bookingId: bookingId,
-        guestName: formData.guestName,
-        guestEmail: formData.guestEmail,
-        checkIn: checkIn || '',
-        checkOut: checkOut || '',
-        guests: numberOfGuests || '',
-        nights: numberOfNights || '',
-        total: totalPrice || '',
-      })
-      router.push(`/booking/confirmation?${confirmationParams.toString()}`)
     }
   }
 
