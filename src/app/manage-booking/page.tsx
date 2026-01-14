@@ -51,8 +51,14 @@ export default function ManageBookingPage() {
   })
 
   const cancelBooking = trpc.booking.cancel.useMutation({
-    onSuccess: () => {
-      alert('Booking cancelled successfully')
+    onSuccess: (data) => {
+      if (data.refundAmount) {
+        alert(`Booking cancelled successfully. A refund of $${data.refundAmount.toFixed(2)} has been processed.`)
+      } else if (data.refundEligible === false) {
+        alert('Booking cancelled. No refund was issued as per the cancellation policy.')
+      } else {
+        alert('Booking cancelled successfully.')
+      }
       setBooking(null)
       setLookupData({ bookingId: '', email: '' })
       setShowCancelConfirm(false)
@@ -289,7 +295,7 @@ export default function ManageBookingPage() {
                 Look Up Another Booking
               </Button>
 
-              {booking.status === 'CONFIRMED' && (
+              {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') && (
                 <Button
                   onClick={() => setShowCancelConfirm(true)}
                   variant="destructive"
@@ -302,39 +308,72 @@ export default function ManageBookingPage() {
             </div>
 
             {/* Cancel Confirmation Dialog */}
-            {showCancelConfirm && (
-              <Card className="border-red-500 border-2">
-                <CardHeader className="bg-red-50">
-                  <CardTitle className="text-red-900">Cancel Booking?</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <p className="mb-4 text-gray-700">
-                    Are you sure you want to cancel this booking? This action cannot be undone.
-                  </p>
-                  <p className="mb-6 text-sm text-gray-600">
-                    Please review the property&apos;s cancellation policy before proceeding.
-                    Refunds may be subject to the cancellation policy terms.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => setShowCancelConfirm(false)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Keep Booking
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="destructive"
-                      className="flex-1"
-                      disabled={cancelBooking.isPending}
-                    >
-                      {cancelBooking.isPending ? 'Cancelling...' : 'Yes, Cancel Booking'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {showCancelConfirm && (() => {
+              const now = new Date()
+              const checkIn = new Date(booking.checkIn)
+              const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
+              const willGetRefund = booking.status === 'PENDING' || hoursUntilCheckIn > 24
+
+              return (
+                <Card className="border-red-500 border-2">
+                  <CardHeader className="bg-red-50">
+                    <CardTitle className="text-red-900">Cancel Booking?</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <p className="mb-4 text-gray-700">
+                      Are you sure you want to cancel this booking? This action cannot be undone.
+                    </p>
+
+                    {/* Refund Status */}
+                    {willGetRefund ? (
+                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-green-800 font-semibold">You will receive a full refund</p>
+                        <p className="text-green-700 text-sm">
+                          {booking.status === 'PENDING'
+                            ? 'Your booking has not been confirmed yet.'
+                            : `You are cancelling more than 24 hours before check-in.`}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-800 font-semibold">No refund available</p>
+                        <p className="text-red-700 text-sm">
+                          Cancellations within 24 hours of check-in are not eligible for a refund.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Cancellation Policy */}
+                    <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm font-semibold mb-2">Cancellation Policy</p>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li>• Full refund if cancelled before owner confirms</li>
+                        <li>• Full refund if cancelled more than 24 hours before check-in</li>
+                        <li>• No refund if cancelled within 24 hours of check-in</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => setShowCancelConfirm(false)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Keep Booking
+                      </Button>
+                      <Button
+                        onClick={handleCancel}
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={cancelBooking.isPending}
+                      >
+                        {cancelBooking.isPending ? 'Cancelling...' : 'Yes, Cancel Booking'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })()}
           </div>
         )}
 
