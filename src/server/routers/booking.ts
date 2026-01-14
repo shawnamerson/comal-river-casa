@@ -403,15 +403,20 @@ export const bookingRouter = router({
         throw new Error('This booking is already cancelled')
       }
 
-      // Check if eligible for refund (more than 24 hours before check-in)
+      // Check if eligible for refund:
+      // - Always refund if booking is PENDING (not yet confirmed by owner)
+      // - Refund if CONFIRMED and more than 24 hours before check-in
       const now = new Date()
       const checkIn = new Date(booking.checkIn)
       const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
 
+      const isEligibleForRefund =
+        booking.status === 'PENDING' || hoursUntilCheckIn > 24
+
       let refundAmount: number | null = null
 
       if (
-        hoursUntilCheckIn > 24 &&
+        isEligibleForRefund &&
         booking.stripePaymentIntentId &&
         booking.paymentStatus === 'SUCCEEDED'
       ) {
@@ -444,7 +449,7 @@ export const bookingRouter = router({
         status: updated.status,
         cancelledAt: updated.cancelledAt?.toISOString() || null,
         refundAmount,
-        refundEligible: hoursUntilCheckIn > 24,
+        refundEligible: isEligibleForRefund,
       }
     }),
 
