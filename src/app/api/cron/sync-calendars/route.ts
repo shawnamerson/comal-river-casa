@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const failCount = results.filter((r) => !r.success).length
     const totalEvents = results
       .filter((r) => r.success)
-      .reduce((sum, r) => sum + (r.success ? r.syncedEvents : 0), 0)
+      .reduce((sum, r) => sum + (r.syncedEvents ?? 0), 0)
 
     return NextResponse.json({
       message: 'Calendar sync complete',
