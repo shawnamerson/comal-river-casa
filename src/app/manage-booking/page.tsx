@@ -28,6 +28,7 @@ interface BookingData {
   paymentStatus: string
   cancelledAt: string | null
   cancellationReason: string | null
+  refundAmount: number | null
   createdAt: string
   updatedAt: string
 }
@@ -162,25 +163,44 @@ export default function ManageBookingPage() {
           // Booking Details
           <div className="space-y-6">
             <Card>
-              <CardHeader className="bg-green-50 border-b">
+              <CardHeader className={`border-b ${booking.status === 'CANCELLED' ? 'bg-red-50' : 'bg-green-50'}`}>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${booking.status === 'CANCELLED' ? 'bg-red-500' : 'bg-green-500'}`}>
+                    {booking.status === 'CANCELLED' ? (
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
                   </div>
-                  <CardTitle>
-                    {booking.status === 'CONFIRMED' ? 'Active Reservation' : `Booking ${booking.status}`}
+                  <CardTitle className={booking.status === 'CANCELLED' ? 'text-red-900' : ''}>
+                    {booking.status === 'CONFIRMED' ? 'Active Reservation' :
+                     booking.status === 'PENDING' ? 'Pending Confirmation' :
+                     booking.status === 'CANCELLED' ? 'Booking Cancelled' :
+                     `Booking ${booking.status}`}
                   </CardTitle>
                 </div>
               </CardHeader>
@@ -192,6 +212,52 @@ export default function ManageBookingPage() {
                     {booking.id}
                   </p>
                 </div>
+
+                {/* Cancellation Details */}
+                {booking.status === 'CANCELLED' && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <p className="font-semibold text-red-900">This booking has been cancelled</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-red-700 font-medium">Cancelled by</p>
+                        <p className="text-red-900">
+                          {booking.cancellationReason?.includes('by guest') ? 'Guest' :
+                           booking.cancellationReason?.includes('by owner') || booking.cancellationReason?.includes('by admin') ? 'Property Owner' :
+                           'Unknown'}
+                        </p>
+                      </div>
+                      {booking.cancelledAt && (
+                        <div>
+                          <p className="text-red-700 font-medium">Cancelled on</p>
+                          <p className="text-red-900">{format(new Date(booking.cancelledAt), 'MMM dd, yyyy h:mm a')}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {booking.refundAmount !== null && booking.refundAmount > 0 ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="font-semibold text-green-900">Refund Issued</p>
+                        </div>
+                        <p className="text-green-800 text-lg font-bold mt-1">${booking.refundAmount.toFixed(2)}</p>
+                        <p className="text-green-700 text-xs mt-1">Refunds typically take 5-10 business days to appear on your statement.</p>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mt-2">
+                        <p className="text-gray-700 text-sm">No refund was issued for this cancellation.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Guest Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

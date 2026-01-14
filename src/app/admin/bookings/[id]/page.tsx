@@ -35,7 +35,7 @@ export default function BookingDetailPage() {
       updateStatus.mutate({
         id: bookingId,
         status: 'CANCELLED',
-        cancellationReason: reason || undefined,
+        cancellationReason: `Cancelled by owner${reason ? `: ${reason}` : ''}`,
       })
     }
   }

@@ -378,6 +378,7 @@ export const bookingRouter = router({
         paymentStatus: booking.paymentStatus,
         cancelledAt: booking.cancelledAt?.toISOString() || null,
         cancellationReason: booking.cancellationReason,
+        refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
         createdAt: booking.createdAt.toISOString(),
         updatedAt: booking.updatedAt.toISOString(),
       }
