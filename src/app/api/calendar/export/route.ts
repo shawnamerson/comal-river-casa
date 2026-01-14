@@ -34,6 +34,16 @@ export async function GET() {
       },
     })
 
+    // Get manually blocked dates (not imported from external calendars)
+    const blockedDates = await prisma.blockedDate.findMany({
+      where: {
+        externalCalendarId: null,
+      },
+      orderBy: {
+        startDate: 'asc',
+      },
+    })
+
     const now = new Date()
     const calendarName = `${PROPERTY.name} - Direct Bookings`
 
@@ -48,21 +58,44 @@ export async function GET() {
       `X-WR-TIMEZONE:America/Chicago`,
     ]
 
+    // Add bookings
     for (const booking of bookings) {
       const checkIn = new Date(booking.checkIn)
       const checkOut = new Date(booking.checkOut)
       const created = new Date(booking.createdAt)
 
-      // Use date-only format for all-day events (how Airbnb/VRBO expect them)
       const event = [
         'BEGIN:VEVENT',
-        `UID:${booking.id}@comalrivercasa.com`,
+        `UID:booking-${booking.id}@comalrivercasa.com`,
         `DTSTAMP:${formatDateToICal(now)}`,
         `DTSTART;VALUE=DATE:${formatDateOnly(checkIn)}`,
         `DTEND;VALUE=DATE:${formatDateOnly(checkOut)}`,
         `CREATED:${formatDateToICal(created)}`,
         `SUMMARY:${escapeICalText(`Reserved - ${booking.guestName}`)}`,
         `DESCRIPTION:${escapeICalText(`Booking ID: ${booking.id}\\nGuest: ${booking.guestName}\\nGuests: ${booking.numberOfGuests}\\nStatus: ${booking.status}`)}`,
+        `STATUS:CONFIRMED`,
+        `TRANSP:OPAQUE`,
+        'END:VEVENT',
+      ]
+
+      ical = ical.concat(event)
+    }
+
+    // Add manually blocked dates
+    for (const blocked of blockedDates) {
+      const startDate = new Date(blocked.startDate)
+      const endDate = new Date(blocked.endDate)
+      const created = new Date(blocked.createdAt)
+
+      const event = [
+        'BEGIN:VEVENT',
+        `UID:blocked-${blocked.id}@comalrivercasa.com`,
+        `DTSTAMP:${formatDateToICal(now)}`,
+        `DTSTART;VALUE=DATE:${formatDateOnly(startDate)}`,
+        `DTEND;VALUE=DATE:${formatDateOnly(endDate)}`,
+        `CREATED:${formatDateToICal(created)}`,
+        `SUMMARY:${escapeICalText(blocked.reason || 'Blocked')}`,
+        `DESCRIPTION:${escapeICalText(`Manually blocked dates`)}`,
         `STATUS:CONFIRMED`,
         `TRANSP:OPAQUE`,
         'END:VEVENT',
