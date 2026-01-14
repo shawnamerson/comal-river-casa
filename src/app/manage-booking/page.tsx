@@ -247,9 +247,7 @@ export default function ManageBookingPage() {
                       <div>
                         <p className="text-red-700 font-medium">Cancelled by</p>
                         <p className="text-red-900">
-                          {booking.cancellationReason?.includes('by guest') ? 'Guest' :
-                           booking.cancellationReason?.includes('by owner') || booking.cancellationReason?.includes('by admin') ? 'Property Owner' :
-                           'Unknown'}
+                          {booking.cancellationReason?.toLowerCase().includes('by guest') ? 'Guest' : 'Property Owner'}
                         </p>
                       </div>
                       {booking.cancelledAt && (
