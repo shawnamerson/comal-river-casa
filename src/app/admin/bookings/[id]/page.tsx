@@ -258,19 +258,29 @@ export default function BookingDetailPage() {
                   )}
 
                   {booking.status === 'CANCELLED' && (
-                    <div className="p-4 bg-red-50 rounded-lg w-full">
-                      <div className="font-semibold text-red-900 mb-1">
+                    <div className="p-4 bg-red-50 rounded-lg w-full space-y-3">
+                      <div className="font-semibold text-red-900">
                         Booking Cancelled
                       </div>
                       {booking.cancelledAt && (
                         <div className="text-sm text-red-700">
                           Cancelled on{' '}
-                          {format(new Date(booking.cancelledAt), 'MMM dd, yyyy')}
+                          {format(new Date(booking.cancelledAt), 'MMM dd, yyyy h:mm a')}
                         </div>
                       )}
                       {booking.cancellationReason && (
-                        <div className="text-sm text-red-700 mt-2">
+                        <div className="text-sm text-red-700">
                           Reason: {booking.cancellationReason}
+                        </div>
+                      )}
+                      {booking.refundAmount !== null && booking.refundAmount > 0 ? (
+                        <div className="p-3 bg-green-100 border border-green-300 rounded-lg">
+                          <div className="font-semibold text-green-900">Refund Issued</div>
+                          <div className="text-green-800 text-lg font-bold">${booking.refundAmount.toFixed(2)}</div>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-gray-100 border border-gray-300 rounded-lg">
+                          <div className="text-gray-700 text-sm">No refund issued</div>
                         </div>
                       )}
                     </div>
