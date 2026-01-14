@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,6 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export default function BookingDetailPage() {
-  const router = useRouter()
   const params = useParams()
   const bookingId = params.id as string
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 import 'react-day-picker/dist/style.css'
@@ -13,7 +12,6 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export default function RatesManagementPage() {
-  const router = useRouter()
   const [showForm, setShowForm] = useState(false)
   const [editingRate, setEditingRate] = useState<string | null>(null)
 
