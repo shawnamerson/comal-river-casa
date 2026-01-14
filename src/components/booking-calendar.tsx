@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
 import { format, differenceInDays, eachDayOfInterval } from 'date-fns'
@@ -15,6 +15,17 @@ export function BookingCalendar() {
   const [range, setRange] = useState<DateRange | undefined>()
   const [numberOfGuests, setNumberOfGuests] = useState(2)
   const [errorDisplay, setErrorDisplay] = useState<string | null>(null)
+  const [calendarMonths, setCalendarMonths] = useState(1)
+
+  // Responsive calendar months: 3 on desktop, 1 on mobile
+  useEffect(() => {
+    const updateMonths = () => {
+      setCalendarMonths(window.innerWidth >= 1024 ? 3 : 1)
+    }
+    updateMonths()
+    window.addEventListener('resize', updateMonths)
+    return () => window.removeEventListener('resize', updateMonths)
+  }, [])
 
   // Safe date range handler
   const handleDateSelect = (newRange: DateRange | undefined) => {
@@ -192,7 +203,7 @@ export function BookingCalendar() {
             selected={range}
             onSelect={handleDateSelect}
             disabled={disabledDays}
-            numberOfMonths={1}
+            numberOfMonths={calendarMonths}
             className="border rounded-lg p-3"
           />
         </div>
