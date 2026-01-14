@@ -19,7 +19,8 @@
       "Bash(taskkill:*)",
       "Bash(npm install:*)",
       "Bash(powershell:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

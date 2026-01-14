@@ -403,6 +403,31 @@ export const bookingRouter = router({
         throw new Error('This booking is already cancelled')
       }
 
+      // Check if eligible for refund (more than 24 hours before check-in)
+      const now = new Date()
+      const checkIn = new Date(booking.checkIn)
+      const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
+
+      let refundAmount: number | null = null
+
+      if (
+        hoursUntilCheckIn > 24 &&
+        booking.stripePaymentIntentId &&
+        booking.paymentStatus === 'SUCCEEDED'
+      ) {
+        try {
+          // Issue full refund via Stripe
+          const refund = await stripe.refunds.create({
+            payment_intent: booking.stripePaymentIntentId,
+          })
+
+          refundAmount = refund.amount / 100 // Convert from cents
+        } catch (error) {
+          console.error('Failed to process refund:', error)
+          throw new Error('Failed to process refund. Please contact support.')
+        }
+      }
+
       // Update booking status to cancelled
       const updated = await ctx.prisma.booking.update({
         where: { id: input.bookingId },
@@ -410,6 +435,7 @@ export const bookingRouter = router({
           status: 'CANCELLED',
           cancelledAt: new Date(),
           cancellationReason: 'Cancelled by guest',
+          refundAmount: refundAmount,
         },
       })
 
@@ -417,6 +443,8 @@ export const bookingRouter = router({
         id: updated.id,
         status: updated.status,
         cancelledAt: updated.cancelledAt?.toISOString() || null,
+        refundAmount,
+        refundEligible: hoursUntilCheckIn > 24,
       }
     }),
 

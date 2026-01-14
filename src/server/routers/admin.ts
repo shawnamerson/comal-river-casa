@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc'
+import { stripe } from '@/lib/stripe'
 
 export const adminRouter = router({
   // Get a single booking by ID
@@ -226,14 +227,54 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updateData: any = {
+      // Get the booking first to check for refund eligibility
+      const existingBooking = await ctx.prisma.booking.findUnique({
+        where: { id: input.id },
+      })
+
+      if (!existingBooking) {
+        throw new Error('Booking not found')
+      }
+
+      const updateData: {
+        status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+        cancelledAt?: Date
+        cancellationReason?: string
+        refundAmount?: number
+      } = {
         status: input.status,
       }
+
+      let refundAmount: number | null = null
 
       if (input.status === 'CANCELLED') {
         updateData.cancelledAt = new Date()
         if (input.cancellationReason) {
           updateData.cancellationReason = input.cancellationReason
+        }
+
+        // Check if eligible for refund (more than 24 hours before check-in)
+        const now = new Date()
+        const checkIn = new Date(existingBooking.checkIn)
+        const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
+
+        if (
+          hoursUntilCheckIn > 24 &&
+          existingBooking.stripePaymentIntentId &&
+          existingBooking.paymentStatus === 'SUCCEEDED'
+        ) {
+          try {
+            // Issue full refund via Stripe
+            const refund = await stripe.refunds.create({
+              payment_intent: existingBooking.stripePaymentIntentId,
+            })
+
+            refundAmount = refund.amount / 100 // Convert from cents
+            updateData.refundAmount = refundAmount
+          } catch (error) {
+            console.error('Failed to process refund:', error)
+            throw new Error('Failed to process refund. Please try again or process manually.')
+          }
         }
       }
 
@@ -247,6 +288,8 @@ export const adminRouter = router({
         status: booking.status,
         cancelledAt: booking.cancelledAt?.toISOString() || null,
         cancellationReason: booking.cancellationReason,
+        refundAmount,
+        refundEligible: refundAmount !== null,
       }
     }),
 
