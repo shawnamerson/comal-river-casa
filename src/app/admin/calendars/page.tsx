@@ -132,11 +132,11 @@ export default function ExternalCalendarsPage() {
       {/* Export Your Bookings */}
       <Card className="mb-6 bg-green-50 border-green-200">
         <CardHeader>
-          <CardTitle className="text-lg">Export Your Bookings to Airbnb/VRBO</CardTitle>
+          <CardTitle className="text-lg">Export Your Bookings & Blocked Dates</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-700">
-            Share this iCal URL with Airbnb, VRBO, and other platforms to automatically block dates when guests book directly on your site.
+            Share this iCal URL with Airbnb, VRBO, and other platforms to automatically block dates when guests book directly on your site or when you manually block dates.
           </p>
           <div className="flex items-center gap-2">
             <input
