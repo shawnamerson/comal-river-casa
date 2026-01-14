@@ -193,7 +193,7 @@ export function BookingCalendar() {
         )}
 
         {/* Date Picker */}
-        <div>
+        <div className="booking-calendar">
           <label className="text-sm font-semibold mb-2 block">Select Dates</label>
           <p className="text-xs text-gray-500 mb-3">
             Greyed out dates are unavailable. Select your check-in and check-out dates.
@@ -204,7 +204,7 @@ export function BookingCalendar() {
             onSelect={handleDateSelect}
             disabled={disabledDays}
             numberOfMonths={calendarMonths}
-            className="border rounded-lg p-3"
+            className="border rounded-lg p-3 w-full"
           />
         </div>
 

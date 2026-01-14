@@ -57,3 +57,27 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Booking calendar - 3 months side by side on desktop */
+@media (min-width: 1024px) {
+  .booking-calendar .rdp-months {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+  .booking-calendar .rdp-month {
+    flex: 1;
+    min-width: 0;
+  }
+  .booking-calendar .rdp-table {
+    width: 100%;
+    font-size: 0.875rem;
+  }
+  .booking-calendar .rdp-cell {
+    padding: 0.125rem;
+  }
+  .booking-calendar .rdp-day {
+    width: 2rem;
+    height: 2rem;
+  }
+}
