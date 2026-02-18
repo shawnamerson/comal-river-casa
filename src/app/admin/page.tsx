@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -109,6 +110,9 @@ export default function AdminDashboard() {
               <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
               <p className="text-gray-600">Manage bookings and property availability</p>
             </div>
+            <Button variant="outline" onClick={() => signOut({ callbackUrl: '/login' })}>
+              Log Out
+            </Button>
           </div>
           <div className="flex gap-3 flex-wrap">
             <Button onClick={() => router.push('/admin/availability')}>
