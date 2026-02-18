@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { router, adminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
+import bcrypt from 'bcryptjs'
 
 export const adminRouter = router({
   // Get a single booking by ID
@@ -391,6 +392,38 @@ export const adminRouter = router({
       await ctx.prisma.seasonalRate.delete({
         where: { id: input.id },
       })
+      return { success: true }
+    }),
+
+  // Change admin password
+  changePassword: adminProcedure
+    .input(
+      z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session!.user.id
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: userId },
+      })
+
+      if (!user || !user.password) {
+        throw new Error('User not found')
+      }
+
+      const valid = await bcrypt.compare(input.currentPassword, user.password)
+      if (!valid) {
+        throw new Error('Current password is incorrect')
+      }
+
+      const hash = await bcrypt.hash(input.newPassword, 10)
+      await ctx.prisma.user.update({
+        where: { id: userId },
+        data: { password: hash },
+      })
+
       return { success: true }
     }),
 })
