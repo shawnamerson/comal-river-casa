@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe'
 import bcrypt from 'bcryptjs'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
+import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 
 export const adminRouter = router({
   // Get a single booking by ID
@@ -286,7 +287,7 @@ export const adminRouter = router({
         data: updateData,
       })
 
-      // Send cancellation email
+      // Send cancellation emails
       if (input.status === 'CANCELLED') {
         try {
           await resend.emails.send({
@@ -305,6 +306,28 @@ export const adminRouter = router({
           })
         } catch (emailError) {
           console.error('Failed to send cancellation email:', emailError)
+        }
+
+        try {
+          await resend.emails.send({
+            from: process.env.EMAIL_FROM!,
+            to: process.env.ADMIN_EMAIL!,
+            subject: `Booking Cancelled — ${booking.guestName}`,
+            react: CancellationNotificationEmail({
+              guestName: booking.guestName,
+              guestEmail: booking.guestEmail,
+              guestPhone: booking.guestPhone,
+              bookingId: booking.id,
+              checkIn: booking.checkIn.toISOString(),
+              checkOut: booking.checkOut.toISOString(),
+              totalPrice: Number(booking.totalPrice),
+              refundAmount,
+              cancellationReason: input.cancellationReason,
+              cancelledBy: 'admin',
+            }),
+          })
+        } catch (emailError) {
+          console.error('Failed to send admin cancellation notification:', emailError)
         }
       }
 

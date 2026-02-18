@@ -3,6 +3,7 @@ import { router, publicProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
+import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 
 export const bookingRouter = router({
   // Calculate pricing for a date range including seasonal rates
@@ -447,7 +448,7 @@ export const bookingRouter = router({
         },
       })
 
-      // Send cancellation email
+      // Send cancellation email to guest
       try {
         await resend.emails.send({
           from: process.env.EMAIL_FROM!,
@@ -465,6 +466,29 @@ export const bookingRouter = router({
         })
       } catch (emailError) {
         console.error('Failed to send cancellation email:', emailError)
+      }
+
+      // Send cancellation notification to admin
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM!,
+          to: process.env.ADMIN_EMAIL!,
+          subject: `Booking Cancelled — ${updated.guestName}`,
+          react: CancellationNotificationEmail({
+            guestName: updated.guestName,
+            guestEmail: updated.guestEmail,
+            guestPhone: updated.guestPhone,
+            bookingId: updated.id,
+            checkIn: updated.checkIn.toISOString(),
+            checkOut: updated.checkOut.toISOString(),
+            totalPrice: Number(updated.totalPrice),
+            refundAmount,
+            cancellationReason: updated.cancellationReason,
+            cancelledBy: 'guest',
+          }),
+        })
+      } catch (emailError) {
+        console.error('Failed to send admin cancellation notification:', emailError)
       }
 
       return {
