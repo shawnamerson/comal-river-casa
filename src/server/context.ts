@@ -1,9 +1,12 @@
-import { prisma } from '@/lib/db/prisma'
+import { prisma } from "@/lib/db/prisma"
+import { auth } from "@/lib/auth"
 
-export function createContext() {
+export async function createContext() {
+  const session = await auth()
   return {
     prisma,
+    session,
   }
 }
 
-export type Context = ReturnType<typeof createContext>
+export type Context = Awaited<ReturnType<typeof createContext>>

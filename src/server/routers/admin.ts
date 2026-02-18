@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { router, publicProcedure } from '../trpc'
+import { router, adminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 
 export const adminRouter = router({
   // Get a single booking by ID
-  getBooking: publicProcedure
+  getBooking: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const booking = await ctx.prisma.booking.findUnique({
@@ -54,7 +54,7 @@ export const adminRouter = router({
     }),
 
   // Get all bookings with user details
-  getAllBookings: publicProcedure.query(async ({ ctx }) => {
+  getAllBookings: adminProcedure.query(async ({ ctx }) => {
     const bookings = await ctx.prisma.booking.findMany({
       include: {
         user: {
@@ -101,7 +101,7 @@ export const adminRouter = router({
   }),
 
   // Get booking statistics
-  getStats: publicProcedure.query(async ({ ctx }) => {
+  getStats: adminProcedure.query(async ({ ctx }) => {
     const now = new Date()
 
     // Total bookings
@@ -162,7 +162,7 @@ export const adminRouter = router({
   }),
 
   // Get all blocked dates
-  getBlockedDates: publicProcedure.query(async ({ ctx }) => {
+  getBlockedDates: adminProcedure.query(async ({ ctx }) => {
     const blockedDates = await ctx.prisma.blockedDate.findMany({
       orderBy: {
         startDate: 'desc',
@@ -180,7 +180,7 @@ export const adminRouter = router({
   }),
 
   // Create a blocked date range
-  createBlockedDate: publicProcedure
+  createBlockedDate: adminProcedure
     .input(
       z.object({
         startDate: z.string().transform((val) => new Date(val)),
@@ -208,7 +208,7 @@ export const adminRouter = router({
     }),
 
   // Delete a blocked date
-  deleteBlockedDate: publicProcedure
+  deleteBlockedDate: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.blockedDate.delete({
@@ -218,7 +218,7 @@ export const adminRouter = router({
     }),
 
   // Update booking status
-  updateBookingStatus: publicProcedure
+  updateBookingStatus: adminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -294,7 +294,7 @@ export const adminRouter = router({
     }),
 
   // Get all seasonal rates
-  getSeasonalRates: publicProcedure.query(async ({ ctx }) => {
+  getSeasonalRates: adminProcedure.query(async ({ ctx }) => {
     const rates = await ctx.prisma.seasonalRate.findMany({
       orderBy: {
         startDate: 'asc',
@@ -315,7 +315,7 @@ export const adminRouter = router({
   }),
 
   // Create a seasonal rate
-  createSeasonalRate: publicProcedure
+  createSeasonalRate: adminProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -352,7 +352,7 @@ export const adminRouter = router({
     }),
 
   // Update a seasonal rate
-  updateSeasonalRate: publicProcedure
+  updateSeasonalRate: adminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -385,7 +385,7 @@ export const adminRouter = router({
     }),
 
   // Delete a seasonal rate
-  deleteSeasonalRate: publicProcedure
+  deleteSeasonalRate: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.seasonalRate.delete({
