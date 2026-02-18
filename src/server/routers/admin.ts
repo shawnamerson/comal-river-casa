@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { router, adminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import bcrypt from 'bcryptjs'
+import { resend } from '@/lib/resend'
+import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 
 export const adminRouter = router({
   // Get a single booking by ID
@@ -283,6 +285,28 @@ export const adminRouter = router({
         where: { id: input.id },
         data: updateData,
       })
+
+      // Send cancellation email
+      if (input.status === 'CANCELLED') {
+        try {
+          await resend.emails.send({
+            from: process.env.EMAIL_FROM!,
+            to: booking.guestEmail,
+            subject: 'Booking Cancelled — Comal River Casa',
+            react: BookingCancellationEmail({
+              guestName: booking.guestName,
+              bookingId: booking.id,
+              checkIn: booking.checkIn.toISOString(),
+              checkOut: booking.checkOut.toISOString(),
+              totalPrice: Number(booking.totalPrice),
+              refundAmount,
+              cancellationReason: input.cancellationReason,
+            }),
+          })
+        } catch (emailError) {
+          console.error('Failed to send cancellation email:', emailError)
+        }
+      }
 
       return {
         id: booking.id,

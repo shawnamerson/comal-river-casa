@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
+import { resend } from '@/lib/resend'
+import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 
 export const bookingRouter = router({
   // Calculate pricing for a date range including seasonal rates
@@ -444,6 +446,26 @@ export const bookingRouter = router({
           refundAmount: refundAmount,
         },
       })
+
+      // Send cancellation email
+      try {
+        await resend.emails.send({
+          from: process.env.EMAIL_FROM!,
+          to: updated.guestEmail,
+          subject: 'Booking Cancelled — Comal River Casa',
+          react: BookingCancellationEmail({
+            guestName: updated.guestName,
+            bookingId: updated.id,
+            checkIn: updated.checkIn.toISOString(),
+            checkOut: updated.checkOut.toISOString(),
+            totalPrice: Number(updated.totalPrice),
+            refundAmount,
+            cancellationReason: updated.cancellationReason,
+          }),
+        })
+      } catch (emailError) {
+        console.error('Failed to send cancellation email:', emailError)
+      }
 
       return {
         id: updated.id,
