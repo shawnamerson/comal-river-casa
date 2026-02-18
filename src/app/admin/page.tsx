@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { signOut, useSession } from 'next-auth/react'
+import { Eye, EyeOff } from 'lucide-react'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,9 @@ export default function AdminDashboard() {
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNext, setShowNext] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -451,37 +455,52 @@ export default function AdminDashboard() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={pwForm.current}
-                  onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrent ? "text" : "password"}
+                    required
+                    value={pwForm.current}
+                    onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                    className="w-full border rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={pwForm.next}
-                  onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showNext ? "text" : "password"}
+                    required
+                    value={pwForm.next}
+                    onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
+                    className="w-full border rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button type="button" onClick={() => setShowNext(!showNext)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showNext ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={pwForm.confirm}
-                  onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
-                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    required
+                    value={pwForm.confirm}
+                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                    className="w-full border rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               {pwError && <p className="text-red-600 text-sm">{pwError}</p>}
               {pwSuccess && <p className="text-green-600 text-sm">{pwSuccess}</p>}
