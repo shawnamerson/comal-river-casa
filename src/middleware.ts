@@ -7,13 +7,8 @@ const { auth } = NextAuth(authConfig)
 export default auth((req) => {
   const isAdminRoute = req.nextUrl.pathname.startsWith("/admin")
 
-  if (isAdminRoute) {
-    if (!req.auth) {
-      return NextResponse.redirect(new URL("/login", req.url))
-    }
-    if (req.auth.user?.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url))
-    }
+  if (isAdminRoute && req.auth?.user?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/login", req.url))
   }
 })
 

@@ -33,11 +33,5 @@ export const authConfig: NextAuthConfig = {
       }
       return session
     },
-    authorized({ auth, request }) {
-      const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
-      if (!isAdminRoute) return true
-      if (!auth?.user) return false
-      return auth.user.role === "ADMIN"
-    },
   },
 }
