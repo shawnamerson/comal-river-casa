@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
+import { resend } from '@/lib/resend'
+import { BookingConfirmationEmail } from '@/emails/BookingConfirmation'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
         const bookingId = paymentIntent.metadata.bookingId
 
         if (bookingId) {
-          await prisma.booking.update({
+          const booking = await prisma.booking.update({
             where: { id: bookingId },
             data: {
               status: 'CONFIRMED',
@@ -42,6 +44,31 @@ export async function POST(request: NextRequest) {
             },
           })
           console.log(`Booking ${bookingId} confirmed via webhook`)
+
+          // Send confirmation email
+          try {
+            await resend.emails.send({
+              from: process.env.EMAIL_FROM!,
+              to: booking.guestEmail,
+              subject: `Booking Confirmed — Comal River Casa`,
+              react: BookingConfirmationEmail({
+                guestName: booking.guestName,
+                guestEmail: booking.guestEmail,
+                bookingId: booking.id,
+                checkIn: booking.checkIn.toISOString(),
+                checkOut: booking.checkOut.toISOString(),
+                numberOfNights: booking.numberOfNights,
+                numberOfGuests: booking.numberOfGuests,
+                pricePerNight: Number(booking.pricePerNight),
+                cleaningFee: Number(booking.cleaningFee),
+                totalPrice: Number(booking.totalPrice),
+                specialRequests: booking.specialRequests,
+              }),
+            })
+            console.log(`Confirmation email sent to ${booking.guestEmail}`)
+          } catch (emailError) {
+            console.error('Failed to send confirmation email:', emailError)
+          }
         }
         break
       }
