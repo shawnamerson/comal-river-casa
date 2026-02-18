@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { signOut } from 'next-auth/react'
+import { useState, useRef, useEffect } from 'react'
+import { signOut, useSession } from 'next-auth/react'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -10,9 +10,28 @@ import { trpc } from '@/lib/trpc/client'
 
 export default function AdminDashboard() {
   const router = useRouter()
+  const { data: session } = useSession()
+
+  // Profile dropdown
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Change password modal
+  const [showPwModal, setShowPwModal] = useState(false)
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState('')
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const changePassword = trpc.admin.changePassword.useMutation({
     onSuccess: () => {
@@ -38,6 +57,14 @@ export default function AdminDashboard() {
       currentPassword: pwForm.current,
       newPassword: pwForm.next,
     })
+  }
+
+  function openChangePassword() {
+    setDropdownOpen(false)
+    setPwForm({ current: '', next: '', confirm: '' })
+    setPwError('')
+    setPwSuccess('')
+    setShowPwModal(true)
   }
 
   // Fetch data
@@ -101,6 +128,10 @@ export default function AdminDashboard() {
     }
   }
 
+  const initials = session?.user?.name
+    ? session.user.name.split(' ').map((n) => n[0]).join('').toUpperCase()
+    : session?.user?.email?.[0].toUpperCase() ?? 'A'
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -110,10 +141,44 @@ export default function AdminDashboard() {
               <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
               <p className="text-gray-600">Manage bookings and property availability</p>
             </div>
-            <Button variant="outline" onClick={() => signOut({ callbackUrl: '/login' })}>
-              Log Out
-            </Button>
+
+            {/* Profile dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center gap-2 bg-white border rounded-full px-3 py-2 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold">
+                  {initials}
+                </div>
+                <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                  {session?.user?.email}
+                </span>
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10">
+                  <button
+                    onClick={openChangePassword}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                  >
+                    Change Password
+                  </button>
+                  <hr />
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+
           <div className="flex gap-3 flex-wrap">
             <Button onClick={() => router.push('/admin/availability')}>
               📅 Manage Availability
@@ -366,61 +431,72 @@ export default function AdminDashboard() {
             </Card>
           </div>
         </div>
+      </div>
 
-        {/* Change Password */}
-        <div className="mt-8">
-          <Card className="max-w-md">
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Current Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={pwForm.current}
-                    onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
-                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={pwForm.next}
-                    onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
-                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={pwForm.confirm}
-                    onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
-                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                {pwError && <p className="text-red-600 text-sm">{pwError}</p>}
-                {pwSuccess && <p className="text-green-600 text-sm">{pwSuccess}</p>}
+      {/* Change Password Modal */}
+      {showPwModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Change Password</h2>
+              <button
+                onClick={() => setShowPwModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={pwForm.current}
+                  onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
+                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={pwForm.next}
+                  onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
+                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={pwForm.confirm}
+                  onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
+                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              {pwError && <p className="text-red-600 text-sm">{pwError}</p>}
+              {pwSuccess && <p className="text-green-600 text-sm">{pwSuccess}</p>}
+              <div className="flex gap-3 pt-2">
                 <Button type="submit" disabled={changePassword.isPending}>
                   {changePassword.isPending ? 'Updating...' : 'Update Password'}
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <Button type="button" variant="outline" onClick={() => setShowPwModal(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </main>
   )
 }
