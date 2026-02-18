@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/db/prisma'
 import { resend } from '@/lib/resend'
 import { BookingConfirmationEmail } from '@/emails/BookingConfirmation'
+import { NewBookingNotificationEmail } from '@/emails/NewBookingNotification'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -68,6 +69,30 @@ export async function POST(request: NextRequest) {
             console.log(`Confirmation email sent to ${booking.guestEmail}`)
           } catch (emailError) {
             console.error('Failed to send confirmation email:', emailError)
+          }
+
+          // Send admin notification
+          try {
+            await resend.emails.send({
+              from: process.env.EMAIL_FROM!,
+              to: process.env.ADMIN_EMAIL!,
+              subject: `New Booking — ${booking.guestName} — ${booking.checkIn.toLocaleDateString()}`,
+              react: NewBookingNotificationEmail({
+                guestName: booking.guestName,
+                guestEmail: booking.guestEmail,
+                guestPhone: booking.guestPhone,
+                bookingId: booking.id,
+                checkIn: booking.checkIn.toISOString(),
+                checkOut: booking.checkOut.toISOString(),
+                numberOfNights: booking.numberOfNights,
+                numberOfGuests: booking.numberOfGuests,
+                totalPrice: Number(booking.totalPrice),
+                specialRequests: booking.specialRequests,
+              }),
+            })
+            console.log(`Admin notification sent to ${process.env.ADMIN_EMAIL}`)
+          } catch (emailError) {
+            console.error('Failed to send admin notification:', emailError)
           }
         }
         break
