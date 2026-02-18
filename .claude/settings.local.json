@@ -20,7 +20,10 @@
       "Bash(npm install:*)",
       "Bash(powershell:*)",
       "Bash(node -e:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm i @vercel/analytics)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx prisma db push:*)"
     ]
   }
 }
