@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  console.log(`Webhook received: ${event.type}`)
+
   try {
     switch (event.type) {
       case 'payment_intent.succeeded': {
