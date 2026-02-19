@@ -355,7 +355,7 @@ export const adminRouter = router({
       startDate: rate.startDate.toISOString(),
       endDate: rate.endDate.toISOString(),
       pricePerNight: Number(rate.pricePerNight),
-      cleaningFee: rate.cleaningFee ? Number(rate.cleaningFee) : null,
+      cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
       minNights: rate.minNights,
       createdAt: rate.createdAt.toISOString(),
       updatedAt: rate.updatedAt.toISOString(),
