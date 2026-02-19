@@ -46,8 +46,8 @@ export default auth((req) => {
 
   // Rate limiting for sensitive endpoints
   const rateLimited =
-    // Login: 10 attempts per 15 minutes
-    (pathname.startsWith("/api/auth") &&
+    // Login: 10 POST attempts per 15 minutes (not session/CSRF GETs)
+    (pathname.startsWith("/api/auth") && req.method === "POST" &&
       !checkRateLimit(`auth:${ip}`, 10, 15 * MIN)) ||
     // Booking creation: 5 per hour (prevents date-spam)
     (pathname === "/api/trpc/booking.create" &&
