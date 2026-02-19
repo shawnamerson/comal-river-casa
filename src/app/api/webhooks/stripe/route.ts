@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
           // Send confirmation email
           try {
-            await resend.emails.send({
+            const { error: confirmError } = await resend.emails.send({
               from: process.env.EMAIL_FROM!,
               to: booking.guestEmail,
               subject: `Booking Confirmed — Comal River Casa`,
@@ -68,14 +68,18 @@ export async function POST(request: NextRequest) {
                 specialRequests: booking.specialRequests,
               }),
             })
-            console.log(`Confirmation email sent to ${booking.guestEmail}`)
+            if (confirmError) {
+              console.error('Failed to send confirmation email:', confirmError)
+            } else {
+              console.log(`Confirmation email sent to ${booking.guestEmail}`)
+            }
           } catch (emailError) {
             console.error('Failed to send confirmation email:', emailError)
           }
 
           // Send admin notification
           try {
-            await resend.emails.send({
+            const { error: adminError } = await resend.emails.send({
               from: process.env.EMAIL_FROM!,
               to: process.env.ADMIN_EMAIL!,
               subject: `New Booking — ${booking.guestName} — ${booking.checkIn.toLocaleDateString()}`,
@@ -92,7 +96,11 @@ export async function POST(request: NextRequest) {
                 specialRequests: booking.specialRequests,
               }),
             })
-            console.log(`Admin notification sent to ${process.env.ADMIN_EMAIL}`)
+            if (adminError) {
+              console.error('Failed to send admin notification:', adminError)
+            } else {
+              console.log(`Admin notification sent to ${process.env.ADMIN_EMAIL}`)
+            }
           } catch (emailError) {
             console.error('Failed to send admin notification:', emailError)
           }

@@ -450,7 +450,7 @@ export const bookingRouter = router({
 
       // Send cancellation email to guest
       try {
-        await resend.emails.send({
+        const { error: cancelError } = await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: updated.guestEmail,
           subject: 'Booking Cancelled — Comal River Casa',
@@ -464,13 +464,16 @@ export const bookingRouter = router({
             cancellationReason: updated.cancellationReason,
           }),
         })
+        if (cancelError) {
+          console.error('Failed to send cancellation email:', cancelError)
+        }
       } catch (emailError) {
         console.error('Failed to send cancellation email:', emailError)
       }
 
       // Send cancellation notification to admin
       try {
-        await resend.emails.send({
+        const { error: adminError } = await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: process.env.ADMIN_EMAIL!,
           subject: `Booking Cancelled — ${updated.guestName}`,
@@ -487,6 +490,9 @@ export const bookingRouter = router({
             cancelledBy: 'guest',
           }),
         })
+        if (adminError) {
+          console.error('Failed to send admin cancellation notification:', adminError)
+        }
       } catch (emailError) {
         console.error('Failed to send admin cancellation notification:', emailError)
       }
