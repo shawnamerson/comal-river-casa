@@ -164,13 +164,9 @@ export default function RatesManagementPage() {
       alert('Please select a date range')
       return
     }
-    if (!formData.name.trim()) {
-      alert('Please enter a rate name')
-      return
-    }
-
     const payload = {
-      name: formData.name.trim(),
+      name: formData.name.trim() ||
+        `${format(pendingRange.from, 'MMM d')} – ${format(pendingRange.to, 'MMM d, yyyy')}`,
       startDate: pendingRange.from.toISOString(),
       endDate: pendingRange.to.toISOString(),
       pricePerNight: formData.pricePerNight,
