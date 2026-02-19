@@ -378,6 +378,7 @@ export default function RatesManagementPage() {
               modifiers={rateModifiers}
               modifiersStyles={rateModifiersStyles}
               className="border rounded-lg p-4 bg-white"
+              classNames={{ months: 'grid grid-cols-4 gap-4' }}
             />
           </div>
 
