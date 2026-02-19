@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayPicker, DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 import 'react-day-picker/dist/style.css'
@@ -49,6 +49,19 @@ export default function RatesManagementPage() {
     cleaningFee: null,
     minNights: null,
   })
+
+  // Responsive calendar columns: 1 mobile, 2 tablet, 4 desktop
+  const [calendarCols, setCalendarCols] = useState(1)
+  useEffect(() => {
+    const update = () => {
+      if (window.innerWidth >= 1280) setCalendarCols(4)
+      else if (window.innerWidth >= 768) setCalendarCols(2)
+      else setCalendarCols(1)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
 
   // Prevents onSelect from overwriting state when we intercept a day click
   const skipNextSelect = useRef(false)
@@ -363,108 +376,115 @@ export default function RatesManagementPage() {
         {panelVisible && (
           <Card className="mb-6">
             <CardContent className="pt-4">
-              <div className="flex flex-wrap gap-4 items-end">
-                <div className="flex-1 min-w-40">
+              <div className="space-y-3">
+                {/* Rate name — full width */}
+                <div>
                   <label className="text-sm font-semibold mb-1 block">Rate Name</label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., Summer Peak"
+                    placeholder="e.g., Summer Peak (leave blank to auto-name)"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
 
-                <div className="min-w-32">
-                  <label className="text-sm font-semibold mb-1 block">Price / night</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value={formData.pricePerNight || ''}
-                      onChange={(e) =>
-                        setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
-                      }
-                    />
+                {/* Numeric inputs — 3 columns on sm+, 1 on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-sm font-semibold mb-1 block">Price / night</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={formData.pricePerNight || ''}
+                        onChange={(e) =>
+                          setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="min-w-36">
-                  <label className="text-sm font-semibold mb-1 block">
-                    Cleaning fee <span className="font-normal text-gray-500">(opt)</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-500">$</span>
+                  <div>
+                    <label className="text-sm font-semibold mb-1 block">
+                      Cleaning fee <span className="font-normal text-gray-500">(opt)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder={`${propertySettings?.cleaningFee ?? 75}`}
+                        value={formData.cleaningFee ?? ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            cleaningFee: e.target.value ? parseFloat(e.target.value) : null,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold mb-1 block">
+                      Min nights <span className="font-normal text-gray-500">(opt)</span>
+                    </label>
                     <input
                       type="number"
-                      min="0"
+                      min="1"
                       step="1"
-                      className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={`${propertySettings?.cleaningFee ?? 75}`}
-                      value={formData.cleaningFee ?? ''}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={`${propertySettings?.minNights ?? 2}`}
+                      value={formData.minNights ?? ''}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          cleaningFee: e.target.value ? parseFloat(e.target.value) : null,
+                          minNights: e.target.value ? parseInt(e.target.value) : null,
                         })
                       }
                     />
                   </div>
                 </div>
 
-                <div className="min-w-28">
-                  <label className="text-sm font-semibold mb-1 block">
-                    Min nights <span className="font-normal text-gray-500">(opt)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={`${propertySettings?.minNights ?? 2}`}
-                    value={formData.minNights ?? ''}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        minNights: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="flex gap-2 items-center">
+                {/* Date range + action buttons */}
+                <div className="flex flex-wrap gap-2 items-center justify-between">
                   {pendingRange?.from && pendingRange?.to && (
-                    <span className="text-sm text-gray-500 whitespace-nowrap">
+                    <span className="text-sm text-gray-500">
                       {format(pendingRange.from, 'MMM d')} &ndash; {format(pendingRange.to, 'MMM d, yyyy')}
                     </span>
                   )}
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving || !pendingRange?.from || !pendingRange?.to}
-                  >
-                    {isSaving ? 'Saving...' : 'Save'}
-                  </Button>
-                  {editingRate && (
+                  <div className="flex gap-2 items-center ml-auto">
                     <Button
-                      variant="outline"
-                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                      onClick={handleDelete}
-                      disabled={deleteRate.isPending}
-                      aria-label="Delete rate"
+                      onClick={handleSave}
+                      disabled={isSaving || !pendingRange?.from || !pendingRange?.to}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {isSaving ? 'Saving...' : 'Save'}
                     </Button>
-                  )}
-                  <button
-                    onClick={closePanel}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Close"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                    {editingRate && (
+                      <Button
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                        onClick={handleDelete}
+                        disabled={deleteRate.isPending}
+                        aria-label="Delete rate"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <button
+                      onClick={closePanel}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Close"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -497,7 +517,7 @@ export default function RatesManagementPage() {
             styles={{
               months: {
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gridTemplateColumns: `repeat(${calendarCols}, minmax(0, 1fr))`,
                 gap: '1rem',
                 maxWidth: '100%',
                 width: '100%',

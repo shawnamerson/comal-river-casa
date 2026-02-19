@@ -108,14 +108,14 @@ export default function ExternalCalendarsPage() {
         <ArrowLeft className="w-4 h-4" />
         Back to Admin
       </Link>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">External Calendar Sync</h1>
           <p className="text-gray-600 mt-2">
             Import bookings from Airbnb, Vrbo, and other platforms
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <Button
             onClick={() => syncAll.mutate()}
             variant="outline"
@@ -138,14 +138,14 @@ export default function ExternalCalendarsPage() {
           <p className="text-sm text-gray-700">
             Share this iCal URL with Airbnb, VRBO, and other platforms to automatically block dates when guests book directly on your site or when you manually block dates.
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               readOnly
               value={getExportUrl()}
-              className="flex-1 px-4 py-2 border rounded-lg bg-white text-sm font-mono"
+              className="flex-1 px-4 py-2 border rounded-lg bg-white text-sm font-mono min-w-0"
             />
-            <Button onClick={handleCopyExportUrl} variant="outline">
+            <Button onClick={handleCopyExportUrl} variant="outline" className="flex-shrink-0">
               {exportUrlCopied ? 'Copied!' : 'Copy URL'}
             </Button>
           </div>
@@ -270,9 +270,9 @@ export default function ExternalCalendarsPage() {
           calendars.map((calendar) => (
             <Card key={calendar.id}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="text-lg font-semibold">{calendar.name}</h3>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
@@ -322,7 +322,7 @@ export default function ExternalCalendarsPage() {
                     )}
                   </div>
 
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
                     <Button
                       size="sm"
                       variant="outline"
