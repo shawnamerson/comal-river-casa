@@ -11,6 +11,7 @@ import {
   Section,
   Text,
 } from "@react-email/components"
+import { PROPERTY } from "@/config/property"
 
 interface BookingConfirmationProps {
   guestName: string
@@ -144,7 +145,23 @@ export function BookingConfirmationEmail({
               New Braunfels, TX 78130
             </Text>
             <Text style={text}>
-              Check-in is after 3:00 PM. Check-out is by 11:00 AM.
+              Check-in is after {PROPERTY.checkInTime}. Check-out is by {PROPERTY.checkOutTime}.
+            </Text>
+          </Section>
+
+          <Section style={card}>
+            <Heading as="h2" style={h2}>
+              Cancellation Policy
+            </Heading>
+            <Text style={text}>
+              • Full refund if cancelled more than 24 hours before check-in
+              <br />
+              • No refund if cancelled within 24 hours of check-in
+            </Text>
+            <Text style={text}>
+              To cancel or manage your booking, visit{" "}
+              <strong>comalrivercasa.com/manage-booking</strong> and enter your
+              confirmation number and email address.
             </Text>
           </Section>
 
