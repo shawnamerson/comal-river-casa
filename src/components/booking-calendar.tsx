@@ -133,14 +133,10 @@ export function BookingCalendar() {
   )
 
   const calculateTotalPrice = () => {
-    if (!pricingData || !pricingData.totalPrice) {
-      // Fallback to default calculation if pricing data not loaded
-      if (numberOfNights === 0) return 0
-      const subtotal = numberOfNights * PROPERTY.basePrice
-      const total = subtotal + PROPERTY.cleaningFee
-      return total
-    }
-    return pricingData.totalPrice
+    if (pricingData) return pricingData.totalPrice
+    // Fallback while pricing data is loading
+    if (numberOfNights === 0) return 0
+    return numberOfNights * PROPERTY.basePrice + PROPERTY.cleaningFee
   }
 
   const totalPrice = calculateTotalPrice()
@@ -245,7 +241,7 @@ export function BookingCalendar() {
         </div>
 
         {/* Price Breakdown */}
-        {range?.from && range?.to && (
+        {range?.from && range?.to && numberOfNights > 0 && (
           <div className="border-t pt-4 space-y-2">
             {pricingData && pricingData.hasSeasonalRate && (
               <div className="mb-2 p-2 bg-blue-50 rounded text-xs text-blue-900">
