@@ -91,7 +91,7 @@ export default function ManageBookingPage() {
 
   const handleCancel = () => {
     if (booking) {
-      cancelBooking.mutate({ bookingId: booking.id })
+      cancelBooking.mutate({ bookingId: booking.id, guestEmail: lookupData.email })
     }
   }
 

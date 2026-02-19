@@ -89,30 +89,16 @@ function BookingForm() {
 
     const checkInDate = new Date(checkIn)
     const checkOutDate = new Date(checkOut)
-    const nights = parseInt(numberOfNights)
-    const total = parseFloat(totalPrice)
 
-    const effectivePricePerNight = pricePerNight ? parseFloat(pricePerNight) : PROPERTY.basePrice
-    const effectiveSubtotal = subtotal ? parseFloat(subtotal) : (nights * PROPERTY.basePrice)
-    const effectiveCleaningFee = cleaningFee ? parseFloat(cleaningFee) : PROPERTY.cleaningFee
-
-    const bookingData = {
+    createBooking.mutate({
       checkIn: checkInDate.toISOString(),
       checkOut: checkOutDate.toISOString(),
       numberOfGuests: parseInt(numberOfGuests),
       guestName: formData.guestName,
       guestEmail: formData.guestEmail,
       guestPhone: formData.guestPhone || undefined,
-      numberOfNights: nights,
-      pricePerNight: effectivePricePerNight,
-      subtotal: effectiveSubtotal,
-      cleaningFee: effectiveCleaningFee,
-      serviceFee: 0,
-      totalPrice: total,
       specialRequests: formData.specialRequests || undefined,
-    }
-
-    createBooking.mutate(bookingData)
+    })
   }
 
   const handlePaymentSuccess = (paymentIntentId: string) => {

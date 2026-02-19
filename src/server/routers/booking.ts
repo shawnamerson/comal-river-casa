@@ -4,6 +4,69 @@ import { stripe } from '@/lib/stripe'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
+import type { PrismaClient } from '@prisma/client'
+
+// Shared server-side price calculation — used by calculatePrice query AND booking.create
+// so the client can never supply its own pricing.
+async function computeBookingPrice(
+  prisma: PrismaClient,
+  checkIn: Date,
+  checkOut: Date
+) {
+  const { eachDayOfInterval, differenceInDays } = await import('date-fns')
+  const { PROPERTY } = await import('@/config/property')
+
+  const nights = differenceInDays(checkOut, checkIn)
+
+  const dbSettings = await prisma.propertySettings.findUnique({ where: { id: 'default' } })
+  const defaultBasePrice = dbSettings ? Number(dbSettings.basePrice) : PROPERTY.basePrice
+  const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
+  const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
+
+  const seasonalRates = await prisma.seasonalRate.findMany({
+    where: {
+      OR: [
+        { AND: [{ startDate: { lte: checkIn } }, { endDate: { gt: checkIn } }] },
+        { AND: [{ startDate: { lt: checkOut } }, { endDate: { gte: checkOut } }] },
+        { AND: [{ startDate: { gte: checkIn } }, { endDate: { lte: checkOut } }] },
+      ],
+    },
+  })
+
+  const nightDates = eachDayOfInterval({ start: checkIn, end: checkOut }).slice(0, -1)
+
+  let totalNightlyPrice = 0
+  let effectiveRate = null
+
+  for (const date of nightDates) {
+    const applicableRate = seasonalRates.find((r) => date >= r.startDate && date < r.endDate)
+    if (applicableRate) {
+      totalNightlyPrice += Number(applicableRate.pricePerNight)
+      effectiveRate = applicableRate
+    } else {
+      totalNightlyPrice += defaultBasePrice
+    }
+  }
+
+  const cleaningFee = effectiveRate?.cleaningFee
+    ? Number(effectiveRate.cleaningFee)
+    : defaultCleaningFee
+  const minNights = effectiveRate?.minNights || defaultMinNights
+  const subtotal = totalNightlyPrice
+  const serviceFee = 0
+  const totalPrice = subtotal + cleaningFee + serviceFee
+
+  return {
+    numberOfNights: nights,
+    pricePerNight: totalNightlyPrice / nights,
+    subtotal,
+    cleaningFee,
+    serviceFee,
+    totalPrice,
+    minNights,
+    hasSeasonalRate: effectiveRate !== null,
+  }
+}
 
 export const bookingRouter = router({
   // Calculate pricing for a date range including seasonal rates
@@ -16,88 +79,7 @@ export const bookingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { checkIn, checkOut } = input
-      const { eachDayOfInterval, differenceInDays } = await import('date-fns')
-
-      const nights = differenceInDays(checkOut, checkIn)
-
-      // Fetch property settings from DB, fall back to config if missing
-      const { PROPERTY } = await import('@/config/property')
-      const dbSettings = await ctx.prisma.propertySettings.findUnique({
-        where: { id: 'default' },
-      })
-      const defaultBasePrice = dbSettings ? Number(dbSettings.basePrice) : PROPERTY.basePrice
-      const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
-      const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
-
-      // Get all seasonal rates that might overlap with this booking
-      const seasonalRates = await ctx.prisma.seasonalRate.findMany({
-        where: {
-          OR: [
-            {
-              AND: [
-                { startDate: { lte: checkIn } },
-                { endDate: { gt: checkIn } },
-              ],
-            },
-            {
-              AND: [
-                { startDate: { lt: checkOut } },
-                { endDate: { gte: checkOut } },
-              ],
-            },
-            {
-              AND: [
-                { startDate: { gte: checkIn } },
-                { endDate: { lte: checkOut } },
-              ],
-            },
-          ],
-        },
-      })
-
-      // Calculate price for each night
-      const allDates = eachDayOfInterval({ start: checkIn, end: checkOut })
-      // Remove the last day (checkout day)
-      const nights_dates = allDates.slice(0, -1)
-
-      let totalNightlyPrice = 0
-      let effectiveRate = null
-
-      for (const date of nights_dates) {
-        // Find if any seasonal rate applies to this date
-        const applicableRate = seasonalRates.find((rate) => {
-          return date >= rate.startDate && date < rate.endDate
-        })
-
-        if (applicableRate) {
-          totalNightlyPrice += Number(applicableRate.pricePerNight)
-          effectiveRate = applicableRate
-        } else {
-          totalNightlyPrice += defaultBasePrice
-        }
-      }
-
-      // Determine cleaning fee and min nights
-      const cleaningFee = effectiveRate?.cleaningFee
-        ? Number(effectiveRate.cleaningFee)
-        : defaultCleaningFee
-      const minNights = effectiveRate?.minNights || defaultMinNights
-
-      const subtotal = totalNightlyPrice
-      const serviceFee = 0
-      const totalPrice = subtotal + cleaningFee + serviceFee
-
-      return {
-        numberOfNights: nights,
-        pricePerNight: totalNightlyPrice / nights, // Average price per night
-        subtotal,
-        cleaningFee,
-        serviceFee,
-        totalPrice,
-        minNights,
-        hasSeasonalRate: effectiveRate !== null,
-      }
+      return computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
     }),
 
   // Check if dates are available
@@ -223,12 +205,6 @@ export const bookingRouter = router({
         guestName: z.string().min(1),
         guestEmail: z.string().email(),
         guestPhone: z.string().optional(),
-        numberOfNights: z.number().min(1),
-        pricePerNight: z.number(),
-        subtotal: z.number(),
-        cleaningFee: z.number(),
-        serviceFee: z.number().default(0),
-        totalPrice: z.number(),
         specialRequests: z.string().optional(),
       })
     )
@@ -239,6 +215,9 @@ export const bookingRouter = router({
         numberOfGuests: input.numberOfGuests,
         guestEmail: input.guestEmail,
       })
+
+      // Compute pricing server-side — never trust client-supplied values
+      const pricing = await computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
 
       try {
         // Double-check availability before creating
@@ -290,12 +269,12 @@ export const bookingRouter = router({
           guestName: input.guestName,
           guestEmail: input.guestEmail,
           guestPhone: input.guestPhone,
-          numberOfNights: input.numberOfNights,
-          pricePerNight: input.pricePerNight,
-          subtotal: input.subtotal,
-          cleaningFee: input.cleaningFee,
-          serviceFee: input.serviceFee,
-          totalPrice: input.totalPrice,
+          numberOfNights: pricing.numberOfNights,
+          pricePerNight: pricing.pricePerNight,
+          subtotal: pricing.subtotal,
+          cleaningFee: pricing.cleaningFee,
+          serviceFee: pricing.serviceFee,
+          totalPrice: pricing.totalPrice,
           specialRequests: input.specialRequests,
           status: 'PENDING',
           paymentStatus: 'PENDING',
@@ -398,11 +377,13 @@ export const bookingRouter = router({
     .input(
       z.object({
         bookingId: z.string(),
+        guestEmail: z.string().email(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const booking = await ctx.prisma.booking.findUnique({
-        where: { id: input.bookingId },
+      // Verify ownership — require both booking ID and the guest's email to match
+      const booking = await ctx.prisma.booking.findFirst({
+        where: { id: input.bookingId, guestEmail: input.guestEmail },
       })
 
       if (!booking) {
