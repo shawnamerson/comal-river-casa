@@ -442,6 +442,79 @@ export const adminRouter = router({
       return { success: true }
     }),
 
+  // Get property settings (singleton)
+  getPropertySettings: adminProcedure.query(async ({ ctx }) => {
+    const settings = await ctx.prisma.propertySettings.findUnique({
+      where: { id: 'default' },
+    })
+
+    if (!settings) {
+      // Seed from config if missing
+      const { PROPERTY } = await import('@/config/property')
+      const created = await ctx.prisma.propertySettings.create({
+        data: {
+          id: 'default',
+          basePrice: PROPERTY.basePrice,
+          cleaningFee: PROPERTY.cleaningFee,
+          minNights: PROPERTY.minNights,
+          maxNights: PROPERTY.maxNights,
+        },
+      })
+      return {
+        basePrice: Number(created.basePrice),
+        cleaningFee: Number(created.cleaningFee),
+        minNights: created.minNights,
+        maxNights: created.maxNights,
+        updatedAt: created.updatedAt.toISOString(),
+      }
+    }
+
+    return {
+      basePrice: Number(settings.basePrice),
+      cleaningFee: Number(settings.cleaningFee),
+      minNights: settings.minNights,
+      maxNights: settings.maxNights,
+      updatedAt: settings.updatedAt.toISOString(),
+    }
+  }),
+
+  // Update property settings
+  updatePropertySettings: adminProcedure
+    .input(
+      z.object({
+        basePrice: z.number().positive(),
+        cleaningFee: z.number().min(0),
+        minNights: z.number().int().positive(),
+        maxNights: z.number().int().positive(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const settings = await ctx.prisma.propertySettings.upsert({
+        where: { id: 'default' },
+        update: {
+          basePrice: input.basePrice,
+          cleaningFee: input.cleaningFee,
+          minNights: input.minNights,
+          maxNights: input.maxNights,
+        },
+        create: {
+          id: 'default',
+          basePrice: input.basePrice,
+          cleaningFee: input.cleaningFee,
+          minNights: input.minNights,
+          maxNights: input.maxNights,
+        },
+      })
+
+      return {
+        basePrice: Number(settings.basePrice),
+        cleaningFee: Number(settings.cleaningFee),
+        minNights: settings.minNights,
+        maxNights: settings.maxNights,
+        updatedAt: settings.updatedAt.toISOString(),
+      }
+    }),
+
   // Change admin password
   changePassword: adminProcedure
     .input(

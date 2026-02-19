@@ -21,6 +21,15 @@ export const bookingRouter = router({
 
       const nights = differenceInDays(checkOut, checkIn)
 
+      // Fetch property settings from DB, fall back to config if missing
+      const { PROPERTY } = await import('@/config/property')
+      const dbSettings = await ctx.prisma.propertySettings.findUnique({
+        where: { id: 'default' },
+      })
+      const defaultBasePrice = dbSettings ? Number(dbSettings.basePrice) : PROPERTY.basePrice
+      const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
+      const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
+
       // Get all seasonal rates that might overlap with this booking
       const seasonalRates = await ctx.prisma.seasonalRate.findMany({
         where: {
@@ -65,18 +74,15 @@ export const bookingRouter = router({
           totalNightlyPrice += Number(applicableRate.pricePerNight)
           effectiveRate = applicableRate
         } else {
-          // Use default base price from config
-          const { PROPERTY } = await import('@/config/property')
-          totalNightlyPrice += PROPERTY.basePrice
+          totalNightlyPrice += defaultBasePrice
         }
       }
 
       // Determine cleaning fee and min nights
-      const { PROPERTY } = await import('@/config/property')
       const cleaningFee = effectiveRate?.cleaningFee
         ? Number(effectiveRate.cleaningFee)
-        : PROPERTY.cleaningFee
-      const minNights = effectiveRate?.minNights || PROPERTY.minNights
+        : defaultCleaningFee
+      const minNights = effectiveRate?.minNights || defaultMinNights
 
       const subtotal = totalNightlyPrice
       const serviceFee = 0

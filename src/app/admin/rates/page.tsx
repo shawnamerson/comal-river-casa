@@ -7,13 +7,59 @@ import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
-import { PROPERTY } from '@/config/property'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
 export default function RatesManagementPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingRate, setEditingRate] = useState<string | null>(null)
+
+  // Default rates editing state
+  const [editingDefaults, setEditingDefaults] = useState(false)
+  const [defaultsForm, setDefaultsForm] = useState<{
+    basePrice: number
+    cleaningFee: number
+    minNights: number
+    maxNights: number
+  } | null>(null)
+
+  // Fetch default property settings
+  const { data: propertySettings, refetch: refetchSettings } =
+    trpc.admin.getPropertySettings.useQuery()
+
+  // Update property settings mutation
+  const updateSettings = trpc.admin.updatePropertySettings.useMutation({
+    onSuccess: () => {
+      refetchSettings()
+      setEditingDefaults(false)
+      setDefaultsForm(null)
+    },
+    onError: (error) => {
+      alert(`Error saving settings: ${error.message}`)
+    },
+  })
+
+  const handleEditDefaults = () => {
+    if (propertySettings) {
+      setDefaultsForm({
+        basePrice: propertySettings.basePrice,
+        cleaningFee: propertySettings.cleaningFee,
+        minNights: propertySettings.minNights,
+        maxNights: propertySettings.maxNights,
+      })
+    }
+    setEditingDefaults(true)
+  }
+
+  const handleSaveDefaults = () => {
+    if (!defaultsForm) return
+    updateSettings.mutate(defaultsForm)
+  }
+
+  const handleCancelDefaults = () => {
+    setEditingDefaults(false)
+    setDefaultsForm(null)
+  }
 
   // Form state
   const [formData, setFormData] = useState<{
@@ -23,9 +69,9 @@ export default function RatesManagementPage() {
     minNights: number
   }>({
     name: '',
-    pricePerNight: PROPERTY.basePrice,
-    cleaningFee: PROPERTY.cleaningFee,
-    minNights: PROPERTY.minNights,
+    pricePerNight: 200,
+    cleaningFee: 75,
+    minNights: 2,
   })
   const [range, setRange] = useState<DateRange | undefined>()
 
@@ -59,9 +105,9 @@ export default function RatesManagementPage() {
     setEditingRate(null)
     setFormData({
       name: '',
-      pricePerNight: PROPERTY.basePrice,
-      cleaningFee: PROPERTY.cleaningFee,
-      minNights: PROPERTY.minNights,
+      pricePerNight: propertySettings?.basePrice ?? 200,
+      cleaningFee: propertySettings?.cleaningFee ?? 75,
+      minNights: propertySettings?.minNights ?? 2,
     })
     setRange(undefined)
   }
@@ -105,37 +151,131 @@ export default function RatesManagementPage() {
         {/* Default Rates Card */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Default Rates</CardTitle>
-            <p className="text-sm text-gray-600 mt-2">
-              These rates apply when no seasonal rate is active
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>Default Rates</CardTitle>
+                <p className="text-sm text-gray-600 mt-2">
+                  These rates apply when no seasonal rate is active
+                </p>
+              </div>
+              {!editingDefaults && (
+                <Button size="sm" variant="outline" onClick={handleEditDefaults}>
+                  Edit
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="border rounded-lg p-4">
-                <div className="text-sm text-gray-600 mb-1">Base Price</div>
-                <div className="text-2xl font-bold">${PROPERTY.basePrice}</div>
-                <div className="text-xs text-gray-500">per night</div>
+            {editingDefaults && defaultsForm ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="border rounded-lg p-4">
+                    <label className="text-sm text-gray-600 mb-1 block">Base Price</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={defaultsForm.basePrice}
+                        onChange={(e) =>
+                          setDefaultsForm({ ...defaultsForm, basePrice: parseFloat(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">per night</div>
+                  </div>
+                  <div className="border rounded-lg p-4">
+                    <label className="text-sm text-gray-600 mb-1 block">Cleaning Fee</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={defaultsForm.cleaningFee}
+                        onChange={(e) =>
+                          setDefaultsForm({ ...defaultsForm, cleaningFee: parseFloat(e.target.value) || 0 })
+                        }
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">per booking</div>
+                  </div>
+                  <div className="border rounded-lg p-4">
+                    <label className="text-sm text-gray-600 mb-1 block">Min Nights</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={defaultsForm.minNights}
+                      onChange={(e) =>
+                        setDefaultsForm({ ...defaultsForm, minNights: parseInt(e.target.value) || 1 })
+                      }
+                    />
+                    <div className="text-xs text-gray-500 mt-1">minimum stay</div>
+                  </div>
+                  <div className="border rounded-lg p-4">
+                    <label className="text-sm text-gray-600 mb-1 block">Max Nights</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={defaultsForm.maxNights}
+                      onChange={(e) =>
+                        setDefaultsForm({ ...defaultsForm, maxNights: parseInt(e.target.value) || 1 })
+                      }
+                    />
+                    <div className="text-xs text-gray-500 mt-1">maximum stay</div>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleSaveDefaults}
+                    disabled={updateSettings.isPending}
+                  >
+                    {updateSettings.isPending ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button variant="outline" onClick={handleCancelDefaults}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
-              <div className="border rounded-lg p-4">
-                <div className="text-sm text-gray-600 mb-1">Cleaning Fee</div>
-                <div className="text-2xl font-bold">${PROPERTY.cleaningFee}</div>
-                <div className="text-xs text-gray-500">per booking</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="border rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Base Price</div>
+                  <div className="text-2xl font-bold">
+                    ${propertySettings?.basePrice ?? '—'}
+                  </div>
+                  <div className="text-xs text-gray-500">per night</div>
+                </div>
+                <div className="border rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Cleaning Fee</div>
+                  <div className="text-2xl font-bold">
+                    ${propertySettings?.cleaningFee ?? '—'}
+                  </div>
+                  <div className="text-xs text-gray-500">per booking</div>
+                </div>
+                <div className="border rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Min Nights</div>
+                  <div className="text-2xl font-bold">
+                    {propertySettings?.minNights ?? '—'}
+                  </div>
+                  <div className="text-xs text-gray-500">minimum stay</div>
+                </div>
+                <div className="border rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Max Nights</div>
+                  <div className="text-2xl font-bold">
+                    {propertySettings?.maxNights ?? '—'}
+                  </div>
+                  <div className="text-xs text-gray-500">maximum stay</div>
+                </div>
               </div>
-              <div className="border rounded-lg p-4">
-                <div className="text-sm text-gray-600 mb-1">Min Nights</div>
-                <div className="text-2xl font-bold">{PROPERTY.minNights}</div>
-                <div className="text-xs text-gray-500">minimum stay</div>
-              </div>
-              <div className="border rounded-lg p-4">
-                <div className="text-sm text-gray-600 mb-1">Max Nights</div>
-                <div className="text-2xl font-bold">{PROPERTY.maxNights}</div>
-                <div className="text-xs text-gray-500">maximum stay</div>
-              </div>
-            </div>
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-900">
-              Note: Default rates are set in <code className="bg-blue-100 px-2 py-1 rounded">src/config/property.ts</code>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -307,12 +447,12 @@ export default function RatesManagementPage() {
                           min="0"
                           step="1"
                           className="w-full pl-8 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder={`Default: $${PROPERTY.cleaningFee}`}
+                          placeholder={`Default: $${propertySettings?.cleaningFee ?? 75}`}
                           value={formData.cleaningFee}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              cleaningFee: e.target.value ? parseFloat(e.target.value) : PROPERTY.cleaningFee,
+                              cleaningFee: e.target.value ? parseFloat(e.target.value) : (propertySettings?.cleaningFee ?? 75),
                             })
                           }
                         />
@@ -332,12 +472,12 @@ export default function RatesManagementPage() {
                         min="1"
                         step="1"
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder={`Default: ${PROPERTY.minNights}`}
+                        placeholder={`Default: ${propertySettings?.minNights ?? 2}`}
                         value={formData.minNights}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            minNights: e.target.value ? parseInt(e.target.value) : PROPERTY.minNights,
+                            minNights: e.target.value ? parseInt(e.target.value) : (propertySettings?.minNights ?? 2),
                           })
                         }
                       />

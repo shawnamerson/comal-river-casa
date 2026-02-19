@@ -76,9 +76,21 @@ model VerificationToken {
 }
 
 // ============================================
+// PROPERTY SETTINGS (singleton, id = "default")
+// ============================================
+
+model PropertySettings {
+  id          String   @id @default("default")
+  basePrice   Decimal  @db.Decimal(10, 2)
+  cleaningFee Decimal  @db.Decimal(10, 2)
+  minNights   Int
+  maxNights   Int
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================
 // AVAILABILITY MANAGEMENT
 // ============================================
-// Note: Property details are hardcoded in src/config/property.ts
 
 model BlockedDate {
   id                  String   @id @default(cuid())
