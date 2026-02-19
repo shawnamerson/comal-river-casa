@@ -428,7 +428,7 @@ export default function RatesManagementPage() {
                         min="0"
                         step="1"
                         className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={formData.pricePerNight}
+                        value={formData.pricePerNight || ''}
                         onChange={(e) =>
                           setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
                         }
