@@ -38,8 +38,11 @@ async function computeBookingPrice(
   let totalNightlyPrice = 0
   let effectiveRate = null
 
+  const toUTCMidnight = (d: Date) => new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).getTime()
+
   for (const date of nightDates) {
-    const applicableRate = seasonalRates.find((r) => date >= r.startDate && date < r.endDate)
+    const day = toUTCMidnight(date)
+    const applicableRate = seasonalRates.find((r) => day >= toUTCMidnight(r.startDate) && day < toUTCMidnight(r.endDate))
     if (applicableRate) {
       totalNightlyPrice += Number(applicableRate.pricePerNight)
       effectiveRate = applicableRate

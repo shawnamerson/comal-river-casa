@@ -167,8 +167,8 @@ export default function RatesManagementPage() {
     const payload = {
       name: formData.name.trim() ||
         `${format(pendingRange.from, 'MMM d')} – ${format(pendingRange.to, 'MMM d, yyyy')}`,
-      startDate: pendingRange.from.toISOString(),
-      endDate: pendingRange.to.toISOString(),
+      startDate: new Date(Date.UTC(pendingRange.from.getFullYear(), pendingRange.from.getMonth(), pendingRange.from.getDate())).toISOString(),
+      endDate: new Date(Date.UTC(pendingRange.to.getFullYear(), pendingRange.to.getMonth(), pendingRange.to.getDate())).toISOString(),
       pricePerNight: formData.pricePerNight,
       cleaningFee: formData.cleaningFee ?? undefined,
       minNights: formData.minNights ?? undefined,
