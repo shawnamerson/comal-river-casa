@@ -313,7 +313,6 @@ function BookingForm() {
                 <div className="border-t pt-4 mt-4">
                   <p className="text-sm font-semibold mb-2">Cancellation Policy</p>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Full refund if cancelled before owner confirms</li>
                     <li>• Full refund if cancelled more than 24 hours before check-in</li>
                     <li>• No refund if cancelled within 24 hours of check-in</li>
                   </ul>

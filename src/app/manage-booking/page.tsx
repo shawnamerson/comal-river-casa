@@ -427,7 +427,7 @@ export default function ManageBookingPage() {
             const now = new Date()
             const checkIn = new Date(booking.checkIn)
             const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
-            const willGetRefund = booking.status === 'PENDING' || hoursUntilCheckIn > 24
+            const willGetRefund = hoursUntilCheckIn > 24
 
             return (
               <div className="p-6">
@@ -449,9 +449,7 @@ export default function ManageBookingPage() {
                   <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-green-800 font-semibold">You will receive a full refund</p>
                     <p className="text-green-700 text-sm">
-                      {booking.status === 'PENDING'
-                        ? 'Your booking has not been confirmed yet.'
-                        : 'You are cancelling more than 24 hours before check-in.'}
+                      You are cancelling more than 24 hours before check-in.
                     </p>
                   </div>
                 ) : (
@@ -467,7 +465,6 @@ export default function ManageBookingPage() {
                 <div className="mb-6 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm font-semibold mb-2">Cancellation Policy</p>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Full refund if cancelled before owner confirms</li>
                     <li>• Full refund if cancelled more than 24 hours before check-in</li>
                     <li>• No refund if cancelled within 24 hours of check-in</li>
                   </ul>
