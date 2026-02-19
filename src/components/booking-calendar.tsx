@@ -121,7 +121,7 @@ export function BookingCalendar() {
     : 0
 
   // Fetch dynamic pricing including seasonal rates
-  const { data: pricingData } = trpc.booking.calculatePrice.useQuery(
+  const { data: pricingData, isFetching: pricingFetching } = trpc.booking.calculatePrice.useQuery(
     {
       checkIn: range?.from?.toISOString() || '',
       checkOut: range?.to?.toISOString() || '',
@@ -144,11 +144,14 @@ export function BookingCalendar() {
   }
 
   const totalPrice = calculateTotalPrice()
-  const effectiveMinNights = pricingData?.minNights || PROPERTY.minNights
+  // Only use the server response for min nights — don't fall back to the
+  // default until pricingData has loaded, to avoid a false warning flash
+  // while the calculatePrice query is in flight.
+  const effectiveMinNights = pricingData ? (pricingData.minNights || PROPERTY.minNights) : null
 
   const isValidBooking = () => {
     if (!range?.from || !range?.to) return false
-    if (numberOfNights < effectiveMinNights) return false
+    if (effectiveMinNights !== null && numberOfNights < effectiveMinNights) return false
     if (numberOfNights > PROPERTY.maxNights) return false
     if (numberOfGuests < 1 || numberOfGuests > PROPERTY.maxGuests) return false
     return true
@@ -270,7 +273,7 @@ export function BookingCalendar() {
               <span>${totalPrice}</span>
             </div>
 
-            {numberOfNights < effectiveMinNights && (
+            {!pricingFetching && effectiveMinNights !== null && numberOfNights < effectiveMinNights && (
               <p className="text-sm text-red-600">
                 Minimum stay is {effectiveMinNights} nights
               </p>
