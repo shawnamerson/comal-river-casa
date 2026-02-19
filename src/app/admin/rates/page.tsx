@@ -359,157 +359,151 @@ export default function RatesManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Calendar + Side Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2">
-            <p className="text-sm text-gray-500 mb-3">
-              Drag across empty dates to add a seasonal rate. Click a colored period to edit it.
-            </p>
-            <DayPicker
-              mode="range"
-              numberOfMonths={12}
-              selected={pendingRange}
-              onSelect={handleRangeSelect}
-              onDayClick={handleDayClick}
-              modifiers={rateModifiers}
-              modifiersStyles={rateModifiersStyles}
-              className="border rounded-lg p-4 bg-white"
-              classNames={{ nav: 'hidden' }}
-              styles={{
-                months: {
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                  gap: '1rem',
-                },
-              }}
-            />
-          </div>
+        {/* Rate form panel — full width, appears above calendar when a range or rate is selected */}
+        {panelVisible && (
+          <Card className="mb-6">
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-40">
+                  <label className="text-sm font-semibold mb-1 block">Rate Name</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Summer Peak"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
 
-          {/* Side panel — only visible when a range or rate is selected */}
-          {panelVisible && (
-            <div className="lg:sticky lg:top-4 lg:self-start">
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">
-                      {editingRate ? 'Edit Rate' : 'New Rate'}
-                    </CardTitle>
-                    <button
-                      onClick={closePanel}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label="Close"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  {pendingRange?.from && pendingRange?.to && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {format(pendingRange.from, 'MMM d, yyyy')} &ndash;{' '}
-                      {format(pendingRange.to, 'MMM d, yyyy')}
-                    </p>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Rate Name */}
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Rate Name</label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Summer Peak"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                  </div>
-
-                  {/* Price / night */}
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Price / night</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={formData.pricePerNight || ''}
-                        onChange={(e) =>
-                          setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* Cleaning fee */}
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">
-                      Cleaning fee <span className="font-normal text-gray-500">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder={`Default: $${propertySettings?.cleaningFee ?? 75}`}
-                        value={formData.cleaningFee ?? ''}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cleaningFee: e.target.value ? parseFloat(e.target.value) : null,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* Min nights */}
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">
-                      Min nights <span className="font-normal text-gray-500">(optional)</span>
-                    </label>
+                <div className="min-w-32">
+                  <label className="text-sm font-semibold mb-1 block">Price / night</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-500">$</span>
                     <input
                       type="number"
-                      min="1"
+                      min="0"
                       step="1"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={`Default: ${propertySettings?.minNights ?? 2}`}
-                      value={formData.minNights ?? ''}
+                      className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={formData.pricePerNight || ''}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="min-w-36">
+                  <label className="text-sm font-semibold mb-1 block">
+                    Cleaning fee <span className="font-normal text-gray-500">(opt)</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-500">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={`${propertySettings?.cleaningFee ?? 75}`}
+                      value={formData.cleaningFee ?? ''}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          minNights: e.target.value ? parseInt(e.target.value) : null,
+                          cleaningFee: e.target.value ? parseFloat(e.target.value) : null,
                         })
                       }
                     />
                   </div>
+                </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
+                <div className="min-w-28">
+                  <label className="text-sm font-semibold mb-1 block">
+                    Min nights <span className="font-normal text-gray-500">(opt)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder={`${propertySettings?.minNights ?? 2}`}
+                    value={formData.minNights ?? ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        minNights: e.target.value ? parseInt(e.target.value) : null,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex gap-2 items-center">
+                  {pendingRange?.from && pendingRange?.to && (
+                    <span className="text-sm text-gray-500 whitespace-nowrap">
+                      {format(pendingRange.from, 'MMM d')} &ndash; {format(pendingRange.to, 'MMM d, yyyy')}
+                    </span>
+                  )}
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || !pendingRange?.from || !pendingRange?.to}
+                  >
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </Button>
+                  {editingRate && (
                     <Button
-                      onClick={handleSave}
-                      disabled={isSaving || !pendingRange?.from || !pendingRange?.to}
-                      className="flex-1"
+                      variant="outline"
+                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                      onClick={handleDelete}
+                      disabled={deleteRate.isPending}
+                      aria-label="Delete rate"
                     >
-                      {isSaving ? 'Saving...' : 'Save'}
+                      <Trash2 className="w-4 h-4" />
                     </Button>
-                    {editingRate && (
-                      <Button
-                        variant="outline"
-                        className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                        onClick={handleDelete}
-                        disabled={deleteRate.isPending}
-                        aria-label="Delete rate"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  )}
+                  <button
+                    onClick={closePanel}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Calendar — full width, 4 months across */}
+        <div className="mb-8">
+          <p className="text-sm text-gray-500 mb-3">
+            Drag across empty dates to add a seasonal rate. Click a colored period to edit it.
+          </p>
+          <DayPicker
+            mode="range"
+            numberOfMonths={12}
+            selected={pendingRange}
+            onSelect={handleRangeSelect}
+            onDayClick={handleDayClick}
+            modifiers={rateModifiers}
+            modifiersStyles={rateModifiersStyles}
+            className="border rounded-lg p-4 bg-white w-full"
+            classNames={{ nav: 'hidden' }}
+            style={{
+              '--rdp-day-width': '36px',
+              '--rdp-day-height': '36px',
+              '--rdp-day_button-width': '34px',
+              '--rdp-day_button-height': '34px',
+              '--rdp-months-gap': '1rem',
+              width: '100%',
+            } as React.CSSProperties}
+            styles={{
+              months: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gap: '1rem',
+                maxWidth: '100%',
+                width: '100%',
+              },
+            }}
+          />
         </div>
 
         {/* Compact rate list */}
