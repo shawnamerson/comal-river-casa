@@ -554,7 +554,7 @@ export default function Home() {
             </div>
 
             <p className="text-gray-300 text-sm">
-              Instant booking confirmation • Secure payment • Flexible cancellation
+              Instant booking confirmation • Secure payment • Free cancellation 24+ hours before check-in
             </p>
           </div>
         </div>
