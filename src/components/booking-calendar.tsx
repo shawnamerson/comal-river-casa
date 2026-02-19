@@ -258,7 +258,7 @@ export function BookingCalendar() {
               <span>Cleaning fee</span>
               <span>${pricingData?.cleaningFee ?? PROPERTY.cleaningFee}</span>
             </div>
-            {(pricingData?.serviceFee ?? 0) > 0 && (
+            {pricingData != null && pricingData.serviceFee > 0 && (
               <div className="flex justify-between text-sm">
                 <span>Service fee</span>
                 <span>${pricingData.serviceFee}</span>
