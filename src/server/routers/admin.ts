@@ -370,7 +370,7 @@ export const adminRouter = router({
         startDate: z.string().transform((val) => new Date(val)),
         endDate: z.string().transform((val) => new Date(val)),
         pricePerNight: z.number().positive(),
-        cleaningFee: z.number().positive().optional(),
+        cleaningFee: z.number().min(0).optional(),
         minNights: z.number().int().positive().optional(),
       })
     )
@@ -392,7 +392,7 @@ export const adminRouter = router({
         startDate: rate.startDate.toISOString(),
         endDate: rate.endDate.toISOString(),
         pricePerNight: Number(rate.pricePerNight),
-        cleaningFee: rate.cleaningFee ? Number(rate.cleaningFee) : null,
+        cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
         minNights: rate.minNights,
         createdAt: rate.createdAt.toISOString(),
         updatedAt: rate.updatedAt.toISOString(),
@@ -408,7 +408,7 @@ export const adminRouter = router({
         startDate: z.string().transform((val) => new Date(val)).optional(),
         endDate: z.string().transform((val) => new Date(val)).optional(),
         pricePerNight: z.number().positive().optional(),
-        cleaningFee: z.number().positive().optional(),
+        cleaningFee: z.number().min(0).optional(),
         minNights: z.number().int().positive().optional(),
       })
     )
@@ -425,7 +425,7 @@ export const adminRouter = router({
         startDate: rate.startDate.toISOString(),
         endDate: rate.endDate.toISOString(),
         pricePerNight: Number(rate.pricePerNight),
-        cleaningFee: rate.cleaningFee ? Number(rate.cleaningFee) : null,
+        cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
         minNights: rate.minNights,
         createdAt: rate.createdAt.toISOString(),
         updatedAt: rate.updatedAt.toISOString(),

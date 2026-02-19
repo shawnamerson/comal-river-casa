@@ -48,7 +48,7 @@ async function computeBookingPrice(
     }
   }
 
-  const cleaningFee = effectiveRate?.cleaningFee
+  const cleaningFee = effectiveRate?.cleaningFee != null
     ? Number(effectiveRate.cleaningFee)
     : defaultCleaningFee
   const minNights = effectiveRate?.minNights || defaultMinNights
