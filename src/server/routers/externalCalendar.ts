@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { router, publicProcedure } from '../trpc'
+import { router, adminProcedure } from '../trpc'
 import { fetchAndParseICal } from '@/lib/ical-parser'
 
 export const externalCalendarRouter = router({
   // List all external calendars
-  list: publicProcedure.query(async ({ ctx }) => {
+  list: adminProcedure.query(async ({ ctx }) => {
     const calendars = await ctx.prisma.externalCalendar.findMany({
       orderBy: { createdAt: 'desc' },
     })
@@ -12,7 +12,7 @@ export const externalCalendarRouter = router({
   }),
 
   // Add a new external calendar
-  create: publicProcedure
+  create: adminProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -33,7 +33,7 @@ export const externalCalendarRouter = router({
     }),
 
   // Update an external calendar
-  update: publicProcedure
+  update: adminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -52,7 +52,7 @@ export const externalCalendarRouter = router({
     }),
 
   // Delete an external calendar
-  delete: publicProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Delete all blocked dates from this calendar
@@ -69,7 +69,7 @@ export const externalCalendarRouter = router({
     }),
 
   // Sync a specific calendar
-  sync: publicProcedure
+  sync: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const calendar = await ctx.prisma.externalCalendar.findUnique({
@@ -137,7 +137,7 @@ export const externalCalendarRouter = router({
     }),
 
   // Sync all active calendars
-  syncAll: publicProcedure.mutation(async ({ ctx }) => {
+  syncAll: adminProcedure.mutation(async ({ ctx }) => {
     const calendars = await ctx.prisma.externalCalendar.findMany({
       where: { isActive: true },
     })

@@ -566,6 +566,12 @@ export const bookingRouter = router({
         throw new Error('Booking not found')
       }
 
+      // Verify the PaymentIntent belongs to this booking — prevents replay attacks
+      // where a succeeded PaymentIntent from a different booking is reused
+      if (booking.stripePaymentIntentId !== input.paymentIntentId) {
+        throw new Error('Payment intent does not match this booking')
+      }
+
       // Verify payment intent status with Stripe
       const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId)
 

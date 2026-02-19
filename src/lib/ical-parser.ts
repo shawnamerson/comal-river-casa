@@ -95,6 +95,12 @@ export function parseICal(icalText: string): ICalEvent[] {
 }
 
 export async function fetchAndParseICal(url: string): Promise<ICalEvent[]> {
+  // Reject non-HTTPS URLs to prevent SSRF via http://, file://, etc.
+  const parsed = new URL(url)
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Only HTTPS iCal URLs are supported')
+  }
+
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'ComalRiverCasa/1.0',
