@@ -115,6 +115,57 @@ export const adminRouter = router({
     }))
   }),
 
+  // Get upcoming bookings (confirmed/pending, future check-in, soonest first)
+  getUpcomingBookings: adminProcedure.query(async ({ ctx }) => {
+    const now = new Date()
+    const bookings = await ctx.prisma.booking.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'PENDING'] },
+        checkIn: { gte: now },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        checkIn: 'asc',
+      },
+    })
+
+    return bookings.map((booking) => ({
+      id: booking.id,
+      userId: booking.userId,
+      checkIn: booking.checkIn.toISOString(),
+      checkOut: booking.checkOut.toISOString(),
+      numberOfGuests: booking.numberOfGuests,
+      guestName: booking.guestName,
+      guestEmail: booking.guestEmail,
+      guestPhone: booking.guestPhone,
+      numberOfNights: booking.numberOfNights,
+      pricePerNight: Number(booking.pricePerNight),
+      subtotal: Number(booking.subtotal),
+      cleaningFee: Number(booking.cleaningFee),
+      serviceFee: Number(booking.serviceFee),
+      totalPrice: Number(booking.totalPrice),
+      specialRequests: booking.specialRequests,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
+      stripePaymentIntentId: booking.stripePaymentIntentId,
+      stripeSessionId: booking.stripeSessionId,
+      cancelledAt: booking.cancelledAt?.toISOString() || null,
+      cancellationReason: booking.cancellationReason,
+      refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
+      createdAt: booking.createdAt.toISOString(),
+      updatedAt: booking.updatedAt.toISOString(),
+      user: booking.user,
+    }))
+  }),
+
   // Get booking statistics
   getStats: adminProcedure.query(async ({ ctx }) => {
     const now = new Date()
