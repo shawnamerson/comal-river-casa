@@ -86,10 +86,20 @@ export default function AvailabilityManagementPage() {
       const start = parseLocalDate(b.startDate)
       const end = parseLocalDate(b.endDate)
       const days = eachDayOfInterval({ start, end })
+
+      // For external calendar imports, show short platform label
+      let label = b.reason || ''
+      if (b.externalCalendarId && b.reason) {
+        const name = b.reason.split(':')[0].trim().toLowerCase()
+        if (name.startsWith('airbnb')) label = 'Airbnb'
+        else if (name.startsWith('vrbo')) label = 'VRBO'
+        else label = b.reason.split(':')[0].trim()
+      }
+
       for (const d of days) {
         const key = format(d, 'yyyy-MM-dd')
         set.add(key)
-        if (b.reason) reasonMap.set(key, b.reason)
+        if (label) reasonMap.set(key, label)
         rangeMap.set(key, b)
       }
     }

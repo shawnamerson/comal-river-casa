@@ -240,6 +240,7 @@ export const adminRouter = router({
       startDate: blocked.startDate.toISOString(),
       endDate: blocked.endDate.toISOString(),
       reason: blocked.reason,
+      externalCalendarId: blocked.externalCalendarId,
       createdAt: blocked.createdAt.toISOString(),
       updatedAt: blocked.updatedAt.toISOString(),
     }))

@@ -173,8 +173,8 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex gap-3 flex-wrap">
-            <Button onClick={() => router.push('/admin/bookings')}>
-              View All Bookings
+            <Button onClick={() => router.push('/admin/bookings')} variant="outline">
+              Bookings
             </Button>
             <Button onClick={() => router.push('/admin/availability')} variant="outline">
               📅 Manage Availability
