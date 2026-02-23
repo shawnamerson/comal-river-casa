@@ -118,6 +118,21 @@ export default function RatesManagementPage() {
     return o?.minNights != null
   })
 
+  // Pre-fill input when all selected dates share the same override value
+  useEffect(() => {
+    if (effectiveDates.length === 0) return
+    const prices = effectiveDates.map((d) => overrideMap.get(format(d, 'yyyy-MM-dd'))?.pricePerNight ?? null)
+    const uniquePrices = [...new Set(prices)]
+    if (uniquePrices.length === 1 && uniquePrices[0] != null) {
+      setPricePerNight(uniquePrices[0])
+    }
+    const mins = effectiveDates.map((d) => overrideMap.get(format(d, 'yyyy-MM-dd'))?.minNights ?? null)
+    const uniqueMins = [...new Set(mins)]
+    if (uniqueMins.length === 1 && uniqueMins[0] != null) {
+      setMinNights(String(uniqueMins[0]))
+    }
+  }, [effectiveDates, overrideMap])
+
   // Action handlers
   async function handleApplyPrice() {
     if (effectiveDates.length === 0 || pricePerNight <= 0) return
