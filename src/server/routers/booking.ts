@@ -6,6 +6,19 @@ import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 import type { PrismaClient } from '@prisma/client'
 
+// Maximum booking window — matches the 12-month admin rates/availability calendar
+const BOOKING_WINDOW_MONTHS = 12
+
+async function assertWithinBookingWindow(checkOut: Date) {
+  const { addMonths } = await import('date-fns')
+  const maxDate = addMonths(new Date(), BOOKING_WINDOW_MONTHS)
+  if (checkOut > maxDate) {
+    throw new Error(
+      'Bookings cannot be made more than 12 months in advance'
+    )
+  }
+}
+
 // Shared server-side price calculation — used by calculatePrice query AND booking.create
 // so the client can never supply its own pricing.
 async function computeBookingPrice(
@@ -83,6 +96,7 @@ export const bookingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
+      assertWithinBookingWindow(input.checkOut)
       return computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
     }),
 
@@ -96,6 +110,7 @@ export const bookingRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { checkIn, checkOut } = input
+      assertWithinBookingWindow(checkOut)
 
       // Check for overlapping bookings
       const existingBookings = await ctx.prisma.booking.findMany({
@@ -213,6 +228,8 @@ export const bookingRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      assertWithinBookingWindow(input.checkOut)
+
       console.log('Booking create mutation called with input:', {
         checkIn: input.checkIn,
         checkOut: input.checkOut,

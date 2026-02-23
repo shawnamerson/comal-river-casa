@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
-import { format, differenceInDays, eachDayOfInterval } from 'date-fns'
+import { format, differenceInDays, eachDayOfInterval, addMonths } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -111,8 +111,12 @@ export function BookingCalendar() {
     return disabled
   }
 
+  // Cap the calendar at 12 months out — matches the admin rates/availability window
+  const maxDate = addMonths(new Date(), 12)
+
   const disabledDays = [
     { before: new Date() }, // Disable past dates
+    { after: maxDate }, // Disable dates beyond the booking window
     ...getDisabledDates(), // Disable booked/blocked dates
   ]
 
@@ -202,6 +206,8 @@ export function BookingCalendar() {
             selected={range}
             onSelect={handleDateSelect}
             disabled={disabledDays}
+            fromMonth={new Date()}
+            toMonth={maxDate}
             numberOfMonths={calendarMonths}
             className="border rounded-lg p-3 w-full"
           />
