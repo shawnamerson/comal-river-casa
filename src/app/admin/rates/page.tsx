@@ -415,7 +415,7 @@ export default function RatesManagementPage() {
         {/* Rate Calendar */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <CardTitle>Rate Calendar</CardTitle>
                 <p className="text-sm text-gray-500 mt-1">
@@ -426,10 +426,10 @@ export default function RatesManagementPage() {
               </div>
               <div className="flex flex-col gap-2 shrink-0">
                 {/* Mode toggle */}
-                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
                   <button
                     onClick={() => setMode('price')}
-                    className={`px-4 py-2 font-medium transition-colors ${
+                    className={`flex-1 px-4 py-2 font-medium transition-colors ${
                       mode === 'price'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -439,7 +439,7 @@ export default function RatesManagementPage() {
                   </button>
                   <button
                     onClick={() => setMode('minNights')}
-                    className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                    className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
                       mode === 'minNights'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -449,10 +449,10 @@ export default function RatesManagementPage() {
                   </button>
                 </div>
                 {/* Select mode toggle */}
-                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
                   <button
                     onClick={() => handleSelectModeChange('single')}
-                    className={`px-4 py-2 font-medium transition-colors ${
+                    className={`flex-1 px-4 py-2 font-medium transition-colors ${
                       selectMode === 'single'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -462,7 +462,7 @@ export default function RatesManagementPage() {
                   </button>
                   <button
                     onClick={() => handleSelectModeChange('range')}
-                    className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                    className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
                       selectMode === 'range'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'

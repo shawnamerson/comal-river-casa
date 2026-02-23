@@ -329,7 +329,7 @@ export default function AvailabilityManagementPage() {
         {/* 12-month Availability Calendar */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <CardTitle>Availability Calendar</CardTitle>
                 <p className="text-sm text-gray-500 mt-1">
@@ -338,10 +338,10 @@ export default function AvailabilityManagementPage() {
                     : 'Click a start date, then an end date to select a range to block.'}
                 </p>
               </div>
-              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm shrink-0">
+              <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm shrink-0 w-full sm:w-auto">
                 <button
                   onClick={() => { setSelectionMode('single'); setRangeSelection(undefined) }}
-                  className={`px-4 py-2 font-medium transition-colors ${
+                  className={`flex-1 sm:flex-initial px-4 py-2 font-medium transition-colors ${
                     selectionMode === 'single'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -351,7 +351,7 @@ export default function AvailabilityManagementPage() {
                 </button>
                 <button
                   onClick={() => { setSelectionMode('range'); setRangeSelection(undefined) }}
-                  className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                  className={`flex-1 sm:flex-initial px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
                     selectionMode === 'range'
                       ? 'bg-blue-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
