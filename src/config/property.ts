@@ -111,14 +111,4 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
     'Fire Extinguisher',
   ],
 
-  // Sample Reviews - You can manage these here or keep in database
-  reviews: [
-    {
-      id: '1',
-      guestName: 'Test Guest',
-      rating: 5,
-      comment: 'Amazing stay! The river view was breathtaking and the condo had everything we needed. Perfect location for tubing and exploring New Braunfels. Highly recommend!',
-      date: new Date('2026-01-05'),
-    },
-  ],
 } as const

@@ -268,7 +268,7 @@ export default function RatesManagementPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4 max-w-7xl">
         <Link
           href="/admin"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
@@ -412,263 +412,261 @@ export default function RatesManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Rate Calendar */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle>Rate Calendar</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">
-                  {selectMode === 'single'
-                    ? `Click dates to select them, then ${mode === 'price' ? 'set a custom rate' : 'set minimum nights'} below.`
-                    : `Click a start date, then an end date to select a range, then ${mode === 'price' ? 'set a custom rate' : 'set minimum nights'} below.`}
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 shrink-0">
-                {/* Mode toggle */}
-                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
-                  <button
-                    onClick={() => setMode('price')}
-                    className={`flex-1 px-4 py-2 font-medium transition-colors ${
-                      mode === 'price'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Nightly price
-                  </button>
-                  <button
-                    onClick={() => setMode('minNights')}
-                    className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
-                      mode === 'minNights'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Minimum nights
-                  </button>
-                </div>
-                {/* Select mode toggle */}
-                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
-                  <button
-                    onClick={() => handleSelectModeChange('single')}
-                    className={`flex-1 px-4 py-2 font-medium transition-colors ${
-                      selectMode === 'single'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Single dates
-                  </button>
-                  <button
-                    onClick={() => handleSelectModeChange('range')}
-                    className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
-                      selectMode === 'range'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    Date range
-                  </button>
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <style>{`
-              .rate-calendar {
-                overflow: hidden;
-              }
-              .rate-calendar .rdp-root {
-                --rdp-cell-size: 2.25rem;
-                width: 100%;
-              }
-              .rate-calendar .rdp-months {
-                display: grid !important;
-                grid-template-columns: repeat(1, minmax(0, 1fr));
-                gap: 1.5rem;
-                flex-wrap: unset !important;
-              }
-              @media (min-width: 640px) {
-                .rate-calendar .rdp-months {
-                  grid-template-columns: repeat(2, minmax(0, 1fr));
-                }
-              }
-              @media (min-width: 1024px) {
-                .rate-calendar .rdp-months {
-                  grid-template-columns: repeat(3, minmax(0, 1fr));
-                }
-              }
-              @media (min-width: 1280px) {
-                .rate-calendar .rdp-months {
-                  grid-template-columns: repeat(4, minmax(0, 1fr));
-                }
-              }
-              .rate-calendar .rdp-month {
-                overflow: hidden;
-                min-width: 0;
-              }
-              .rate-calendar .rdp-month_grid {
-                width: 100%;
-                table-layout: fixed;
-              }
-              .rate-calendar .rdp-day_button {
-                width: 100%;
-                min-height: 2.75rem;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                font-size: 0.8rem;
-              }
-              .rate-calendar .rdp-day.rdp-override-day:not(.rdp-disabled) {
-                background-color: rgb(219 234 254);
-                border-radius: 6px;
-              }
-            `}</style>
-            <div className="rate-calendar">
-              {selectMode === 'single' ? (
-                <DayPicker
-                  key={calendarKey}
-                  mode="multiple"
-                  selected={selectedDates}
-                  onSelect={(dates) => setSelectedDates(dates ?? [])}
-                  numberOfMonths={12}
-                  startMonth={calendarStart}
-                  endMonth={calendarEnd}
-                  disabled={{ before: today }}
-                  modifiers={{ override: overrideDates }}
-                  modifiersClassNames={{ override: 'rdp-override-day' }}
-                  components={{ DayButton }}
-                />
-              ) : (
-                <DayPicker
-                  key={calendarKey}
-                  mode="range"
-                  selected={rangeSelection}
-                  onSelect={setRangeSelection}
-                  numberOfMonths={12}
-                  startMonth={calendarStart}
-                  endMonth={calendarEnd}
-                  disabled={{ before: today }}
-                  modifiers={{ override: overrideDates }}
-                  modifiersClassNames={{ override: 'rdp-override-day' }}
-                  components={{ DayButton }}
-                />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action panel */}
-        {effectiveDates.length > 0 && (
+        {/* Rate Calendar + Action Sidebar */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 items-start">
           <Card>
-            <CardContent className="p-4 space-y-3">
-              <p className="text-sm font-medium text-gray-900">
-                {selectMode === 'range' && rangeSelection?.from && rangeSelection?.to ? (
-                  <>
-                    {format(rangeSelection.from, 'MMM d, yyyy')} — {format(rangeSelection.to, 'MMM d, yyyy')}{' '}
-                    ({effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''})
-                  </>
-                ) : (
-                  <>{effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''} selected</>
-                )}
-                <button
-                  onClick={resetSelection}
-                  className="ml-3 text-sm text-gray-500 hover:text-gray-700 underline"
-                >
-                  {selectMode === 'range' ? 'Clear selection' : 'Deselect all'}
-                </button>
-              </p>
-
-              {mode === 'price' ? (
-                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-700 block mb-1">
-                      Price per night ($)
-                    </label>
-                    <input
-                      type="number"
-                      value={pricePerNight || ''}
-                      onChange={(e) => setPricePerNight(Number(e.target.value))}
-                      min={1}
-                      className={inputClass}
-                      placeholder={`Base: $${propertySettings?.basePrice ?? ''}`}
-                    />
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      onClick={handleApplyPrice}
-                      disabled={pricePerNight <= 0 || setPriceMut.isPending}
-                    >
-                      {setPriceMut.isPending ? 'Saving...' : 'Apply rate'}
-                    </Button>
-                    {selectedHavePriceOverrides && (
-                      <Button
-                        variant="outline"
-                        onClick={handleClearPrice}
-                        disabled={clearPriceMut.isPending}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        {clearPriceMut.isPending ? 'Clearing...' : 'Clear rate'}
-                      </Button>
-                    )}
-                  </div>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <CardTitle>Rate Calendar</CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectMode === 'single'
+                      ? `Click dates to select them, then ${mode === 'price' ? 'set a custom rate' : 'set minimum nights'}.`
+                      : `Click a start date, then an end date to select a range.`}
+                  </p>
                 </div>
-              ) : (
-                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-                  <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                <div className="flex flex-col gap-2 shrink-0">
+                  {/* Mode toggle */}
+                  <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
+                    <button
+                      onClick={() => setMode('price')}
+                      className={`flex-1 px-4 py-2 font-medium transition-colors ${
+                        mode === 'price'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Nightly price
+                    </button>
+                    <button
+                      onClick={() => setMode('minNights')}
+                      className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                        mode === 'minNights'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
                       Minimum nights
-                    </label>
-                    <input
-                      type="number"
-                      value={minNights}
-                      onChange={(e) => setMinNights(e.target.value)}
-                      min={1}
-                      className={inputClass}
-                      placeholder={`Base: ${propertySettings?.minNights ?? ''}`}
-                    />
+                    </button>
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      onClick={handleApplyMinNights}
-                      disabled={!minNights || Number(minNights) < 1 || setMinNightsMut.isPending}
+                  {/* Select mode toggle */}
+                  <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm w-full">
+                    <button
+                      onClick={() => handleSelectModeChange('single')}
+                      className={`flex-1 px-4 py-2 font-medium transition-colors ${
+                        selectMode === 'single'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
                     >
-                      {setMinNightsMut.isPending ? 'Saving...' : 'Apply min nights'}
-                    </Button>
-                    {selectedHaveMinNightsOverrides && (
-                      <Button
-                        variant="outline"
-                        onClick={handleClearMinNights}
-                        disabled={clearMinNightsMut.isPending}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        {clearMinNightsMut.isPending ? 'Clearing...' : 'Clear min nights'}
-                      </Button>
-                    )}
+                      Single dates
+                    </button>
+                    <button
+                      onClick={() => handleSelectModeChange('range')}
+                      className={`flex-1 px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                        selectMode === 'range'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Date range
+                    </button>
                   </div>
                 </div>
-              )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <style>{`
+                .rate-calendar {
+                  overflow: hidden;
+                }
+                .rate-calendar .rdp-root {
+                  --rdp-cell-size: 2.25rem;
+                  width: 100%;
+                }
+                .rate-calendar .rdp-months {
+                  display: grid !important;
+                  grid-template-columns: repeat(1, minmax(0, 1fr));
+                  gap: 1.5rem;
+                  flex-wrap: unset !important;
+                }
+                @media (min-width: 640px) {
+                  .rate-calendar .rdp-months {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                  }
+                }
+                @media (min-width: 1024px) {
+                  .rate-calendar .rdp-months {
+                    grid-template-columns: repeat(3, minmax(0, 1fr));
+                  }
+                }
+                .rate-calendar .rdp-month {
+                  overflow: hidden;
+                  min-width: 0;
+                }
+                .rate-calendar .rdp-month_grid {
+                  width: 100%;
+                  table-layout: fixed;
+                }
+                .rate-calendar .rdp-day_button {
+                  width: 100%;
+                  min-height: 2.75rem;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 0.8rem;
+                }
+                .rate-calendar .rdp-day.rdp-override-day:not(.rdp-disabled) {
+                  background-color: rgb(219 234 254);
+                  border-radius: 6px;
+                }
+              `}</style>
+              <div className="rate-calendar">
+                {selectMode === 'single' ? (
+                  <DayPicker
+                    key={calendarKey}
+                    mode="multiple"
+                    selected={selectedDates}
+                    onSelect={(dates) => setSelectedDates(dates ?? [])}
+                    numberOfMonths={12}
+                    startMonth={calendarStart}
+                    endMonth={calendarEnd}
+                    disabled={{ before: today }}
+                    modifiers={{ override: overrideDates }}
+                    modifiersClassNames={{ override: 'rdp-override-day' }}
+                    components={{ DayButton }}
+                  />
+                ) : (
+                  <DayPicker
+                    key={calendarKey}
+                    mode="range"
+                    selected={rangeSelection}
+                    onSelect={setRangeSelection}
+                    numberOfMonths={12}
+                    startMonth={calendarStart}
+                    endMonth={calendarEnd}
+                    disabled={{ before: today }}
+                    modifiers={{ override: overrideDates }}
+                    modifiersClassNames={{ override: 'rdp-override-day' }}
+                    components={{ DayButton }}
+                  />
+                )}
+              </div>
             </CardContent>
           </Card>
-        )}
 
-        {lastAction && (
-          <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 mt-3">
-            {lastAction}
-          </p>
-        )}
+          {/* Action sidebar */}
+          <div className="xl:sticky xl:top-8 space-y-3">
+            {effectiveDates.length > 0 ? (
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    {selectMode === 'range' && rangeSelection?.from && rangeSelection?.to ? (
+                      <>
+                        {format(rangeSelection.from, 'MMM d')} — {format(rangeSelection.to, 'MMM d, yyyy')}{' '}
+                        ({effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''})
+                      </>
+                    ) : (
+                      <>{effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''} selected</>
+                    )}
+                  </p>
+                  <button
+                    onClick={resetSelection}
+                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                  >
+                    {selectMode === 'range' ? 'Clear selection' : 'Deselect all'}
+                  </button>
 
-        {/* Empty state */}
-        {overrides && overrides.length === 0 && effectiveDates.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="text-base font-medium text-gray-700 mb-1">No custom rate overrides</p>
-            <p className="text-sm">
-              All bookings use your base rate of ${propertySettings?.basePrice ?? '—'}/night. Click dates on the calendar to set custom rates.
-            </p>
+                  {mode === 'price' ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                          Price per night ($)
+                        </label>
+                        <input
+                          type="number"
+                          value={pricePerNight || ''}
+                          onChange={(e) => setPricePerNight(Number(e.target.value))}
+                          min={1}
+                          className={inputClass}
+                          placeholder={`Base: $${propertySettings?.basePrice ?? ''}`}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          className="w-full"
+                          onClick={handleApplyPrice}
+                          disabled={pricePerNight <= 0 || setPriceMut.isPending}
+                        >
+                          {setPriceMut.isPending ? 'Saving...' : 'Apply rate'}
+                        </Button>
+                        {selectedHavePriceOverrides && (
+                          <Button
+                            variant="outline"
+                            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={handleClearPrice}
+                            disabled={clearPriceMut.isPending}
+                          >
+                            {clearPriceMut.isPending ? 'Clearing...' : 'Clear rate'}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                          Minimum nights
+                        </label>
+                        <input
+                          type="number"
+                          value={minNights}
+                          onChange={(e) => setMinNights(e.target.value)}
+                          min={1}
+                          className={inputClass}
+                          placeholder={`Base: ${propertySettings?.minNights ?? ''}`}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          className="w-full"
+                          onClick={handleApplyMinNights}
+                          disabled={!minNights || Number(minNights) < 1 || setMinNightsMut.isPending}
+                        >
+                          {setMinNightsMut.isPending ? 'Saving...' : 'Apply min nights'}
+                        </Button>
+                        {selectedHaveMinNightsOverrides && (
+                          <Button
+                            variant="outline"
+                            className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={handleClearMinNights}
+                            disabled={clearMinNightsMut.isPending}
+                          >
+                            {clearMinNightsMut.isPending ? 'Clearing...' : 'Clear min nights'}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-4 text-center text-sm text-gray-500">
+                  Select dates on the calendar to set {mode === 'price' ? 'custom rates' : 'minimum nights'}
+                </CardContent>
+              </Card>
+            )}
+
+            {lastAction && (
+              <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2">
+                {lastAction}
+              </p>
+            )}
           </div>
-        )}
+        </div>
+
       </div>
     </main>
   )

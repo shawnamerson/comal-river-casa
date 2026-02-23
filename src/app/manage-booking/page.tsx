@@ -9,6 +9,28 @@ import { Modal } from '@/components/ui/modal'
 import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
 
+function StarRating({ rating, onRate }: { rating: number; onRate: (r: number) => void }) {
+  const [hover, setHover] = useState(0)
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`text-3xl transition-colors ${
+            star <= (hover || rating) ? 'text-yellow-500' : 'text-gray-300'
+          }`}
+          onMouseEnter={() => setHover(star)}
+          onMouseLeave={() => setHover(0)}
+          onClick={() => onRate(star)}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  )
+}
+
 interface CancelResult {
   success: boolean
   refundAmount?: number
@@ -51,6 +73,20 @@ export default function ManageBookingPage() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [cancelResult, setCancelResult] = useState<CancelResult | null>(null)
   const [lookupError, setLookupError] = useState<string | null>(null)
+  const [reviewRating, setReviewRating] = useState(0)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+
+  const submitReview = trpc.review.submitReview.useMutation({
+    onSuccess: () => {
+      setReviewSubmitted(true)
+      setReviewError(null)
+    },
+    onError: (error) => {
+      setReviewError(error.message)
+    },
+  })
 
   const lookupBooking = trpc.booking.lookup.useMutation({
     onSuccess: (data) => {
@@ -364,6 +400,84 @@ export default function ManageBookingPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Review Section — show after checkout for CONFIRMED/COMPLETED bookings */}
+            {(booking.status === 'CONFIRMED' || booking.status === 'COMPLETED') &&
+              new Date(booking.checkOut) < new Date() && (
+                <Card>
+                  <CardHeader className="bg-blue-50 border-b">
+                    <CardTitle>
+                      {reviewSubmitted
+                        ? 'Review Submitted'
+                        : 'Leave a Review'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {reviewSubmitted ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <p className="font-semibold text-green-800">Thank you for your review!</p>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          Your review has been submitted and will be published after approval.
+                        </p>
+                        <div className="text-yellow-500 text-xl">
+                          {'★'.repeat(reviewRating)}{'☆'.repeat(5 - reviewRating)}
+                        </div>
+                        {reviewComment && (
+                          <p className="text-gray-700 italic">&ldquo;{reviewComment}&rdquo;</p>
+                        )}
+                      </div>
+                    ) : (
+                      <form
+                        className="space-y-4"
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          if (reviewRating === 0) {
+                            setReviewError('Please select a star rating')
+                            return
+                          }
+                          submitReview.mutate({
+                            bookingId: booking.id,
+                            email: lookupData.email,
+                            rating: reviewRating,
+                            comment: reviewComment || undefined,
+                          })
+                        }}
+                      >
+                        <p className="text-gray-600">
+                          We&apos;d love to hear about your stay! Your feedback helps future guests.
+                        </p>
+                        <div>
+                          <label className="block text-sm font-semibold mb-2">Rating *</label>
+                          <StarRating rating={reviewRating} onRate={setReviewRating} />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold mb-2">Comment (optional)</label>
+                          <textarea
+                            rows={4}
+                            placeholder="Tell us about your experience..."
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            value={reviewComment}
+                            onChange={(e) => setReviewComment(e.target.value)}
+                          />
+                        </div>
+                        {reviewError && (
+                          <p className="text-red-600 text-sm">{reviewError}</p>
+                        )}
+                        <Button type="submit" disabled={submitReview.isPending}>
+                          {submitReview.isPending ? 'Submitting...' : 'Submit Review'}
+                        </Button>
+                      </form>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4">

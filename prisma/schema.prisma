@@ -235,35 +235,24 @@ model DamageCharge {
 // ============================================
 
 model Review {
-  id          String   @id @default(cuid())
-  bookingId   String   @unique
-  userId      String
+  id        String  @id @default(cuid())
+  bookingId String? @unique
+  userId    String?
 
-  // Ratings (1-5)
-  overallRating   Int
-  cleanlinessRating Int
-  accuracyRating  Int
-  checkInRating   Int
-  communicationRating Int
-  locationRating  Int
-  valueRating     Int
+  rating    Int            // 1-5 stars
+  comment   String? @db.Text
+  guestName String         // Always present (from booking or manual entry)
+  source    String @default("DIRECT")  // "DIRECT", "AIRBNB", "VRBO"
 
-  // Review content
-  comment     String?  @db.Text
-
-  // Response from host
-  hostResponse String? @db.Text
+  hostResponse     String?   @db.Text
   hostResponseDate DateTime?
+  isPublished      Boolean   @default(false)
 
-  // Status
-  isPublished Boolean  @default(false)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id])
 
-  // Relations
-  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([isPublished])

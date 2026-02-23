@@ -9,11 +9,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { PROPERTY } from '@/config/property'
 import { BookingCalendar } from '@/components/booking-calendar'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { trpc } from '@/lib/trpc/client'
 
 export default function Home() {
   const router = useRouter()
   const [showBooking, setShowBooking] = useState(false)
   const [lightboxImage, setLightboxImage] = useState<number | null>(null)
+  const { data: reviews } = trpc.review.getPublishedReviews.useQuery()
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -457,7 +459,7 @@ export default function Home() {
       )}
 
       {/* Guest Reviews */}
-      {property.reviews.length > 0 && (
+      {reviews && reviews.length > 0 && (
         <section className="py-24 px-4 bg-gray-50">
           <div className="container mx-auto max-w-6xl">
             <div className="text-center mb-16">
@@ -471,7 +473,7 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              {property.reviews.map((review) => (
+              {reviews.map((review) => (
                 <Card key={review.id} className="border-2 hover:border-blue-200 transition-colors">
                   <CardContent className="p-8">
                     <div className="flex items-center gap-4 mb-6">
@@ -481,16 +483,33 @@ export default function Home() {
                         </span>
                       </div>
                       <div>
-                        <div className="font-semibold text-lg">{review.guestName}</div>
+                        <div className="font-semibold text-lg flex items-center gap-2">
+                          {review.guestName}
+                          {review.source !== 'DIRECT' && (
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              review.source === 'AIRBNB' ? 'bg-red-100 text-red-800' : 'bg-indigo-100 text-indigo-800'
+                            }`}>
+                              {review.source === 'AIRBNB' ? 'Airbnb' : 'VRBO'}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-yellow-500 text-xl">
                           {'★'.repeat(review.rating)}
                           {'☆'.repeat(5 - review.rating)}
                         </div>
                       </div>
                     </div>
-                    <p className="text-gray-700 leading-relaxed italic">
-                      &ldquo;{review.comment}&rdquo;
-                    </p>
+                    {review.comment && (
+                      <p className="text-gray-700 leading-relaxed italic">
+                        &ldquo;{review.comment}&rdquo;
+                      </p>
+                    )}
+                    {review.hostResponse && (
+                      <div className="mt-4 bg-gray-50 border-l-4 border-blue-500 p-3">
+                        <p className="text-sm font-semibold text-gray-600 mb-1">Host Response</p>
+                        <p className="text-gray-700 text-sm">{review.hostResponse}</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}

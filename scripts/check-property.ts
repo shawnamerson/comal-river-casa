@@ -19,7 +19,6 @@ function checkProperty() {
   console.log(`Check-out: ${PROPERTY.checkOutTime}`)
   console.log(`\nAmenities: ${PROPERTY.amenities.length} total`)
   console.log(`Images: ${PROPERTY.images.length} total`)
-  console.log(`Reviews: ${PROPERTY.reviews.length} total`)
   console.log('='.repeat(60))
 }
 
