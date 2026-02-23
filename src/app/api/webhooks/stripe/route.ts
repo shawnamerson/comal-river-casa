@@ -36,6 +36,17 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
+
+        // Handle damage charge payments
+        if (paymentIntent.metadata.type === 'damage_charge') {
+          await prisma.damageCharge.updateMany({
+            where: { stripePaymentIntentId: paymentIntent.id },
+            data: { status: 'SUCCEEDED' },
+          })
+          console.log(`Damage charge ${paymentIntent.id} succeeded via webhook`)
+          break
+        }
+
         const bookingId = paymentIntent.metadata.bookingId
 
         if (bookingId) {
@@ -110,6 +121,17 @@ export async function POST(request: NextRequest) {
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
+
+        // Handle damage charge payment failures
+        if (paymentIntent.metadata.type === 'damage_charge') {
+          await prisma.damageCharge.updateMany({
+            where: { stripePaymentIntentId: paymentIntent.id },
+            data: { status: 'FAILED' },
+          })
+          console.log(`Damage charge ${paymentIntent.id} failed via webhook`)
+          break
+        }
+
         const bookingId = paymentIntent.metadata.bookingId
 
         if (bookingId) {

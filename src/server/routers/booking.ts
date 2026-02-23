@@ -522,10 +522,23 @@ export const bookingRouter = router({
         }
       }
 
-      // Create new payment intent
+      // Create or reuse a Stripe Customer so the card is saved for potential post-checkout charges
+      let stripeCustomerId = booking.stripeCustomerId
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: booking.guestEmail,
+          name: booking.guestName,
+          metadata: { bookingId: booking.id },
+        })
+        stripeCustomerId = customer.id
+      }
+
+      // Create new payment intent with card saving enabled
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(booking.totalPrice) * 100), // Convert to cents
         currency: 'usd',
+        customer: stripeCustomerId,
+        setup_future_usage: 'off_session',
         metadata: {
           bookingId: booking.id,
           guestEmail: booking.guestEmail,
@@ -537,11 +550,12 @@ export const bookingRouter = router({
         description: `Booking for ${booking.guestName} - ${booking.checkIn.toLocaleDateString()} to ${booking.checkOut.toLocaleDateString()}`,
       })
 
-      // Update booking with payment intent ID
+      // Update booking with payment intent ID and customer ID
       await ctx.prisma.booking.update({
         where: { id: booking.id },
         data: {
           stripePaymentIntentId: paymentIntent.id,
+          stripeCustomerId,
         },
       })
 

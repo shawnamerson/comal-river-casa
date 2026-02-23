@@ -5,6 +5,8 @@ import bcrypt from 'bcryptjs'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
+import { DamageChargeEmail } from '@/emails/DamageCharge'
+import { TRPCError } from '@trpc/server'
 
 export const adminRouter = router({
   // Get a single booking by ID
@@ -21,6 +23,7 @@ export const adminRouter = router({
               email: true,
             },
           },
+          damageCharges: { orderBy: { createdAt: 'desc' } },
         },
       })
 
@@ -48,9 +51,17 @@ export const adminRouter = router({
         paymentStatus: booking.paymentStatus,
         stripePaymentIntentId: booking.stripePaymentIntentId,
         stripeSessionId: booking.stripeSessionId,
+        stripeCustomerId: booking.stripeCustomerId,
         cancelledAt: booking.cancelledAt?.toISOString() || null,
         cancellationReason: booking.cancellationReason,
         refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
+        damageCharges: booking.damageCharges.map((dc) => ({
+          id: dc.id,
+          amount: Number(dc.amount),
+          description: dc.description,
+          status: dc.status,
+          createdAt: dc.createdAt.toISOString(),
+        })),
         createdAt: booking.createdAt.toISOString(),
         updatedAt: booking.updatedAt.toISOString(),
         user: booking.user,
@@ -338,6 +349,113 @@ export const adminRouter = router({
         cancellationReason: booking.cancellationReason,
         refundAmount,
         refundEligible: refundAmount !== null,
+      }
+    }),
+
+  // Charge damage fee against guest's saved card
+  chargeDamage: adminProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+        amount: z.number().positive().max(10000),
+        description: z.string().min(1).max(1000),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { id: input.bookingId },
+      })
+
+      if (!booking) throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' })
+
+      if (!['CONFIRMED', 'COMPLETED'].includes(booking.status)) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Booking must be confirmed or completed to charge for damages' })
+      }
+
+      if (booking.paymentStatus !== 'SUCCEEDED') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Booking payment must have succeeded' })
+      }
+
+      if (!booking.stripeCustomerId) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'No saved payment method for this booking' })
+      }
+
+      // Get saved payment methods for this customer
+      const paymentMethods = await stripe.paymentMethods.list({
+        customer: booking.stripeCustomerId,
+        type: 'card',
+      })
+
+      if (paymentMethods.data.length === 0) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'No saved card found for this guest' })
+      }
+
+      const amountCents = Math.round(input.amount * 100)
+
+      try {
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amountCents,
+          currency: 'usd',
+          customer: booking.stripeCustomerId,
+          payment_method: paymentMethods.data[0].id,
+          off_session: true,
+          confirm: true,
+          metadata: {
+            type: 'damage_charge',
+            bookingId: booking.id,
+          },
+          description: `Damage charge — Comal River Casa — ${booking.guestName}: ${input.description}`,
+          receipt_email: booking.guestEmail,
+        })
+
+        const damageCharge = await ctx.prisma.damageCharge.create({
+          data: {
+            bookingId: booking.id,
+            amount: input.amount,
+            description: input.description,
+            stripePaymentIntentId: paymentIntent.id,
+            status: paymentIntent.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
+          },
+        })
+
+        // Send notification email to guest
+        try {
+          await resend.emails.send({
+            from: process.env.EMAIL_FROM!,
+            to: booking.guestEmail,
+            subject: 'Damage Charge — Comal River Casa',
+            react: DamageChargeEmail({
+              guestName: booking.guestName,
+              bookingId: booking.id,
+              checkIn: booking.checkIn.toISOString(),
+              checkOut: booking.checkOut.toISOString(),
+              chargeAmount: input.amount,
+              description: input.description,
+            }),
+          })
+        } catch (e) {
+          console.error('Failed to send damage charge email', e)
+        }
+
+        return {
+          id: damageCharge.id,
+          amount: Number(damageCharge.amount),
+          description: damageCharge.description,
+          status: damageCharge.status,
+          createdAt: damageCharge.createdAt.toISOString(),
+        }
+      } catch (err: any) {
+        // Handle SCA / authentication_required errors
+        if (err.code === 'authentication_required') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'The card requires authentication and cannot be charged off-session. Contact the guest directly.',
+          })
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: err.message ?? 'Failed to process damage charge',
+        })
       }
     }),
 

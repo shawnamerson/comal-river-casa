@@ -162,6 +162,7 @@ model Booking {
   // Payment
   stripePaymentIntentId String? @unique
   stripeSessionId       String? @unique
+  stripeCustomerId      String?
   paymentStatus   PaymentStatus @default(PENDING)
 
   // Booking status
@@ -171,8 +172,9 @@ model Booking {
   specialRequests String?       @db.Text
 
   // Relations
-  user            User          @relation(fields: [userId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
   review          Review?
+  damageCharges   DamageCharge[]
 
   // Cancellation
   cancelledAt     DateTime?
@@ -202,6 +204,30 @@ enum PaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+}
+
+enum DamageChargeStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+// ============================================
+// DAMAGE CHARGES
+// ============================================
+
+model DamageCharge {
+  id                    String             @id @default(cuid())
+  bookingId             String
+  amount                Decimal            @db.Decimal(10, 2)
+  description           String             @db.Text
+  stripePaymentIntentId String             @unique
+  status                DamageChargeStatus @default(PENDING)
+  booking               Booking            @relation(fields: [bookingId], references: [id])
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([bookingId])
 }
 
 // ============================================

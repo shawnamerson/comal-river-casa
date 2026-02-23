@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,11 @@ export default function BookingDetailPage() {
     { enabled: !!bookingId }
   )
 
+  // Damage charge state
+  const [showDamageForm, setShowDamageForm] = useState(false)
+  const [damageAmount, setDamageAmount] = useState('')
+  const [damageDescription, setDamageDescription] = useState('')
+
   // Mutations
   const updateStatus = trpc.admin.updateBookingStatus.useMutation({
     onSuccess: () => {
@@ -26,6 +32,19 @@ export default function BookingDetailPage() {
     },
     onError: (error) => {
       alert(`Error updating status: ${error.message}`)
+    },
+  })
+
+  const chargeDamage = trpc.admin.chargeDamage.useMutation({
+    onSuccess: () => {
+      refetch()
+      setShowDamageForm(false)
+      setDamageAmount('')
+      setDamageDescription('')
+      alert('Damage charge processed successfully')
+    },
+    onError: (error) => {
+      alert(`Error: ${error.message}`)
     },
   })
 
@@ -299,6 +318,102 @@ export default function BookingDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Damage Charges */}
+            {['CONFIRMED', 'COMPLETED'].includes(booking.status) && booking.paymentStatus === 'SUCCEEDED' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Damage Charges</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Existing damage charges */}
+                  {booking.damageCharges.length > 0 && (
+                    <div className="space-y-2">
+                      {booking.damageCharges.map((dc) => (
+                        <div key={dc.id} className="flex items-start justify-between gap-3 border rounded-lg p-3">
+                          <div className="min-w-0">
+                            <div className="font-semibold text-lg">${dc.amount.toFixed(2)}</div>
+                            <div className="text-sm text-gray-600 mt-0.5">{dc.description}</div>
+                            <div className="text-xs text-gray-400 mt-0.5">{format(new Date(dc.createdAt), 'MMM dd, yyyy h:mm a')}</div>
+                          </div>
+                          <div className={`shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            dc.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' :
+                            dc.status === 'FAILED' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {dc.status}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No saved card warning */}
+                  {!booking.stripeCustomerId ? (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="font-semibold text-yellow-900">No saved payment method</div>
+                      <div className="text-sm text-yellow-700 mt-1">
+                        This booking was created before card-saving was enabled. Damage charges cannot be processed automatically.
+                      </div>
+                    </div>
+                  ) : !showDamageForm ? (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setShowDamageForm(true)}
+                    >
+                      Charge for Damages
+                    </Button>
+                  ) : (
+                    <div className="space-y-3 border border-orange-200 rounded-lg p-4 bg-orange-50">
+                      <div className="font-semibold text-orange-900">Charge guest&apos;s saved card</div>
+                      <p className="text-sm text-orange-700">
+                        This will immediately charge the guest&apos;s card on file and send them a notification email.
+                      </p>
+                      <div>
+                        <label className="text-sm text-gray-700 block mb-1">Amount ($)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.50"
+                          max="10000"
+                          placeholder="50.00"
+                          value={damageAmount}
+                          onChange={(e) => setDamageAmount(e.target.value)}
+                          className="w-full border border-orange-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-700 block mb-1">Description</label>
+                        <textarea
+                          placeholder="Describe the damage..."
+                          value={damageDescription}
+                          onChange={(e) => setDamageDescription(e.target.value)}
+                          className="w-full border border-orange-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          className="bg-orange-600 hover:bg-orange-700"
+                          onClick={() => {
+                            const amount = parseFloat(damageAmount)
+                            if (!amount || amount <= 0 || !damageDescription.trim()) return
+                            chargeDamage.mutate({ bookingId, amount, description: damageDescription.trim() })
+                          }}
+                          disabled={chargeDamage.isPending || !damageAmount || !damageDescription.trim()}
+                        >
+                          {chargeDamage.isPending ? 'Charging...' : 'Confirm Charge'}
+                        </Button>
+                        <Button variant="outline" onClick={() => { setShowDamageForm(false); chargeDamage.reset() }}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
