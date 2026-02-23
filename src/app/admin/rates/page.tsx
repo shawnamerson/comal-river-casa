@@ -594,16 +594,15 @@ export default function RatesManagementPage() {
       {/* Action modal — mobile only */}
       <Modal isOpen={showMobilePanel && effectiveDates.length > 0} onClose={() => setShowMobilePanel(false)}>
         <div className="p-5 xl:hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Set {mode === 'price' ? 'Rate' : 'Minimum Nights'}</h3>
-            <button
-              onClick={() => setShowMobilePanel(false)}
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-            >
-              &times;
-            </button>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">Set {mode === 'price' ? 'Rate' : 'Minimum Nights'}</h3>
           <ActionPanel />
+          <Button
+            variant="outline"
+            className="w-full mt-3"
+            onClick={() => setShowMobilePanel(false)}
+          >
+            Select More Dates
+          </Button>
         </div>
       </Modal>
     </main>

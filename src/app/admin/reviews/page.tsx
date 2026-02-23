@@ -140,7 +140,7 @@ export default function AdminReviewsPage() {
                     <select
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       value={newReview.source}
-                      onChange={(e) => setNewReview({ ...newReview, source: e.target.value as 'AIRBNB' | 'VRBO' })}
+                      onChange={(e) => setNewReview({ ...newReview, source: e.target.value as 'AIRBNB' | 'VRBO', createdAt: '' })}
                     >
                       <option value="AIRBNB">Airbnb</option>
                       <option value="VRBO">VRBO</option>
@@ -162,12 +162,21 @@ export default function AdminReviewsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Review Date (optional, for backdating)</label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    value={newReview.createdAt}
-                    onChange={(e) => setNewReview({ ...newReview, createdAt: e.target.value })}
-                  />
+                  {newReview.source === 'AIRBNB' ? (
+                    <input
+                      type="month"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={newReview.createdAt}
+                      onChange={(e) => setNewReview({ ...newReview, createdAt: e.target.value })}
+                    />
+                  ) : (
+                    <input
+                      type="date"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={newReview.createdAt}
+                      onChange={(e) => setNewReview({ ...newReview, createdAt: e.target.value })}
+                    />
+                  )}
                 </div>
                 <Button type="submit" disabled={createReview.isPending || newReview.rating === 0}>
                   {createReview.isPending ? 'Adding...' : 'Add Review'}
