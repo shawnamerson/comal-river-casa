@@ -165,7 +165,9 @@ export const reviewRouter = router({
           comment: input.comment || null,
           source: input.source,
           isPublished: false,
-          createdAt: input.createdAt ? new Date(input.createdAt) : undefined,
+          createdAt: input.createdAt
+            ? new Date(input.createdAt.length === 7 ? `${input.createdAt}-15` : input.createdAt)
+            : undefined,
         },
       })
       return { id: review.id }
