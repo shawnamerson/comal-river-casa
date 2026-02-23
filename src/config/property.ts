@@ -11,8 +11,8 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
 
   bedrooms: 2,
   bathrooms: 2,
-  maxGuests: 6,
-  squareFeet: 1200,
+  maxGuests: 8,
+  squareFeet: 1100,
 
   // Pricing
   basePrice: 200,
