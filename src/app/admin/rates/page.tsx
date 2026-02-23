@@ -7,6 +7,7 @@ import { format, startOfMonth, addMonths, startOfToday, eachDayOfInterval } from
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Modal } from '@/components/ui/modal'
 import { trpc } from '@/lib/trpc/client'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -34,6 +35,7 @@ export default function RatesManagementPage() {
   const [minNights, setMinNights] = useState<string>('')
   const [lastAction, setLastAction] = useState<string | null>(null)
   const [calendarKey, setCalendarKey] = useState(0)
+  const [showMobilePanel, setShowMobilePanel] = useState(false)
 
   // Auto-clear success message
   useEffect(() => {
@@ -143,6 +145,16 @@ export default function RatesManagementPage() {
     }
   }, [effectiveDates, overrideMap])
 
+  // Auto-open mobile panel when dates are selected
+  useEffect(() => {
+    if (effectiveDates.length > 0) {
+      // Only open on mobile (< xl breakpoint)
+      if (window.matchMedia('(max-width: 1279px)').matches) {
+        setShowMobilePanel(true)
+      }
+    }
+  }, [effectiveDates.length])
+
   // Action handlers
   async function handleApplyPrice() {
     if (effectiveDates.length === 0 || pricePerNight <= 0) return
@@ -153,6 +165,7 @@ export default function RatesManagementPage() {
       await refetch()
       resetSelection()
       setPricePerNight(0)
+      setShowMobilePanel(false)
       setLastAction(`$${price}/night applied to ${count} date${count !== 1 ? 's' : ''}`)
     } catch (e: any) {
       setLastAction(e?.message ?? 'Failed to apply rate')
@@ -166,6 +179,7 @@ export default function RatesManagementPage() {
       await clearPriceMut.mutateAsync({ dates: effectiveDateStrs })
       await refetch()
       resetSelection()
+      setShowMobilePanel(false)
       setLastAction(`Rate cleared for ${count} date${count !== 1 ? 's' : ''}`)
     } catch (e: any) {
       setLastAction(e?.message ?? 'Failed to clear rate')
@@ -181,6 +195,7 @@ export default function RatesManagementPage() {
       await refetch()
       resetSelection()
       setMinNights('')
+      setShowMobilePanel(false)
       setLastAction(`${mn}-night minimum applied to ${count} date${count !== 1 ? 's' : ''}`)
     } catch (e: any) {
       setLastAction(e?.message ?? 'Failed to apply min nights')
@@ -194,6 +209,7 @@ export default function RatesManagementPage() {
       await clearMinNightsMut.mutateAsync({ dates: effectiveDateStrs })
       await refetch()
       resetSelection()
+      setShowMobilePanel(false)
       setLastAction(`Min nights cleared for ${count} date${count !== 1 ? 's' : ''}`)
     } catch (e: any) {
       setLastAction(e?.message ?? 'Failed to clear min nights')
@@ -556,108 +572,9 @@ export default function RatesManagementPage() {
             </CardContent>
           </Card>
 
-          {/* Action sidebar */}
-          <div className="xl:sticky xl:top-8 space-y-3">
-            {effectiveDates.length > 0 ? (
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <p className="text-sm font-medium text-gray-900">
-                    {selectMode === 'range' && rangeSelection?.from && rangeSelection?.to ? (
-                      <>
-                        {format(rangeSelection.from, 'MMM d')} — {format(rangeSelection.to, 'MMM d, yyyy')}{' '}
-                        ({effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''})
-                      </>
-                    ) : (
-                      <>{effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''} selected</>
-                    )}
-                  </p>
-                  <button
-                    onClick={resetSelection}
-                    className="text-sm text-gray-500 hover:text-gray-700 underline"
-                  >
-                    {selectMode === 'range' ? 'Clear selection' : 'Deselect all'}
-                  </button>
-
-                  {mode === 'price' ? (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">
-                          Price per night ($)
-                        </label>
-                        <input
-                          type="number"
-                          value={pricePerNight || ''}
-                          onChange={(e) => setPricePerNight(Number(e.target.value))}
-                          min={1}
-                          className={inputClass}
-                          placeholder={`Base: $${propertySettings?.basePrice ?? ''}`}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          className="w-full"
-                          onClick={handleApplyPrice}
-                          disabled={pricePerNight <= 0 || setPriceMut.isPending}
-                        >
-                          {setPriceMut.isPending ? 'Saving...' : 'Apply rate'}
-                        </Button>
-                        {selectedHavePriceOverrides && (
-                          <Button
-                            variant="outline"
-                            className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={handleClearPrice}
-                            disabled={clearPriceMut.isPending}
-                          >
-                            {clearPriceMut.isPending ? 'Clearing...' : 'Clear rate'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 block mb-1">
-                          Minimum nights
-                        </label>
-                        <input
-                          type="number"
-                          value={minNights}
-                          onChange={(e) => setMinNights(e.target.value)}
-                          min={1}
-                          className={inputClass}
-                          placeholder={`Base: ${propertySettings?.minNights ?? ''}`}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          className="w-full"
-                          onClick={handleApplyMinNights}
-                          disabled={!minNights || Number(minNights) < 1 || setMinNightsMut.isPending}
-                        >
-                          {setMinNightsMut.isPending ? 'Saving...' : 'Apply min nights'}
-                        </Button>
-                        {selectedHaveMinNightsOverrides && (
-                          <Button
-                            variant="outline"
-                            className="w-full text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={handleClearMinNights}
-                            disabled={clearMinNightsMut.isPending}
-                          >
-                            {clearMinNightsMut.isPending ? 'Clearing...' : 'Clear min nights'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-4 text-center text-sm text-gray-500">
-                  Select dates on the calendar to set {mode === 'price' ? 'custom rates' : 'minimum nights'}
-                </CardContent>
-              </Card>
-            )}
+          {/* Action sidebar — desktop only */}
+          <div className="hidden xl:block xl:sticky xl:top-8 space-y-3">
+            <ActionPanel />
 
             {lastAction && (
               <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2">
@@ -667,7 +584,138 @@ export default function RatesManagementPage() {
           </div>
         </div>
 
+        {lastAction && (
+          <p className="xl:hidden text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 mt-3">
+            {lastAction}
+          </p>
+        )}
       </div>
+
+      {/* Action modal — mobile only */}
+      <Modal isOpen={showMobilePanel && effectiveDates.length > 0} onClose={() => setShowMobilePanel(false)}>
+        <div className="p-5 xl:hidden">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Set {mode === 'price' ? 'Rate' : 'Minimum Nights'}</h3>
+            <button
+              onClick={() => setShowMobilePanel(false)}
+              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            >
+              &times;
+            </button>
+          </div>
+          <ActionPanel />
+        </div>
+      </Modal>
     </main>
   )
+
+  function ActionPanel() {
+    if (effectiveDates.length === 0) {
+      return (
+        <Card>
+          <CardContent className="p-4 text-center text-sm text-gray-500">
+            Select dates on the calendar to set {mode === 'price' ? 'custom rates' : 'minimum nights'}
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return (
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <p className="text-sm font-medium text-gray-900">
+            {selectMode === 'range' && rangeSelection?.from && rangeSelection?.to ? (
+              <>
+                {format(rangeSelection.from, 'MMM d')} — {format(rangeSelection.to, 'MMM d, yyyy')}{' '}
+                ({effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''})
+              </>
+            ) : (
+              <>{effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''} selected</>
+            )}
+          </p>
+          <button
+            onClick={() => {
+              resetSelection()
+              setShowMobilePanel(false)
+            }}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            {selectMode === 'range' ? 'Clear selection' : 'Deselect all'}
+          </button>
+
+          {mode === 'price' ? (
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Price per night ($)
+                </label>
+                <input
+                  type="number"
+                  value={pricePerNight || ''}
+                  onChange={(e) => setPricePerNight(Number(e.target.value))}
+                  min={1}
+                  className={inputClass}
+                  placeholder={`Base: $${propertySettings?.basePrice ?? ''}`}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  className="w-full"
+                  onClick={handleApplyPrice}
+                  disabled={pricePerNight <= 0 || setPriceMut.isPending}
+                >
+                  {setPriceMut.isPending ? 'Saving...' : 'Apply rate'}
+                </Button>
+                {selectedHavePriceOverrides && (
+                  <Button
+                    variant="outline"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={handleClearPrice}
+                    disabled={clearPriceMut.isPending}
+                  >
+                    {clearPriceMut.isPending ? 'Clearing...' : 'Clear rate'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">
+                  Minimum nights
+                </label>
+                <input
+                  type="number"
+                  value={minNights}
+                  onChange={(e) => setMinNights(e.target.value)}
+                  min={1}
+                  className={inputClass}
+                  placeholder={`Base: ${propertySettings?.minNights ?? ''}`}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  className="w-full"
+                  onClick={handleApplyMinNights}
+                  disabled={!minNights || Number(minNights) < 1 || setMinNightsMut.isPending}
+                >
+                  {setMinNightsMut.isPending ? 'Saving...' : 'Apply min nights'}
+                </Button>
+                {selectedHaveMinNightsOverrides && (
+                  <Button
+                    variant="outline"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={handleClearMinNights}
+                    disabled={clearMinNightsMut.isPending}
+                  >
+                    {clearMinNightsMut.isPending ? 'Clearing...' : 'Clear min nights'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    )
+  }
 }

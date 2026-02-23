@@ -186,7 +186,7 @@ export default function AdminDashboard() {
               🔄 Calendar Sync
             </Button>
             <Button onClick={() => router.push('/admin/reviews')} variant="outline">
-              Reviews
+              ⭐ Reviews
             </Button>
           </div>
         </div>

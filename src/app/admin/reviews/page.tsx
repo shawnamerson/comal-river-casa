@@ -199,7 +199,7 @@ export default function AdminReviewsPage() {
                       <div>
                         <div className="font-semibold">{review.guestName}</div>
                         <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span>{format(new Date(review.createdAt), 'MMM dd, yyyy')}</span>
+                          <span>{format(new Date(review.createdAt), 'MMMM yyyy')}</span>
                           <SourceBadge source={review.source} />
                         </div>
                       </div>
