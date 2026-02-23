@@ -522,11 +522,12 @@ export default function Home() {
 
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-2xl mb-8">
               <div className="inline-block mb-8">
+                <div className="text-lg text-gray-500 mb-1">Starting at</div>
                 <div className="text-4xl md:text-6xl font-bold text-blue-600">
                   ${property.basePrice}
                 </div>
                 <div className="text-xl text-gray-600">per night</div>
-                <div className="text-sm text-gray-500 mt-2">Plus taxes and cleaning fee</div>
+                <div className="text-sm text-gray-500 mt-2">Rates vary by date. Plus taxes and cleaning fee.</div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-3xl mx-auto">
