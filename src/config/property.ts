@@ -101,6 +101,8 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
     'Free Parking',
     'TV with Cable',
     'Washer/Dryer',
+    'Hot Tub',
+    'Pool',
     'Balcony',
     'River Access',
     'Near Downtown',
