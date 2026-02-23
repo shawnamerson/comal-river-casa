@@ -1,29 +1,19 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { DayPicker, DateRange } from 'react-day-picker'
-import { format } from 'date-fns'
+import { useState, useMemo, useEffect } from 'react'
+import { DayPicker } from 'react-day-picker'
+import type { DateRange } from 'react-day-picker'
+import { format, startOfMonth, addMonths, startOfToday, eachDayOfInterval } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import Link from 'next/link'
-import { ArrowLeft, Trash2, X } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
-const RATE_COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
-  '#8B5CF6', '#EC4899', '#06B6D4', '#F97316',
-]
+const inputClass = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
 
-type SeasonalRate = {
-  id: string
-  name: string
-  startDate: string
-  endDate: string
-  pricePerNight: number
-  cleaningFee: number | null
-  minNights: number | null
-}
+type Mode = 'price' | 'minNights'
 
 export default function RatesManagementPage() {
   // Default rates editing state
@@ -35,43 +25,42 @@ export default function RatesManagementPage() {
     maxNights: number
   } | null>(null)
 
-  // Calendar / rate form state
-  const [pendingRange, setPendingRange] = useState<DateRange | undefined>()
-  const [editingRate, setEditingRate] = useState<SeasonalRate | null>(null)
-  const [formData, setFormData] = useState<{
-    name: string
-    pricePerNight: number
-    cleaningFee: number | null
-    minNights: number | null
-  }>({
-    name: '',
-    pricePerNight: 200,
-    cleaningFee: null,
-    minNights: null,
-  })
+  // Calendar state
+  const [mode, setMode] = useState<Mode>('price')
+  const [selectMode, setSelectMode] = useState<'single' | 'range'>('single')
+  const [selectedDates, setSelectedDates] = useState<Date[]>([])
+  const [rangeSelection, setRangeSelection] = useState<DateRange | undefined>()
+  const [pricePerNight, setPricePerNight] = useState<number>(0)
+  const [minNights, setMinNights] = useState<string>('')
+  const [lastAction, setLastAction] = useState<string | null>(null)
+  const [calendarKey, setCalendarKey] = useState(0)
 
-  // Responsive calendar columns: 1 mobile, 2 tablet, 4 desktop
-  const [calendarCols, setCalendarCols] = useState(1)
+  // Auto-clear success message
   useEffect(() => {
-    const update = () => {
-      if (window.innerWidth >= 1280) setCalendarCols(4)
-      else if (window.innerWidth >= 768) setCalendarCols(2)
-      else setCalendarCols(1)
-    }
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
-  }, [])
+    if (!lastAction) return
+    const t = setTimeout(() => setLastAction(null), 4000)
+    return () => clearTimeout(t)
+  }, [lastAction])
 
-  // Prevents onSelect from overwriting state when we intercept a day click
-  const skipNextSelect = useRef(false)
+  function resetSelection() {
+    setSelectedDates([])
+    setRangeSelection(undefined)
+    setCalendarKey((k) => k + 1)
+  }
+
+  function handleSelectModeChange(newMode: 'single' | 'range') {
+    setSelectMode(newMode)
+    setSelectedDates([])
+    setRangeSelection(undefined)
+    setCalendarKey((k) => k + 1)
+  }
 
   // Fetch data
   const { data: propertySettings, refetch: refetchSettings } =
     trpc.admin.getPropertySettings.useQuery()
-  const { data: rates, refetch } = trpc.admin.getSeasonalRates.useQuery()
+  const { data: overrides, refetch } = trpc.admin.getDateRateOverrides.useQuery()
 
-  // Mutations
+  // Mutations — default rates
   const updateSettings = trpc.admin.updatePropertySettings.useMutation({
     onSuccess: () => {
       refetchSettings()
@@ -81,126 +70,112 @@ export default function RatesManagementPage() {
     onError: (error) => alert(`Error saving settings: ${error.message}`),
   })
 
-  const createRate = trpc.admin.createSeasonalRate.useMutation({
-    onSuccess: () => { refetch(); closePanel() },
-    onError: (error) => alert(`Error creating rate: ${error.message}`),
+  // Mutations — date rate overrides
+  const setPriceMut = trpc.admin.setDateRatePrice.useMutation()
+  const clearPriceMut = trpc.admin.clearDateRatePrice.useMutation()
+  const setMinNightsMut = trpc.admin.setDateRateMinNights.useMutation()
+  const clearMinNightsMut = trpc.admin.clearDateRateMinNights.useMutation()
+
+  // Override lookup map
+  const overrideMap = useMemo(() => {
+    const map = new Map<string, { pricePerNight: number | null; minNights: number | null }>()
+    overrides?.forEach((o) => map.set(o.date, o))
+    return map
+  }, [overrides])
+
+  // Dates that have overrides (for DayPicker modifiers)
+  const overrideDates = useMemo(
+    () =>
+      overrides
+        ?.filter((o) => (mode === 'price' ? o.pricePerNight != null : o.minNights != null))
+        .map((o) => new Date(o.date + 'T00:00:00')) ?? [],
+    [overrides, mode]
+  )
+
+  const today = startOfToday()
+  const calendarStart = startOfMonth(today)
+  const calendarEnd = addMonths(calendarStart, 11)
+
+  // Unified effective dates from both selection modes
+  const effectiveDates = useMemo(() => {
+    if (selectMode === 'single') return selectedDates
+    if (!rangeSelection?.from || !rangeSelection?.to) return []
+    return eachDayOfInterval({ start: rangeSelection.from, end: rangeSelection.to })
+  }, [selectMode, selectedDates, rangeSelection])
+
+  const effectiveDateStrs = useMemo(
+    () => effectiveDates.map((d) => format(d, 'yyyy-MM-dd')),
+    [effectiveDates]
+  )
+
+  const selectedHavePriceOverrides = effectiveDates.some((d) => {
+    const o = overrideMap.get(format(d, 'yyyy-MM-dd'))
+    return o?.pricePerNight != null
   })
 
-  const updateRate = trpc.admin.updateSeasonalRate.useMutation({
-    onSuccess: () => { refetch(); closePanel() },
-    onError: (error) => alert(`Error updating rate: ${error.message}`),
+  const selectedHaveMinNightsOverrides = effectiveDates.some((d) => {
+    const o = overrideMap.get(format(d, 'yyyy-MM-dd'))
+    return o?.minNights != null
   })
 
-  const deleteRate = trpc.admin.deleteSeasonalRate.useMutation({
-    onSuccess: () => { refetch(); closePanel() },
-    onError: (error) => alert(`Error deleting rate: ${error.message}`),
-  })
-
-  // Build DayPicker modifiers for each rate's date range
-  const { rateModifiers, rateModifiersStyles } = useMemo(() => {
-    const modifiers: Record<string, { from: Date; to: Date }> = {}
-    const modifiersStyles: Record<string, React.CSSProperties> = {}
-    if (rates) {
-      rates.forEach((rate, index) => {
-        const color = RATE_COLORS[index % RATE_COLORS.length]
-        const key = `rate-${index}`
-        modifiers[key] = {
-          from: new Date(rate.startDate),
-          to: new Date(rate.endDate),
-        }
-        modifiersStyles[key] = {
-          backgroundColor: color,
-          color: 'white',
-          borderRadius: 0,
-        }
-      })
-    }
-    return { rateModifiers: modifiers, rateModifiersStyles: modifiersStyles }
-  }, [rates])
-
-  const closePanel = () => {
-    setPendingRange(undefined)
-    setEditingRate(null)
-    setFormData({
-      name: '',
-      pricePerNight: propertySettings?.basePrice ?? 200,
-      cleaningFee: null,
-      minNights: null,
-    })
-  }
-
-  // Called when a day is clicked on the calendar
-  const handleDayClick = (day: Date) => {
-    // If mid-range selection (from set, to not yet set), let DayPicker handle it
-    if (pendingRange?.from && !pendingRange?.to) return
-
-    // Check if the clicked day falls within any existing rate
-    const clicked = rates?.find((rate) => {
-      const start = new Date(rate.startDate)
-      const end = new Date(rate.endDate)
-      start.setHours(0, 0, 0, 0)
-      end.setHours(23, 59, 59, 999)
-      return day >= start && day <= end
-    })
-
-    if (clicked) {
-      // Intercept — prevent onSelect from overwriting our state
-      skipNextSelect.current = true
-      setEditingRate(clicked)
-      setPendingRange({
-        from: new Date(clicked.startDate),
-        to: new Date(clicked.endDate),
-      })
-      setFormData({
-        name: clicked.name,
-        pricePerNight: clicked.pricePerNight,
-        cleaningFee: clicked.cleaningFee,
-        minNights: clicked.minNights,
-      })
+  // Action handlers
+  async function handleApplyPrice() {
+    if (effectiveDates.length === 0 || pricePerNight <= 0) return
+    const count = effectiveDates.length
+    const price = pricePerNight
+    try {
+      await setPriceMut.mutateAsync({ dates: effectiveDateStrs, pricePerNight })
+      await refetch()
+      resetSelection()
+      setPricePerNight(0)
+      setLastAction(`$${price}/night applied to ${count} date${count !== 1 ? 's' : ''}`)
+    } catch (e: any) {
+      setLastAction(e?.message ?? 'Failed to apply rate')
     }
   }
 
-  const handleRangeSelect = (range: DateRange | undefined) => {
-    if (skipNextSelect.current) {
-      skipNextSelect.current = false
-      return
-    }
-    setPendingRange(range)
-    // Starting a fresh selection clears any rate being edited
-    if (range?.from && range?.to) {
-      setEditingRate(null)
-    }
-  }
-
-  const handleSave = () => {
-    if (!pendingRange?.from || !pendingRange?.to) {
-      alert('Please select a date range')
-      return
-    }
-    const payload = {
-      name: formData.name.trim() ||
-        `${format(pendingRange.from, 'MMM d')} – ${format(pendingRange.to, 'MMM d, yyyy')}`,
-      startDate: new Date(Date.UTC(pendingRange.from.getFullYear(), pendingRange.from.getMonth(), pendingRange.from.getDate())).toISOString(),
-      endDate: new Date(Date.UTC(pendingRange.to.getFullYear(), pendingRange.to.getMonth(), pendingRange.to.getDate())).toISOString(),
-      pricePerNight: formData.pricePerNight,
-      cleaningFee: formData.cleaningFee ?? undefined,
-      minNights: formData.minNights ?? undefined,
-    }
-
-    if (editingRate) {
-      updateRate.mutate({ id: editingRate.id, ...payload })
-    } else {
-      createRate.mutate(payload)
+  async function handleClearPrice() {
+    if (effectiveDates.length === 0) return
+    const count = effectiveDates.length
+    try {
+      await clearPriceMut.mutateAsync({ dates: effectiveDateStrs })
+      await refetch()
+      resetSelection()
+      setLastAction(`Rate cleared for ${count} date${count !== 1 ? 's' : ''}`)
+    } catch (e: any) {
+      setLastAction(e?.message ?? 'Failed to clear rate')
     }
   }
 
-  const handleDelete = () => {
-    if (!editingRate) return
-    if (confirm(`Delete "${editingRate.name}"?`)) {
-      deleteRate.mutate({ id: editingRate.id })
+  async function handleApplyMinNights() {
+    if (effectiveDates.length === 0 || !minNights || Number(minNights) < 1) return
+    const count = effectiveDates.length
+    const mn = Number(minNights)
+    try {
+      await setMinNightsMut.mutateAsync({ dates: effectiveDateStrs, minNights: mn })
+      await refetch()
+      resetSelection()
+      setMinNights('')
+      setLastAction(`${mn}-night minimum applied to ${count} date${count !== 1 ? 's' : ''}`)
+    } catch (e: any) {
+      setLastAction(e?.message ?? 'Failed to apply min nights')
     }
   }
 
+  async function handleClearMinNights() {
+    if (effectiveDates.length === 0) return
+    const count = effectiveDates.length
+    try {
+      await clearMinNightsMut.mutateAsync({ dates: effectiveDateStrs })
+      await refetch()
+      resetSelection()
+      setLastAction(`Min nights cleared for ${count} date${count !== 1 ? 's' : ''}`)
+    } catch (e: any) {
+      setLastAction(e?.message ?? 'Failed to clear min nights')
+    }
+  }
+
+  // Default rates handlers
   const handleEditDefaults = () => {
     if (propertySettings) {
       setDefaultsForm({
@@ -223,8 +198,48 @@ export default function RatesManagementPage() {
     setDefaultsForm(null)
   }
 
-  const panelVisible = !!pendingRange?.from || editingRate !== null
-  const isSaving = createRate.isPending || updateRate.isPending
+  // DayButton component for rendering price/minNights labels
+  const DayButton = ({ day, modifiers, children, ...props }: any) => {
+    const dateStr = format(day.date, 'yyyy-MM-dd')
+    const override = overrideMap.get(dateStr)
+    const isDisabled = modifiers?.disabled
+
+    let label: string | null = null
+    let isOverridden = false
+
+    if (!isDisabled) {
+      if (mode === 'price') {
+        if (override?.pricePerNight != null) {
+          label = `$${override.pricePerNight}`
+          isOverridden = true
+        } else if (propertySettings?.basePrice != null) {
+          label = `$${propertySettings.basePrice}`
+        }
+      } else {
+        if (override?.minNights != null) {
+          label = `${override.minNights}n`
+          isOverridden = true
+        } else if (propertySettings?.minNights != null) {
+          label = `${propertySettings.minNights}n`
+        }
+      }
+    }
+
+    return (
+      <button {...props}>
+        {children}
+        {label && (
+          <span
+            className={`block text-[9px] leading-tight font-medium ${
+              isOverridden ? 'text-blue-700' : 'text-gray-400'
+            }`}
+          >
+            {label}
+          </span>
+        )}
+      </button>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 py-8">
@@ -238,9 +253,9 @@ export default function RatesManagementPage() {
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Rates & Availability</h1>
+          <h1 className="text-4xl font-bold mb-2">Rates & Pricing</h1>
           <p className="text-gray-600">
-            Manage your pricing for different seasons and periods
+            Manage your base rates and per-date price overrides
           </p>
         </div>
 
@@ -251,7 +266,7 @@ export default function RatesManagementPage() {
               <div>
                 <CardTitle>Default Rates</CardTitle>
                 <p className="text-sm text-gray-600 mt-2">
-                  These rates apply when no seasonal rate is active
+                  These rates apply when no date override is set
                 </p>
               </div>
               {!editingDefaults && (
@@ -372,202 +387,262 @@ export default function RatesManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Rate form panel — full width, appears above calendar when a range or rate is selected */}
-        {panelVisible && (
-          <Card className="mb-6">
-            <CardContent className="pt-4">
-              <div className="space-y-3">
-                {/* Rate name — full width */}
-                <div>
-                  <label className="text-sm font-semibold mb-1 block">Rate Name</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., Summer Peak (leave blank to auto-name)"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
+        {/* Rate Calendar */}
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Rate Calendar</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  {selectMode === 'single'
+                    ? `Click dates to select them, then ${mode === 'price' ? 'set a custom rate' : 'set minimum nights'} below.`
+                    : `Click a start date, then an end date to select a range, then ${mode === 'price' ? 'set a custom rate' : 'set minimum nights'} below.`}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 shrink-0">
+                {/* Mode toggle */}
+                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+                  <button
+                    onClick={() => setMode('price')}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      mode === 'price'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Nightly price
+                  </button>
+                  <button
+                    onClick={() => setMode('minNights')}
+                    className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                      mode === 'minNights'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Minimum nights
+                  </button>
                 </div>
+                {/* Select mode toggle */}
+                <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm">
+                  <button
+                    onClick={() => handleSelectModeChange('single')}
+                    className={`px-4 py-2 font-medium transition-colors ${
+                      selectMode === 'single'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Single dates
+                  </button>
+                  <button
+                    onClick={() => handleSelectModeChange('range')}
+                    className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                      selectMode === 'range'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    Date range
+                  </button>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <style>{`
+              .rate-calendar {
+                overflow: hidden;
+              }
+              .rate-calendar .rdp-root {
+                --rdp-cell-size: 2.25rem;
+                width: 100%;
+              }
+              .rate-calendar .rdp-months {
+                display: grid !important;
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+                gap: 1.5rem;
+                flex-wrap: unset !important;
+              }
+              @media (min-width: 640px) {
+                .rate-calendar .rdp-months {
+                  grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+              }
+              @media (min-width: 1024px) {
+                .rate-calendar .rdp-months {
+                  grid-template-columns: repeat(3, minmax(0, 1fr));
+                }
+              }
+              @media (min-width: 1280px) {
+                .rate-calendar .rdp-months {
+                  grid-template-columns: repeat(4, minmax(0, 1fr));
+                }
+              }
+              .rate-calendar .rdp-month {
+                overflow: hidden;
+                min-width: 0;
+              }
+              .rate-calendar .rdp-month_grid {
+                width: 100%;
+                table-layout: fixed;
+              }
+              .rate-calendar .rdp-day_button {
+                width: 100%;
+                min-height: 2.75rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+              }
+              .rate-calendar .rdp-day.rdp-override-day:not(.rdp-disabled) {
+                background-color: rgb(219 234 254);
+                border-radius: 6px;
+              }
+            `}</style>
+            <div className="rate-calendar">
+              {selectMode === 'single' ? (
+                <DayPicker
+                  key={calendarKey}
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={(dates) => setSelectedDates(dates ?? [])}
+                  numberOfMonths={12}
+                  startMonth={calendarStart}
+                  endMonth={calendarEnd}
+                  disabled={{ before: today }}
+                  modifiers={{ override: overrideDates }}
+                  modifiersClassNames={{ override: 'rdp-override-day' }}
+                  components={{ DayButton }}
+                />
+              ) : (
+                <DayPicker
+                  key={calendarKey}
+                  mode="range"
+                  selected={rangeSelection}
+                  onSelect={setRangeSelection}
+                  numberOfMonths={12}
+                  startMonth={calendarStart}
+                  endMonth={calendarEnd}
+                  disabled={{ before: today }}
+                  modifiers={{ override: overrideDates }}
+                  modifiersClassNames={{ override: 'rdp-override-day' }}
+                  components={{ DayButton }}
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-                {/* Numeric inputs — 3 columns on sm+, 1 on mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">Price / night</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={formData.pricePerNight || ''}
-                        onChange={(e) =>
-                          setFormData({ ...formData, pricePerNight: parseFloat(e.target.value) || 0 })
-                        }
-                      />
-                    </div>
-                  </div>
+        {/* Action panel */}
+        {effectiveDates.length > 0 && (
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <p className="text-sm font-medium text-gray-900">
+                {selectMode === 'range' && rangeSelection?.from && rangeSelection?.to ? (
+                  <>
+                    {format(rangeSelection.from, 'MMM d, yyyy')} — {format(rangeSelection.to, 'MMM d, yyyy')}{' '}
+                    ({effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''})
+                  </>
+                ) : (
+                  <>{effectiveDates.length} date{effectiveDates.length !== 1 ? 's' : ''} selected</>
+                )}
+                <button
+                  onClick={resetSelection}
+                  className="ml-3 text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  {selectMode === 'range' ? 'Clear selection' : 'Deselect all'}
+                </button>
+              </p>
 
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">
-                      Cleaning fee <span className="font-normal text-gray-500">(opt)</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-gray-500">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder={`${propertySettings?.cleaningFee ?? 75}`}
-                        value={formData.cleaningFee ?? ''}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            cleaningFee: e.target.value ? parseFloat(e.target.value) : null,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold mb-1 block">
-                      Min nights <span className="font-normal text-gray-500">(opt)</span>
+              {mode === 'price' ? (
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Price per night ($)
                     </label>
                     <input
                       type="number"
-                      min="1"
-                      step="1"
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder={`${propertySettings?.minNights ?? 2}`}
-                      value={formData.minNights ?? ''}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          minNights: e.target.value ? parseInt(e.target.value) : null,
-                        })
-                      }
+                      value={pricePerNight || ''}
+                      onChange={(e) => setPricePerNight(Number(e.target.value))}
+                      min={1}
+                      className={inputClass}
+                      placeholder={`Base: $${propertySettings?.basePrice ?? ''}`}
                     />
                   </div>
-                </div>
-
-                {/* Date range + action buttons */}
-                <div className="flex flex-wrap gap-2 items-center justify-between">
-                  {pendingRange?.from && pendingRange?.to && (
-                    <span className="text-sm text-gray-500">
-                      {format(pendingRange.from, 'MMM d')} &ndash; {format(pendingRange.to, 'MMM d, yyyy')}
-                    </span>
-                  )}
-                  <div className="flex gap-2 items-center ml-auto">
+                  <div className="flex gap-2 shrink-0">
                     <Button
-                      onClick={handleSave}
-                      disabled={isSaving || !pendingRange?.from || !pendingRange?.to}
+                      onClick={handleApplyPrice}
+                      disabled={pricePerNight <= 0 || setPriceMut.isPending}
                     >
-                      {isSaving ? 'Saving...' : 'Save'}
+                      {setPriceMut.isPending ? 'Saving...' : 'Apply rate'}
                     </Button>
-                    {editingRate && (
+                    {selectedHavePriceOverrides && (
                       <Button
                         variant="outline"
-                        className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                        onClick={handleDelete}
-                        disabled={deleteRate.isPending}
-                        aria-label="Delete rate"
+                        onClick={handleClearPrice}
+                        disabled={clearPriceMut.isPending}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {clearPriceMut.isPending ? 'Clearing...' : 'Clear rate'}
                       </Button>
                     )}
-                    <button
-                      onClick={closePanel}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label="Close"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium text-gray-700 block mb-1">
+                      Minimum nights
+                    </label>
+                    <input
+                      type="number"
+                      value={minNights}
+                      onChange={(e) => setMinNights(e.target.value)}
+                      min={1}
+                      className={inputClass}
+                      placeholder={`Base: ${propertySettings?.minNights ?? ''}`}
+                    />
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button
+                      onClick={handleApplyMinNights}
+                      disabled={!minNights || Number(minNights) < 1 || setMinNightsMut.isPending}
+                    >
+                      {setMinNightsMut.isPending ? 'Saving...' : 'Apply min nights'}
+                    </Button>
+                    {selectedHaveMinNightsOverrides && (
+                      <Button
+                        variant="outline"
+                        onClick={handleClearMinNights}
+                        disabled={clearMinNightsMut.isPending}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        {clearMinNightsMut.isPending ? 'Clearing...' : 'Clear min nights'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
-        {/* Calendar — full width, 4 months across */}
-        <div className="mb-8">
-          <p className="text-sm text-gray-500 mb-3">
-            Drag across empty dates to add a seasonal rate. Click a colored period to edit it.
+        {lastAction && (
+          <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 mt-3">
+            {lastAction}
           </p>
-          <DayPicker
-            mode="range"
-            numberOfMonths={12}
-            selected={pendingRange}
-            onSelect={handleRangeSelect}
-            onDayClick={handleDayClick}
-            modifiers={rateModifiers}
-            modifiersStyles={rateModifiersStyles}
-            className="border rounded-lg p-4 bg-white w-full"
-            classNames={{ nav: 'hidden' }}
-            style={{
-              '--rdp-day-width': '36px',
-              '--rdp-day-height': '36px',
-              '--rdp-day_button-width': '34px',
-              '--rdp-day_button-height': '34px',
-              '--rdp-months-gap': '1rem',
-              width: '100%',
-            } as React.CSSProperties}
-            styles={{
-              months: {
-                display: 'grid',
-                gridTemplateColumns: `repeat(${calendarCols}, minmax(0, 1fr))`,
-                gap: '1rem',
-                maxWidth: '100%',
-                width: '100%',
-              },
-            }}
-          />
-        </div>
+        )}
 
-        {/* Compact rate list */}
-        {rates && rates.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Seasonal Rates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y">
-                {rates.map((rate, index) => (
-                  <div
-                    key={rate.id}
-                    className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
-                  >
-                    <div
-                      className="w-3 h-3 rounded-sm flex-shrink-0"
-                      style={{ backgroundColor: RATE_COLORS[index % RATE_COLORS.length] }}
-                    />
-                    <span className="font-medium flex-1 min-w-0 truncate">{rate.name}</span>
-                    <span className="text-sm text-gray-500 flex-shrink-0">
-                      {format(new Date(rate.startDate), 'MMM d')} &ndash;{' '}
-                      {format(new Date(rate.endDate), 'MMM d, yyyy')}
-                    </span>
-                    <span className="text-sm font-semibold text-green-600 flex-shrink-0">
-                      ${rate.pricePerNight}/night
-                    </span>
-                    <button
-                      className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
-                      onClick={() => {
-                        if (confirm(`Delete "${rate.name}"?`)) {
-                          deleteRate.mutate({ id: rate.id })
-                        }
-                      }}
-                      disabled={deleteRate.isPending}
-                      aria-label={`Delete ${rate.name}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Empty state */}
+        {overrides && overrides.length === 0 && effectiveDates.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-base font-medium text-gray-700 mb-1">No custom rate overrides</p>
+            <p className="text-sm">
+              All bookings use your base rate of ${propertySettings?.basePrice ?? '—'}/night. Click dates on the calendar to set custom rates.
+            </p>
+          </div>
         )}
       </div>
     </main>

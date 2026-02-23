@@ -341,104 +341,82 @@ export const adminRouter = router({
       }
     }),
 
-  // Get all seasonal rates
-  getSeasonalRates: adminProcedure.query(async ({ ctx }) => {
-    const rates = await ctx.prisma.seasonalRate.findMany({
-      orderBy: {
-        startDate: 'asc',
-      },
+  // Get all date rate overrides
+  getDateRateOverrides: adminProcedure.query(async ({ ctx }) => {
+    const overrides = await ctx.prisma.dateRateOverride.findMany({
+      orderBy: { date: 'asc' },
     })
-
-    return rates.map((rate) => ({
-      id: rate.id,
-      name: rate.name,
-      startDate: rate.startDate.toISOString(),
-      endDate: rate.endDate.toISOString(),
-      pricePerNight: Number(rate.pricePerNight),
-      cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
-      minNights: rate.minNights,
-      createdAt: rate.createdAt.toISOString(),
-      updatedAt: rate.updatedAt.toISOString(),
+    return overrides.map((o) => ({
+      date: o.date.toISOString().slice(0, 10),
+      pricePerNight: o.pricePerNight != null ? Number(o.pricePerNight) : null,
+      minNights: o.minNights,
     }))
   }),
 
-  // Create a seasonal rate
-  createSeasonalRate: adminProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        startDate: z.string().transform((val) => new Date(val)),
-        endDate: z.string().transform((val) => new Date(val)),
-        pricePerNight: z.number().positive(),
-        cleaningFee: z.number().min(0).optional(),
-        minNights: z.number().int().positive().optional(),
-      })
-    )
+  // Set price per night for specific dates
+  setDateRatePrice: adminProcedure
+    .input(z.object({ dates: z.array(z.string()), pricePerNight: z.number().positive() }))
     .mutation(async ({ ctx, input }) => {
-      const rate = await ctx.prisma.seasonalRate.create({
-        data: {
-          name: input.name,
-          startDate: input.startDate,
-          endDate: input.endDate,
-          pricePerNight: input.pricePerNight,
-          cleaningFee: input.cleaningFee,
-          minNights: input.minNights,
-        },
-      })
-
-      return {
-        id: rate.id,
-        name: rate.name,
-        startDate: rate.startDate.toISOString(),
-        endDate: rate.endDate.toISOString(),
-        pricePerNight: Number(rate.pricePerNight),
-        cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
-        minNights: rate.minNights,
-        createdAt: rate.createdAt.toISOString(),
-        updatedAt: rate.updatedAt.toISOString(),
-      }
+      await ctx.prisma.$transaction(
+        input.dates.map((d) =>
+          ctx.prisma.dateRateOverride.upsert({
+            where: { date: new Date(d + 'T00:00:00Z') },
+            update: { pricePerNight: input.pricePerNight },
+            create: { date: new Date(d + 'T00:00:00Z'), pricePerNight: input.pricePerNight },
+          })
+        )
+      )
+      return { success: true }
     }),
 
-  // Update a seasonal rate
-  updateSeasonalRate: adminProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        name: z.string().min(1).optional(),
-        startDate: z.string().transform((val) => new Date(val)).optional(),
-        endDate: z.string().transform((val) => new Date(val)).optional(),
-        pricePerNight: z.number().positive().optional(),
-        cleaningFee: z.number().min(0).optional(),
-        minNights: z.number().int().positive().optional(),
-      })
-    )
+  // Clear price per night for specific dates
+  clearDateRatePrice: adminProcedure
+    .input(z.object({ dates: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updateData } = input
-      const rate = await ctx.prisma.seasonalRate.update({
-        where: { id },
-        data: updateData as any,
-      })
-
-      return {
-        id: rate.id,
-        name: rate.name,
-        startDate: rate.startDate.toISOString(),
-        endDate: rate.endDate.toISOString(),
-        pricePerNight: Number(rate.pricePerNight),
-        cleaningFee: rate.cleaningFee != null ? Number(rate.cleaningFee) : null,
-        minNights: rate.minNights,
-        createdAt: rate.createdAt.toISOString(),
-        updatedAt: rate.updatedAt.toISOString(),
+      for (const d of input.dates) {
+        const dateVal = new Date(d + 'T00:00:00Z')
+        await ctx.prisma.dateRateOverride.updateMany({
+          where: { date: dateVal },
+          data: { pricePerNight: null },
+        })
+        // Delete rows where both fields are null
+        await ctx.prisma.dateRateOverride.deleteMany({
+          where: { date: dateVal, pricePerNight: null, minNights: null },
+        })
       }
+      return { success: true }
     }),
 
-  // Delete a seasonal rate
-  deleteSeasonalRate: adminProcedure
-    .input(z.object({ id: z.string() }))
+  // Set minimum nights for specific dates
+  setDateRateMinNights: adminProcedure
+    .input(z.object({ dates: z.array(z.string()), minNights: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.seasonalRate.delete({
-        where: { id: input.id },
-      })
+      await ctx.prisma.$transaction(
+        input.dates.map((d) =>
+          ctx.prisma.dateRateOverride.upsert({
+            where: { date: new Date(d + 'T00:00:00Z') },
+            update: { minNights: input.minNights },
+            create: { date: new Date(d + 'T00:00:00Z'), minNights: input.minNights },
+          })
+        )
+      )
+      return { success: true }
+    }),
+
+  // Clear minimum nights for specific dates
+  clearDateRateMinNights: adminProcedure
+    .input(z.object({ dates: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      for (const d of input.dates) {
+        const dateVal = new Date(d + 'T00:00:00Z')
+        await ctx.prisma.dateRateOverride.updateMany({
+          where: { date: dateVal },
+          data: { minNights: null },
+        })
+        await ctx.prisma.dateRateOverride.deleteMany({
+          where: { date: dateVal, pricePerNight: null, minNights: null },
+        })
+      }
       return { success: true }
     }),
 

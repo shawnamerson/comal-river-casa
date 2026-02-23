@@ -107,19 +107,13 @@ model BlockedDate {
   @@index([externalCalendarId])
 }
 
-model SeasonalRate {
+model DateRateOverride {
   id            String   @id @default(cuid())
-  name          String   // e.g., "Summer Peak", "Holiday Season"
-  startDate     DateTime
-  endDate       DateTime
-  pricePerNight Decimal  @db.Decimal(10, 2)
-  cleaningFee   Decimal? @db.Decimal(10, 2)
-  minNights     Int?     // Override minimum nights for this period
-
+  date          DateTime @unique
+  pricePerNight Decimal? @db.Decimal(10, 2)
+  minNights     Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  @@index([startDate, endDate])
 }
 
 model ExternalCalendar {

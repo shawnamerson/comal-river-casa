@@ -243,9 +243,9 @@ export function BookingCalendar() {
         {/* Price Breakdown */}
         {range?.from && range?.to && numberOfNights > 0 && (
           <div className="border-t pt-4 space-y-2">
-            {pricingData && pricingData.hasSeasonalRate && (
+            {pricingData && pricingData.hasCustomRate && (
               <div className="mb-2 p-2 bg-blue-50 rounded text-xs text-blue-900">
-                ⭐ Seasonal pricing applied
+                Custom pricing applied
               </div>
             )}
             <div className="flex justify-between text-sm">

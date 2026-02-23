@@ -36,34 +36,8 @@ async function main() {
   })
   console.log('Created test guest user:', guest.email)
 
-  // Add seasonal rates (Summer peak season)
-  const summerRate = await prisma.seasonalRate.upsert({
-    where: { id: 'summer-2026' },
-    update: {},
-    create: {
-      id: 'summer-2026',
-      name: 'Summer Peak Season',
-      startDate: new Date('2026-06-01'),
-      endDate: new Date('2026-08-31'),
-      pricePerNight: 250,
-    },
-  })
-  console.log('Created seasonal rate:', summerRate.name)
-
-  // Add holiday pricing
-  const holidayRate = await prisma.seasonalRate.upsert({
-    where: { id: 'holiday-2026' },
-    update: {},
-    create: {
-      id: 'holiday-2026',
-      name: 'Holiday Season',
-      startDate: new Date('2026-12-20'),
-      endDate: new Date('2027-01-05'),
-      pricePerNight: 300,
-      minNights: 3,
-    },
-  })
-  console.log('Created seasonal rate:', holidayRate.name)
+  // Date rate overrides are managed via the admin UI — no seed data needed
+  console.log('Skipping date rate overrides (managed via admin UI)')
 
   console.log('Seed completed successfully!')
 }

@@ -23,38 +23,39 @@ async function computeBookingPrice(
   const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
   const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
 
-  const seasonalRates = await prisma.seasonalRate.findMany({
+  const nightDates = eachDayOfInterval({ start: checkIn, end: checkOut }).slice(0, -1)
+
+  const overrides = await prisma.dateRateOverride.findMany({
     where: {
-      OR: [
-        { AND: [{ startDate: { lte: checkIn } }, { endDate: { gt: checkIn } }] },
-        { AND: [{ startDate: { lt: checkOut } }, { endDate: { gte: checkOut } }] },
-        { AND: [{ startDate: { gte: checkIn } }, { endDate: { lte: checkOut } }] },
-      ],
+      date: { gte: checkIn, lt: checkOut },
     },
   })
 
-  const nightDates = eachDayOfInterval({ start: checkIn, end: checkOut }).slice(0, -1)
+  const overrideMap = new Map<string, typeof overrides[number]>()
+  for (const o of overrides) {
+    overrideMap.set(o.date.toISOString().slice(0, 10), o)
+  }
 
   let totalNightlyPrice = 0
-  let effectiveRate = null
-
-  const toUTCMidnight = (d: Date) => new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).getTime()
+  let hasCustomRate = false
+  let maxMinNights = defaultMinNights
 
   for (const date of nightDates) {
-    const day = toUTCMidnight(date)
-    const applicableRate = seasonalRates.find((r) => day >= toUTCMidnight(r.startDate) && day < toUTCMidnight(r.endDate))
-    if (applicableRate) {
-      totalNightlyPrice += Number(applicableRate.pricePerNight)
-      effectiveRate = applicableRate
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const override = overrideMap.get(key)
+    if (override?.pricePerNight != null) {
+      totalNightlyPrice += Number(override.pricePerNight)
+      hasCustomRate = true
     } else {
       totalNightlyPrice += defaultBasePrice
     }
+    if (override?.minNights != null && override.minNights > maxMinNights) {
+      maxMinNights = override.minNights
+    }
   }
 
-  const cleaningFee = effectiveRate?.cleaningFee != null
-    ? Number(effectiveRate.cleaningFee)
-    : defaultCleaningFee
-  const minNights = effectiveRate?.minNights || defaultMinNights
+  const cleaningFee = defaultCleaningFee
+  const minNights = maxMinNights
   const subtotal = totalNightlyPrice
   const serviceFee = 0
   const totalPrice = subtotal + cleaningFee + serviceFee
@@ -67,7 +68,7 @@ async function computeBookingPrice(
     serviceFee,
     totalPrice,
     minNights,
-    hasSeasonalRate: effectiveRate !== null,
+    hasCustomRate,
   }
 }
 
