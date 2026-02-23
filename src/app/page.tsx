@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -596,6 +597,17 @@ export default function Home() {
             >
               Manage My Booking
             </Button>
+          </div>
+          <div className="flex justify-center gap-6 mb-6 text-sm">
+            <Link href="/policies/cancellation" className="text-gray-400 hover:text-white transition-colors">
+              Cancellation Policy
+            </Link>
+            <Link href="/policies/house-rules" className="text-gray-400 hover:text-white transition-colors">
+              House Rules
+            </Link>
+            <Link href="/policies/terms" className="text-gray-400 hover:text-white transition-colors">
+              Terms of Service
+            </Link>
           </div>
           <div className="border-t border-gray-800 pt-8">
             <p className="text-gray-400">

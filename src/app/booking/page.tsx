@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -319,8 +320,19 @@ function BookingForm() {
                 </div>
 
                 <p className="text-xs text-gray-500 mt-4">
-                  By completing this booking, you agree to the cancellation policy
-                  and house rules.
+                  By completing this booking, you agree to the{' '}
+                  <Link href="/policies/cancellation" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                    Cancellation Policy
+                  </Link>
+                  ,{' '}
+                  <Link href="/policies/house-rules" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                    House Rules
+                  </Link>
+                  , and{' '}
+                  <Link href="/policies/terms" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                    Terms of Service
+                  </Link>
+                  .
                 </p>
               </CardContent>
             </Card>

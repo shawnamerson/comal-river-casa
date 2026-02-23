@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Row,
   Column,
@@ -163,6 +164,20 @@ export function BookingConfirmationEmail({
               <strong>comalrivercasa.com/manage-booking</strong> and enter your
               confirmation number and email address.
             </Text>
+            <Text style={text}>
+              View our full policies:{" "}
+              <Link href="https://comalrivercasa.com/policies/cancellation" style={link}>
+                Cancellation Policy
+              </Link>
+              {" | "}
+              <Link href="https://comalrivercasa.com/policies/house-rules" style={link}>
+                House Rules
+              </Link>
+              {" | "}
+              <Link href="https://comalrivercasa.com/policies/terms" style={link}>
+                Terms of Service
+              </Link>
+            </Text>
           </Section>
 
           <Text style={footer}>
@@ -240,6 +255,11 @@ const totalLabel = {
 const hr = {
   borderColor: "#e5e7eb",
   margin: "12px 0",
+}
+
+const link = {
+  color: "#2563eb",
+  textDecoration: "underline",
 }
 
 const footer = {
