@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
-import { format, eachDayOfInterval } from 'date-fns'
+import { format, eachDayOfInterval, addDays, differenceInDays } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,40 +13,22 @@ import { ArrowLeft } from 'lucide-react'
 
 export default function AvailabilityManagementPage() {
   const router = useRouter()
+  const [selectionMode, setSelectionMode] = useState<'single' | 'range'>('single')
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>()
   const [blockReason, setBlockReason] = useState('')
   const [showBlockForm, setShowBlockForm] = useState(false)
+  const [pendingDates, setPendingDates] = useState<Set<string>>(new Set())
 
   // Fetch data
   const { data: bookings } = trpc.admin.getAllBookings.useQuery()
   const { data: blockedDates, refetch: refetchBlocked } = trpc.admin.getBlockedDates.useQuery()
 
-  // Mutations
-  const createBlockedDate = trpc.admin.createBlockedDate.useMutation({
-    onSuccess: () => {
-      refetchBlocked()
-      setSelectedRange(undefined)
-      setBlockReason('')
-      setShowBlockForm(false)
-      alert('Dates blocked successfully!')
-    },
-    onError: (error) => {
-      alert(`Error blocking dates: ${error.message}`)
-    },
-  })
+  // Mutations (no inline callbacks — success/error handled at call sites)
+  const createBlockedDate = trpc.admin.createBlockedDate.useMutation()
+  const deleteBlockedDate = trpc.admin.deleteBlockedDate.useMutation()
 
-  const deleteBlockedDate = trpc.admin.deleteBlockedDate.useMutation({
-    onSuccess: () => {
-      refetchBlocked()
-      alert('Blocked date removed successfully!')
-    },
-    onError: (error) => {
-      alert(`Error removing blocked date: ${error.message}`)
-    },
-  })
-
-  // Calculate disabled and styled dates
-  const getBookedDates = () => {
+  // Booked dates for calendar display
+  const bookedDates = useMemo(() => {
     if (!bookings) return []
     const dates: Date[] = []
     bookings
@@ -59,35 +41,135 @@ export default function AvailabilityManagementPage() {
         dates.push(...range)
       })
     return dates
-  }
+  }, [bookings])
 
-  const getBlockedDatesList = () => {
-    if (!blockedDates) return []
-    const dates: Date[] = []
-    blockedDates.forEach((blocked) => {
-      const range = eachDayOfInterval({
-        start: new Date(blocked.startDate),
-        end: new Date(blocked.endDate),
+  // Build blocked date set, date→range map, and Date[] for modifiers
+  const { blockedDateSet, dateToBlockedRange, blockedDatesList } = useMemo(() => {
+    const set = new Set<string>()
+    const rangeMap = new Map<string, { id: string; startDate: string; endDate: string; reason?: string | null }>()
+    const list: Date[] = []
+    if (!blockedDates) return { blockedDateSet: set, dateToBlockedRange: rangeMap, blockedDatesList: list }
+    for (const b of blockedDates) {
+      const start = new Date(b.startDate)
+      const end = new Date(b.endDate)
+      const days = eachDayOfInterval({ start, end })
+      for (const d of days) {
+        const key = format(d, 'yyyy-MM-dd')
+        set.add(key)
+        rangeMap.set(key, b)
+        list.push(d)
+      }
+    }
+    return { blockedDateSet: set, dateToBlockedRange: rangeMap, blockedDatesList: list }
+  }, [blockedDates])
+
+  // Pending dates as Date[] for DayPicker modifiers
+  const pendingDateObjects = useMemo(
+    () => Array.from(pendingDates).map((d) => new Date(d + 'T00:00:00')),
+    [pendingDates]
+  )
+
+  // Single-click handler: toggle block/unblock with range splitting
+  const handleSingleDayClick = useCallback(async (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd')
+    if (pendingDates.has(dateStr)) return
+
+    const addPending = (key: string) =>
+      setPendingDates((prev) => new Set(prev).add(key))
+    const removePending = (key: string) =>
+      setPendingDates((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
       })
-      dates.push(...range)
-    })
-    return dates
-  }
 
-  const bookedDates = getBookedDates()
-  const blocked = getBlockedDatesList()
+    const isBlocked = blockedDateSet.has(dateStr)
 
-  const handleBlockDates = () => {
+    if (!isBlocked) {
+      addPending(dateStr)
+      try {
+        const iso = new Date(dateStr + 'T00:00:00').toISOString()
+        await createBlockedDate.mutateAsync({ startDate: iso, endDate: iso })
+        await refetchBlocked()
+      } finally {
+        removePending(dateStr)
+      }
+    } else {
+      const range = dateToBlockedRange.get(dateStr)
+      if (!range) return
+
+      addPending(dateStr)
+      try {
+        await deleteBlockedDate.mutateAsync({ id: range.id })
+
+        const rangeStartStr = format(new Date(range.startDate), 'yyyy-MM-dd')
+        const rangeEndStr = format(new Date(range.endDate), 'yyyy-MM-dd')
+
+        if (rangeStartStr === rangeEndStr) {
+          // Single-day range — already deleted
+        } else if (dateStr === rangeStartStr) {
+          const newStart = addDays(new Date(rangeStartStr + 'T00:00:00'), 1)
+          await createBlockedDate.mutateAsync({
+            startDate: newStart.toISOString(),
+            endDate: new Date(rangeEndStr + 'T00:00:00').toISOString(),
+            reason: range.reason || undefined,
+          })
+        } else if (dateStr === rangeEndStr) {
+          const newEnd = addDays(new Date(rangeEndStr + 'T00:00:00'), -1)
+          await createBlockedDate.mutateAsync({
+            startDate: new Date(rangeStartStr + 'T00:00:00').toISOString(),
+            endDate: newEnd.toISOString(),
+            reason: range.reason || undefined,
+          })
+        } else {
+          const newEnd1 = addDays(date, -1)
+          const newStart2 = addDays(date, 1)
+          await createBlockedDate.mutateAsync({
+            startDate: new Date(rangeStartStr + 'T00:00:00').toISOString(),
+            endDate: newEnd1.toISOString(),
+            reason: range.reason || undefined,
+          })
+          await createBlockedDate.mutateAsync({
+            startDate: newStart2.toISOString(),
+            endDate: new Date(rangeEndStr + 'T00:00:00').toISOString(),
+            reason: range.reason || undefined,
+          })
+        }
+
+        await refetchBlocked()
+      } finally {
+        removePending(dateStr)
+      }
+    }
+  }, [blockedDateSet, dateToBlockedRange, pendingDates, createBlockedDate, deleteBlockedDate, refetchBlocked])
+
+  // Range block handler
+  const handleBlockDates = async () => {
     if (!selectedRange?.from || !selectedRange?.to) {
       alert('Please select a date range')
       return
     }
+    try {
+      await createBlockedDate.mutateAsync({
+        startDate: selectedRange.from.toISOString(),
+        endDate: selectedRange.to.toISOString(),
+        reason: blockReason || undefined,
+      })
+      await refetchBlocked()
+      setSelectedRange(undefined)
+      setBlockReason('')
+      setShowBlockForm(false)
+    } catch (error: any) {
+      alert(`Error blocking dates: ${error.message}`)
+    }
+  }
 
-    createBlockedDate.mutate({
-      startDate: selectedRange.from.toISOString(),
-      endDate: selectedRange.to.toISOString(),
-      reason: blockReason || undefined,
-    })
+  // Mode switching
+  function handleSelectionModeChange(newMode: 'single' | 'range') {
+    setSelectionMode(newMode)
+    setSelectedRange(undefined)
+    setShowBlockForm(false)
+    setBlockReason('')
   }
 
   // Stats
@@ -180,7 +262,36 @@ export default function AvailabilityManagementPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Availability Calendar</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Availability Calendar</CardTitle>
+                  <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden text-sm shrink-0">
+                    <button
+                      onClick={() => handleSelectionModeChange('single')}
+                      className={`px-4 py-2 font-medium transition-colors ${
+                        selectionMode === 'single'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Single dates
+                    </button>
+                    <button
+                      onClick={() => handleSelectionModeChange('range')}
+                      className={`px-4 py-2 font-medium transition-colors border-l border-gray-300 ${
+                        selectionMode === 'range'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Date range
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  {selectionMode === 'single'
+                    ? 'Click any date to toggle it between available and blocked.'
+                    : 'Select a date range, then block it below.'}
+                </p>
                 <div className="flex gap-4 text-sm mt-4">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-200 border border-green-600 rounded"></div>
@@ -214,25 +325,51 @@ export default function AvailabilityManagementPage() {
                   .rdp-day.blocked:hover {
                     opacity: 0.8;
                   }
+                  .rdp-day.pending-day {
+                    opacity: 0.5;
+                    animation: pulse-pending 1.5s ease-in-out infinite;
+                  }
+                  @keyframes pulse-pending {
+                    0%, 100% { opacity: 0.5; }
+                    50% { opacity: 0.2; }
+                  }
                 `}</style>
 
-                <DayPicker
-                  mode="range"
-                  selected={selectedRange}
-                  onSelect={setSelectedRange}
-                  numberOfMonths={3}
-                  className="border rounded-lg p-3"
-                  modifiers={{
-                    booked: bookedDates,
-                    blocked: blocked,
-                  }}
-                  modifiersClassNames={{
-                    booked: 'booked',
-                    blocked: 'blocked',
-                  }}
-                />
+                {selectionMode === 'single' ? (
+                  <DayPicker
+                    numberOfMonths={3}
+                    className="border rounded-lg p-3"
+                    modifiers={{
+                      booked: bookedDates,
+                      blocked: blockedDatesList,
+                      pending: pendingDateObjects,
+                    }}
+                    modifiersClassNames={{
+                      booked: 'booked',
+                      blocked: 'blocked',
+                      pending: 'pending-day',
+                    }}
+                    onDayClick={handleSingleDayClick}
+                  />
+                ) : (
+                  <DayPicker
+                    mode="range"
+                    selected={selectedRange}
+                    onSelect={setSelectedRange}
+                    numberOfMonths={3}
+                    className="border rounded-lg p-3"
+                    modifiers={{
+                      booked: bookedDates,
+                      blocked: blockedDatesList,
+                    }}
+                    modifiersClassNames={{
+                      booked: 'booked',
+                      blocked: 'blocked',
+                    }}
+                  />
+                )}
 
-                {selectedRange?.from && selectedRange?.to && (
+                {selectionMode === 'range' && selectedRange?.from && selectedRange?.to && (
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
@@ -241,7 +378,8 @@ export default function AvailabilityManagementPage() {
                         </div>
                         <div className="text-blue-700">
                           {format(selectedRange.from, 'MMM dd, yyyy')} -{' '}
-                          {format(selectedRange.to, 'MMM dd, yyyy')}
+                          {format(selectedRange.to, 'MMM dd, yyyy')}{' '}
+                          ({differenceInDays(selectedRange.to, selectedRange.from) + 1} days)
                         </div>
                       </div>
                       <Button
@@ -354,27 +492,32 @@ export default function AvailabilityManagementPage() {
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {blockedDates.map((blocked) => (
+                    {blockedDates.map((bd) => (
                       <div
-                        key={blocked.id}
+                        key={bd.id}
                         className="border rounded-lg p-3 bg-red-50"
                       >
                         <div className="text-sm font-semibold">
-                          {format(new Date(blocked.startDate), 'MMM dd')} -{' '}
-                          {format(new Date(blocked.endDate), 'MMM dd, yyyy')}
+                          {format(new Date(bd.startDate), 'MMM dd')} -{' '}
+                          {format(new Date(bd.endDate), 'MMM dd, yyyy')}
                         </div>
-                        {blocked.reason && (
+                        {bd.reason && (
                           <div className="text-xs text-gray-600 mt-1">
-                            {blocked.reason}
+                            {bd.reason}
                           </div>
                         )}
                         <Button
                           size="sm"
                           variant="outline"
                           className="w-full mt-2 text-xs"
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm('Remove this blocked date range?')) {
-                              deleteBlockedDate.mutate({ id: blocked.id })
+                              try {
+                                await deleteBlockedDate.mutateAsync({ id: bd.id })
+                                await refetchBlocked()
+                              } catch (error: any) {
+                                alert(`Error removing blocked date: ${error.message}`)
+                              }
                             }
                           }}
                           disabled={deleteBlockedDate.isPending}
