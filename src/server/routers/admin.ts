@@ -203,20 +203,53 @@ export const adminRouter = router({
       },
     })
 
-    // Total revenue (confirmed bookings only)
-    const confirmedBookings = await ctx.prisma.booking.findMany({
+    // Revenue from confirmed & completed bookings
+    const activeBookings = await ctx.prisma.booking.findMany({
       where: {
-        status: 'CONFIRMED',
+        status: { in: ['CONFIRMED', 'COMPLETED'] },
       },
       select: {
         totalPrice: true,
       },
     })
 
-    const totalRevenue = confirmedBookings.reduce(
+    const bookingRevenue = activeBookings.reduce(
       (sum, booking) => sum + Number(booking.totalPrice),
       0
     )
+
+    // Subtract refunds issued on cancelled bookings
+    const cancelledWithRefunds = await ctx.prisma.booking.findMany({
+      where: {
+        status: 'CANCELLED',
+        refundAmount: { not: null },
+      },
+      select: {
+        refundAmount: true,
+      },
+    })
+
+    const totalRefunds = cancelledWithRefunds.reduce(
+      (sum, booking) => sum + Number(booking.refundAmount),
+      0
+    )
+
+    // Add successful damage charge revenue
+    const damageCharges = await ctx.prisma.damageCharge.findMany({
+      where: {
+        status: 'SUCCEEDED',
+      },
+      select: {
+        amount: true,
+      },
+    })
+
+    const damageRevenue = damageCharges.reduce(
+      (sum, dc) => sum + Number(dc.amount),
+      0
+    )
+
+    const totalRevenue = bookingRevenue - totalRefunds + damageRevenue
 
     return {
       totalBookings,
@@ -224,6 +257,7 @@ export const adminRouter = router({
       currentBookings,
       pendingBookings,
       totalRevenue,
+      damageRevenue,
     }
   }),
 
