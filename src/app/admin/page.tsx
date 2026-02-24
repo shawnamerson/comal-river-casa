@@ -260,12 +260,6 @@ export default function AdminDashboard() {
                 <div className="text-3xl font-bold text-green-600">
                   ${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                {stats.damageRevenue > 0 && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Includes ${stats.damageRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} in damage charges
-                  </div>
-                )}
-                <div className="text-xs text-blue-500 mt-1">View breakdown →</div>
               </CardContent>
             </Card>
           </div>
