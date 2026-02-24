@@ -28,7 +28,7 @@ export const adminRouter = router({
       })
 
       if (!booking) {
-        throw new Error('Booking not found')
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' })
       }
 
       return {
@@ -300,7 +300,7 @@ export const adminRouter = router({
       })
 
       if (!existingBooking) {
-        throw new Error('Booking not found')
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Booking not found' })
       }
 
       const updateData: {
@@ -340,7 +340,7 @@ export const adminRouter = router({
             updateData.refundAmount = refundAmount
           } catch (error) {
             console.error('Failed to process refund:', error)
-            throw new Error('Failed to process refund. Please try again or process manually.')
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to process refund. Please try again or process manually.' })
           }
         }
       }
@@ -678,12 +678,12 @@ export const adminRouter = router({
       })
 
       if (!user || !user.password) {
-        throw new Error('User not found')
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
       }
 
       const valid = await bcrypt.compare(input.currentPassword, user.password)
       if (!valid) {
-        throw new Error('Current password is incorrect')
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Current password is incorrect' })
       }
 
       const hash = await bcrypt.hash(input.newPassword, 10)

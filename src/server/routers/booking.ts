@@ -4,6 +4,8 @@ import { stripe } from '@/lib/stripe'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
+import { TRPCError } from '@trpc/server'
+import { PROPERTY } from '@/config/property'
 import type { PrismaClient } from '@prisma/client'
 
 // Maximum booking window — matches the 12-month admin rates/availability calendar
@@ -13,9 +15,10 @@ async function assertWithinBookingWindow(checkOut: Date) {
   const { addMonths } = await import('date-fns')
   const maxDate = addMonths(new Date(), BOOKING_WINDOW_MONTHS)
   if (checkOut > maxDate) {
-    throw new Error(
-      'Bookings cannot be made more than 12 months in advance'
-    )
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Bookings cannot be made more than 12 months in advance',
+    })
   }
 }
 
@@ -35,6 +38,14 @@ async function computeBookingPrice(
   const defaultBasePrice = dbSettings ? Number(dbSettings.basePrice) : PROPERTY.basePrice
   const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
   const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
+  const maxNights = dbSettings?.maxNights ?? PROPERTY.maxNights
+
+  if (nights > maxNights) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Maximum stay is ${maxNights} nights`,
+    })
+  }
 
   const nightDates = eachDayOfInterval({ start: checkIn, end: checkOut }).slice(0, -1)
 
@@ -220,7 +231,7 @@ export const bookingRouter = router({
       z.object({
         checkIn: z.string().transform((val) => new Date(val)),
         checkOut: z.string().transform((val) => new Date(val)),
-        numberOfGuests: z.number().min(1),
+        numberOfGuests: z.number().min(1).max(PROPERTY.maxGuests),
         guestName: z.string().min(1),
         guestEmail: z.string().email(),
         guestPhone: z.string().optional(),
@@ -230,19 +241,13 @@ export const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       assertWithinBookingWindow(input.checkOut)
 
-      console.log('Booking create mutation called with input:', {
-        checkIn: input.checkIn,
-        checkOut: input.checkOut,
-        numberOfGuests: input.numberOfGuests,
-        guestEmail: input.guestEmail,
-      })
-
       // Compute pricing server-side — never trust client-supplied values
       const pricing = await computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
 
-      try {
-        // Double-check availability before creating
-        const availability = await ctx.prisma.booking.findMany({
+      // Atomic availability check + booking creation to prevent race conditions
+      const booking = await ctx.prisma.$transaction(async (tx) => {
+        // Check for overlapping bookings inside the transaction
+        const conflicts = await tx.booking.findMany({
           where: {
             status: {
               in: ['PENDING', 'CONFIRMED'],
@@ -270,52 +275,79 @@ export const bookingRouter = router({
           },
         })
 
-        console.log('Availability check result:', availability.length, 'conflicts found')
-
-        if (availability.length > 0) {
-          throw new Error('These dates are no longer available')
+        if (conflicts.length > 0) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'These dates are no longer available',
+          })
         }
-      } catch (error) {
-        console.error('Error during availability check:', error)
-        throw error
-      }
 
-      // Create the booking
-      console.log('Creating booking in database...')
-      const booking = await ctx.prisma.booking.create({
-        data: {
-          checkIn: input.checkIn,
-          checkOut: input.checkOut,
-          numberOfGuests: input.numberOfGuests,
-          guestName: input.guestName,
-          guestEmail: input.guestEmail,
-          guestPhone: input.guestPhone,
-          numberOfNights: pricing.numberOfNights,
-          pricePerNight: pricing.pricePerNight,
-          subtotal: pricing.subtotal,
-          cleaningFee: pricing.cleaningFee,
-          serviceFee: pricing.serviceFee,
-          totalPrice: pricing.totalPrice,
-          specialRequests: input.specialRequests,
-          status: 'PENDING',
-          paymentStatus: 'PENDING',
-          user: {
-            connectOrCreate: {
-              where: { email: input.guestEmail },
-              create: {
-                email: input.guestEmail,
-                name: input.guestName,
-                role: 'GUEST',
+        // Check for blocked dates inside the transaction
+        const blockedConflicts = await tx.blockedDate.findMany({
+          where: {
+            OR: [
+              {
+                AND: [
+                  { startDate: { lte: input.checkIn } },
+                  { endDate: { gt: input.checkIn } },
+                ],
+              },
+              {
+                AND: [
+                  { startDate: { lt: input.checkOut } },
+                  { endDate: { gte: input.checkOut } },
+                ],
+              },
+              {
+                AND: [
+                  { startDate: { gte: input.checkIn } },
+                  { endDate: { lte: input.checkOut } },
+                ],
+              },
+            ],
+          },
+        })
+
+        if (blockedConflicts.length > 0) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'These dates are no longer available',
+          })
+        }
+
+        return tx.booking.create({
+          data: {
+            checkIn: input.checkIn,
+            checkOut: input.checkOut,
+            numberOfGuests: input.numberOfGuests,
+            guestName: input.guestName,
+            guestEmail: input.guestEmail,
+            guestPhone: input.guestPhone,
+            numberOfNights: pricing.numberOfNights,
+            pricePerNight: pricing.pricePerNight,
+            subtotal: pricing.subtotal,
+            cleaningFee: pricing.cleaningFee,
+            serviceFee: pricing.serviceFee,
+            totalPrice: pricing.totalPrice,
+            specialRequests: input.specialRequests,
+            status: 'PENDING',
+            paymentStatus: 'PENDING',
+            user: {
+              connectOrCreate: {
+                where: { email: input.guestEmail },
+                create: {
+                  email: input.guestEmail,
+                  name: input.guestName,
+                  role: 'GUEST',
+                },
               },
             },
           },
-        },
-      })
-
-      console.log('Booking created successfully, ID:', booking.id)
+        })
+      }, { isolationLevel: 'Serializable' })
 
       // Convert Decimals to numbers and Dates to strings for serialization
-      const result = {
+      return {
         id: booking.id,
         userId: booking.userId,
         checkIn: booking.checkIn.toISOString(),
@@ -341,9 +373,6 @@ export const bookingRouter = router({
         createdAt: booking.createdAt.toISOString(),
         updatedAt: booking.updatedAt.toISOString(),
       }
-
-      console.log('Returning serialized booking result')
-      return result
     }),
 
   // Look up a booking by ID and email
@@ -363,7 +392,10 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
-        throw new Error('Booking not found. Please check your confirmation number and email address.')
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Booking not found. Please check your confirmation number and email address.',
+        })
       }
 
       // Convert Decimals to numbers and Dates to strings for serialization
@@ -408,11 +440,17 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
-        throw new Error('Booking not found')
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Booking not found',
+        })
       }
 
       if (booking.status === 'CANCELLED') {
-        throw new Error('This booking is already cancelled')
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This booking is already cancelled',
+        })
       }
 
       // Bookings are automatically confirmed on payment.
@@ -439,7 +477,10 @@ export const bookingRouter = router({
           refundAmount = refund.amount / 100 // Convert from cents
         } catch (error) {
           console.error('Failed to process refund:', error)
-          throw new Error('Failed to process refund. Please contact support.')
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to process refund. Please contact support.',
+          })
         }
       }
 
@@ -525,7 +566,10 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
-        throw new Error('Booking not found')
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Booking not found',
+        })
       }
 
       if (booking.stripePaymentIntentId) {
@@ -596,13 +640,19 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
-        throw new Error('Booking not found')
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Booking not found',
+        })
       }
 
       // Verify the PaymentIntent belongs to this booking — prevents replay attacks
       // where a succeeded PaymentIntent from a different booking is reused
       if (booking.stripePaymentIntentId !== input.paymentIntentId) {
-        throw new Error('Payment intent does not match this booking')
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Payment intent does not match this booking',
+        })
       }
 
       // Verify payment intent status with Stripe
