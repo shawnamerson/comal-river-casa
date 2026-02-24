@@ -188,6 +188,9 @@ export default function AdminDashboard() {
             <Button onClick={() => router.push('/admin/reviews')} variant="outline">
               ⭐ Reviews
             </Button>
+            <Button onClick={() => router.push('/admin/accounting')} variant="outline">
+              📊 Accounting
+            </Button>
           </div>
         </div>
 
@@ -244,7 +247,10 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => router.push('/admin/accounting')}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Net Revenue
@@ -259,6 +265,7 @@ export default function AdminDashboard() {
                     Includes ${stats.damageRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} in damage charges
                   </div>
                 )}
+                <div className="text-xs text-blue-500 mt-1">View breakdown →</div>
               </CardContent>
             </Card>
           </div>

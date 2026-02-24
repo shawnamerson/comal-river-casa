@@ -702,6 +702,152 @@ export const adminRouter = router({
       }
     }),
 
+  // Get financial transactions for accounting
+  getTransactions: adminProcedure
+    .input(
+      z.object({
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const bookingDateFilter: { createdAt?: { gte?: Date; lte?: Date } } = {}
+      const cancelDateFilter: { cancelledAt?: { gte?: Date; lte?: Date } } = {}
+      const dcDateFilter: { createdAt?: { gte?: Date; lte?: Date } } = {}
+
+      if (input.startDate || input.endDate) {
+        const start = input.startDate ? new Date(input.startDate) : undefined
+        const end = input.endDate ? new Date(input.endDate + 'T23:59:59.999Z') : undefined
+
+        if (start || end) {
+          const range: { gte?: Date; lte?: Date } = {}
+          if (start) range.gte = start
+          if (end) range.lte = end
+          bookingDateFilter.createdAt = range
+          cancelDateFilter.cancelledAt = range
+          dcDateFilter.createdAt = range
+        }
+      }
+
+      const [bookings, cancelledBookings, damageCharges] = await Promise.all([
+        // Booking payments
+        ctx.prisma.booking.findMany({
+          where: {
+            status: { in: ['CONFIRMED', 'COMPLETED'] },
+            paymentStatus: 'SUCCEEDED',
+            ...bookingDateFilter,
+          },
+          select: {
+            id: true,
+            guestName: true,
+            totalPrice: true,
+            numberOfNights: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        // Refunds
+        ctx.prisma.booking.findMany({
+          where: {
+            status: 'CANCELLED',
+            refundAmount: { not: null },
+            ...cancelDateFilter,
+          },
+          select: {
+            id: true,
+            guestName: true,
+            refundAmount: true,
+            totalPrice: true,
+            cancelledAt: true,
+          },
+          orderBy: { cancelledAt: 'desc' },
+        }),
+        // Damage charges
+        ctx.prisma.damageCharge.findMany({
+          where: {
+            status: 'SUCCEEDED',
+            ...dcDateFilter,
+          },
+          select: {
+            id: true,
+            amount: true,
+            description: true,
+            createdAt: true,
+            booking: {
+              select: {
+                id: true,
+                guestName: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+      ])
+
+      type Transaction = {
+        date: string
+        type: 'payment' | 'refund' | 'damage_charge'
+        description: string
+        amount: number
+        bookingId: string
+        guestName: string
+      }
+
+      const transactions: Transaction[] = []
+
+      for (const b of bookings) {
+        transactions.push({
+          date: b.createdAt.toISOString(),
+          type: 'payment',
+          description: `Booking payment — ${b.numberOfNights} night${b.numberOfNights === 1 ? '' : 's'}`,
+          amount: Number(b.totalPrice),
+          bookingId: b.id,
+          guestName: b.guestName,
+        })
+      }
+
+      for (const b of cancelledBookings) {
+        const refund = Number(b.refundAmount)
+        const total = Number(b.totalPrice)
+        const isFullRefund = Math.abs(refund - total) < 0.01
+        transactions.push({
+          date: b.cancelledAt!.toISOString(),
+          type: 'refund',
+          description: isFullRefund ? 'Full refund' : `${Math.round((refund / total) * 100)}% partial refund`,
+          amount: -refund,
+          bookingId: b.id,
+          guestName: b.guestName,
+        })
+      }
+
+      for (const dc of damageCharges) {
+        transactions.push({
+          date: dc.createdAt.toISOString(),
+          type: 'damage_charge',
+          description: dc.description,
+          amount: Number(dc.amount),
+          bookingId: dc.booking.id,
+          guestName: dc.booking.guestName,
+        })
+      }
+
+      transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+      const bookingIncome = bookings.reduce((sum, b) => sum + Number(b.totalPrice), 0)
+      const refunds = cancelledBookings.reduce((sum, b) => sum + Number(b.refundAmount), 0)
+      const damageIncome = damageCharges.reduce((sum, dc) => sum + Number(dc.amount), 0)
+
+      return {
+        transactions,
+        summary: {
+          bookingIncome,
+          refunds,
+          damageIncome,
+          netRevenue: bookingIncome - refunds + damageIncome,
+        },
+      }
+    }),
+
   // Change admin password
   changePassword: adminProcedure
     .input(
