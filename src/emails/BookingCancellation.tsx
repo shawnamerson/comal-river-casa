@@ -94,6 +94,13 @@ export function BookingCancellationEmail({
                   been issued to your original payment method. Please allow 5–10
                   business days for it to appear.
                 </Text>
+                {refundAmount < totalPrice && (
+                  <Text style={text}>
+                    This is a 50% partial refund because the booking was
+                    cancelled within 5 days of check-in. The original total was $
+                    {totalPrice.toFixed(2)}.
+                  </Text>
+                )}
               </>
             ) : (
               <Text style={text}>
