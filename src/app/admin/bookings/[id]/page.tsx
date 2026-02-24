@@ -320,7 +320,7 @@ export default function BookingDetailPage() {
             </Card>
 
             {/* Damage Charges */}
-            {['CONFIRMED', 'COMPLETED'].includes(booking.status) && booking.paymentStatus === 'SUCCEEDED' && (
+            {(booking.damageCharges.length > 0 || (['CONFIRMED', 'COMPLETED'].includes(booking.status) && booking.paymentStatus === 'SUCCEEDED')) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Damage Charges</CardTitle>
@@ -348,8 +348,8 @@ export default function BookingDetailPage() {
                     </div>
                   )}
 
-                  {/* No saved card warning */}
-                  {!booking.stripeCustomerId ? (
+                  {/* Charge form — only for active bookings with payment */}
+                  {!['CONFIRMED', 'COMPLETED'].includes(booking.status) || booking.paymentStatus !== 'SUCCEEDED' ? null : !booking.stripeCustomerId ? (
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div className="font-semibold text-yellow-900">No saved payment method</div>
                       <div className="text-sm text-yellow-700 mt-1">
