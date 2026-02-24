@@ -550,6 +550,11 @@ export default function ManageBookingPage() {
               )}
             </div>
 
+            <p className="text-center text-sm text-gray-500">
+              Need help? Email us at{' '}
+              <a href="mailto:kodybyron@yahoo.com" className="text-blue-600 hover:underline">kodybyron@yahoo.com</a>
+            </p>
+
           </div>
         )}
 

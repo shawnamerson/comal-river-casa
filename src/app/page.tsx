@@ -70,6 +70,16 @@ export default function Home() {
         </section>
       )}
 
+      {/* Contact */}
+      <section className="py-16 px-4 bg-gray-50 text-center">
+        <p className="text-lg text-gray-700">
+          Questions, concerns, contact the owner at:{' '}
+          <a href="mailto:kodybyron@yahoo.com" className="text-blue-600 hover:underline font-semibold">
+            kodybyron@yahoo.com
+          </a>
+        </p>
+      </section>
+
       <FooterSection
         propertyName={property.name}
         city={property.city}
