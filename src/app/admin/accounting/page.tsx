@@ -32,17 +32,42 @@ export default function AccountingPage() {
     setAppliedEnd(undefined)
   }
 
+  // Sort chronologically (oldest first) for ledger view and compute running balance
+  const ledgerTransactions = data
+    ? [...data.transactions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : []
+
+  const openingBalance = data?.openingBalance ?? 0
+  const hasDateFilter = !!(appliedStart || appliedEnd)
+
+  // Compute running balances
+  const runningBalances: number[] = []
+  let balance = openingBalance
+  for (const t of ledgerTransactions) {
+    balance += t.amount
+    runningBalances.push(balance)
+  }
+
   const handleExportCSV = () => {
     if (!data) return
-    const headers = ['Date', 'Type', 'Guest', 'Description', 'Amount', 'Booking ID']
-    const rows = data.transactions.map((t) => [
-      format(new Date(t.date), 'yyyy-MM-dd'),
-      t.type === 'payment' ? 'Payment' : t.type === 'refund' ? 'Refund' : 'Damage Charge',
-      t.guestName,
-      t.description,
-      t.amount.toFixed(2),
-      t.bookingId,
-    ])
+    const headers = ['Date', 'Type', 'Guest', 'Description', 'Amount', 'Balance', 'Booking ID']
+    const rows: string[][] = []
+
+    if (hasDateFilter && openingBalance !== 0) {
+      rows.push(['', '', '', 'Opening Balance', '', openingBalance.toFixed(2), ''])
+    }
+
+    ledgerTransactions.forEach((t, i) => {
+      rows.push([
+        format(new Date(t.date), 'yyyy-MM-dd'),
+        t.type === 'payment' ? 'Payment' : t.type === 'refund' ? 'Refund' : 'Damage Charge',
+        t.guestName,
+        t.description,
+        t.amount.toFixed(2),
+        runningBalances[i].toFixed(2),
+        t.bookingId,
+      ])
+    })
 
     const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -181,7 +206,7 @@ export default function AccountingPage() {
           <CardContent>
             {isLoading ? (
               <p className="text-gray-500 text-center py-8">Loading transactions...</p>
-            ) : !data?.transactions.length ? (
+            ) : !ledgerTransactions.length && !hasDateFilter ? (
               <p className="text-gray-500 text-center py-8">No transactions found</p>
             ) : (
               <div className="overflow-x-auto">
@@ -193,10 +218,20 @@ export default function AccountingPage() {
                       <th className="pb-3 font-medium text-gray-600">Guest</th>
                       <th className="pb-3 font-medium text-gray-600">Description</th>
                       <th className="pb-3 font-medium text-gray-600 text-right">Amount</th>
+                      <th className="pb-3 font-medium text-gray-600 text-right">Balance</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.transactions.map((t, i) => (
+                    {hasDateFilter && openingBalance !== 0 && (
+                      <tr className="border-b bg-gray-50 italic text-gray-500">
+                        <td className="py-3" colSpan={4}>Opening Balance</td>
+                        <td className="py-3" />
+                        <td className={`py-3 text-right font-medium whitespace-nowrap ${openingBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${fmt(Math.abs(openingBalance))}
+                        </td>
+                      </tr>
+                    )}
+                    {ledgerTransactions.map((t, i) => (
                       <tr key={`${t.bookingId}-${t.type}-${i}`} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="py-3 whitespace-nowrap">
                           {format(new Date(t.date), 'MMM dd, yyyy')}
@@ -213,6 +248,9 @@ export default function AccountingPage() {
                         <td className="py-3 text-gray-600">{t.description}</td>
                         <td className={`py-3 text-right font-medium whitespace-nowrap ${t.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {t.amount >= 0 ? '+' : ''}{t.amount < 0 ? '-' : ''}${fmt(Math.abs(t.amount))}
+                        </td>
+                        <td className={`py-3 text-right font-medium whitespace-nowrap ${runningBalances[i] >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${fmt(Math.abs(runningBalances[i]))}
                         </td>
                       </tr>
                     ))}

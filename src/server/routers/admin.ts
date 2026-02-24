@@ -715,18 +715,50 @@ export const adminRouter = router({
       const cancelDateFilter: { cancelledAt?: { gte?: Date; lte?: Date } } = {}
       const dcDateFilter: { createdAt?: { gte?: Date; lte?: Date } } = {}
 
-      if (input.startDate || input.endDate) {
-        const start = input.startDate ? new Date(input.startDate) : undefined
-        const end = input.endDate ? new Date(input.endDate + 'T23:59:59.999Z') : undefined
+      const start = input.startDate ? new Date(input.startDate) : undefined
+      const end = input.endDate ? new Date(input.endDate + 'T23:59:59.999Z') : undefined
 
-        if (start || end) {
-          const range: { gte?: Date; lte?: Date } = {}
-          if (start) range.gte = start
-          if (end) range.lte = end
-          bookingDateFilter.createdAt = range
-          cancelDateFilter.cancelledAt = range
-          dcDateFilter.createdAt = range
-        }
+      if (start || end) {
+        const range: { gte?: Date; lte?: Date } = {}
+        if (start) range.gte = start
+        if (end) range.lte = end
+        bookingDateFilter.createdAt = range
+        cancelDateFilter.cancelledAt = range
+        dcDateFilter.createdAt = range
+      }
+
+      // Compute opening balance from transactions before the start date
+      let openingBalance = 0
+      if (start) {
+        const [priorBookings, priorRefunds, priorDamageCharges] = await Promise.all([
+          ctx.prisma.booking.findMany({
+            where: {
+              paymentStatus: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'] },
+              createdAt: { lt: start },
+            },
+            select: { totalPrice: true },
+          }),
+          ctx.prisma.booking.findMany({
+            where: {
+              status: 'CANCELLED',
+              refundAmount: { not: null },
+              cancelledAt: { lt: start },
+            },
+            select: { refundAmount: true },
+          }),
+          ctx.prisma.damageCharge.findMany({
+            where: {
+              status: 'SUCCEEDED',
+              createdAt: { lt: start },
+            },
+            select: { amount: true },
+          }),
+        ])
+
+        const priorIncome = priorBookings.reduce((sum, b) => sum + Number(b.totalPrice), 0)
+        const priorRefundTotal = priorRefunds.reduce((sum, b) => sum + Number(b.refundAmount), 0)
+        const priorDamageIncome = priorDamageCharges.reduce((sum, dc) => sum + Number(dc.amount), 0)
+        openingBalance = priorIncome - priorRefundTotal + priorDamageIncome
       }
 
       const [bookings, cancelledBookings, damageCharges] = await Promise.all([
@@ -838,6 +870,7 @@ export const adminRouter = router({
 
       return {
         transactions,
+        openingBalance,
         summary: {
           bookingIncome,
           refunds,
