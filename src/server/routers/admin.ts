@@ -733,7 +733,7 @@ export const adminRouter = router({
         // Booking payments (all bookings that were paid, including later-cancelled ones)
         ctx.prisma.booking.findMany({
           where: {
-            paymentStatus: 'SUCCEEDED',
+            paymentStatus: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'] },
             ...bookingDateFilter,
           },
           select: {
