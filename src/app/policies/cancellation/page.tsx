@@ -22,12 +22,12 @@ export default function CancellationPolicyPage() {
           <h2 className="text-2xl font-semibold mb-4">Refund Windows</h2>
           <ul className="list-disc pl-6 space-y-2 text-gray-700">
             <li>
-              <strong>More than 24 hours before check-in:</strong> Full refund of
+              <strong>5 or more days before check-in:</strong> Full refund of
               the total booking amount.
             </li>
             <li>
-              <strong>Within 24 hours of check-in:</strong> No refund will be
-              issued.
+              <strong>Within 5 days of check-in:</strong> 50% refund of
+              the total booking amount.
             </li>
             <li>
               <strong>No-shows:</strong> No refund will be issued for no-shows.

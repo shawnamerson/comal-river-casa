@@ -65,7 +65,7 @@ export function PricingSection({ property, onBookingClick }: PricingSectionProps
           </div>
 
           <p className="text-gray-300 text-sm">
-            Instant booking confirmation • Secure payment • Free cancellation 24+ hours before check-in
+            Instant booking confirmation • Secure payment • Free cancellation 5+ days before check-in
           </p>
         </div>
       </div>

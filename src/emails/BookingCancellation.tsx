@@ -97,8 +97,7 @@ export function BookingCancellationEmail({
               </>
             ) : (
               <Text style={text}>
-                This booking is not eligible for a refund because it was
-                cancelled within 24 hours of check-in. The total charged was $
+                No refund was issued for this cancellation. The total charged was $
                 {totalPrice.toFixed(2)}.
               </Text>
             )}

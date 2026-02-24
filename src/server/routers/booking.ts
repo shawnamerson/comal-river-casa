@@ -454,24 +454,28 @@ export const bookingRouter = router({
       }
 
       // Bookings are automatically confirmed on payment.
-      // Full refund if cancelled more than 24 hours before check-in.
+      // Full refund if cancelled 5+ days before check-in.
+      // 50% refund if cancelled within 5 days of check-in.
       const now = new Date()
       const checkIn = new Date(booking.checkIn)
-      const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
-
-      const isEligibleForRefund = hoursUntilCheckIn > 24
+      const daysUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
 
       let refundAmount: number | null = null
 
       if (
-        isEligibleForRefund &&
+        daysUntilCheckIn > 0 &&
         booking.stripePaymentIntentId &&
         booking.paymentStatus === 'SUCCEEDED'
       ) {
+        const totalCents = Math.round(Number(booking.totalPrice) * 100)
+        const refundCents = daysUntilCheckIn >= 5
+          ? totalCents              // Full refund
+          : Math.round(totalCents * 0.5) // 50% partial refund
+
         try {
-          // Issue full refund via Stripe
           const refund = await stripe.refunds.create({
             payment_intent: booking.stripePaymentIntentId,
+            amount: refundCents,
           })
 
           refundAmount = refund.amount / 100 // Convert from cents
@@ -549,7 +553,7 @@ export const bookingRouter = router({
         status: updated.status,
         cancelledAt: updated.cancelledAt?.toISOString() || null,
         refundAmount,
-        refundEligible: isEligibleForRefund,
+        refundEligible: refundAmount !== null,
       }
     }),
 

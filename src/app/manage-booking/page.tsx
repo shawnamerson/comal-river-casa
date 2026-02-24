@@ -540,8 +540,9 @@ export default function ManageBookingPage() {
           {(() => {
             const now = new Date()
             const checkIn = new Date(booking.checkIn)
-            const hoursUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60)
-            const willGetRefund = hoursUntilCheckIn > 24
+            const daysUntilCheckIn = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+            const willGetFullRefund = daysUntilCheckIn >= 5
+            const willGetPartialRefund = daysUntilCheckIn > 0 && daysUntilCheckIn < 5
 
             return (
               <div className="p-6">
@@ -559,18 +560,25 @@ export default function ManageBookingPage() {
                 </p>
 
                 {/* Refund Status */}
-                {willGetRefund ? (
+                {willGetFullRefund ? (
                   <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-green-800 font-semibold">You will receive a full refund</p>
                     <p className="text-green-700 text-sm">
-                      You are cancelling more than 24 hours before check-in.
+                      You are cancelling 5 or more days before check-in.
+                    </p>
+                  </div>
+                ) : willGetPartialRefund ? (
+                  <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-yellow-800 font-semibold">You will receive a 50% refund</p>
+                    <p className="text-yellow-700 text-sm">
+                      Cancellations within 5 days of check-in receive a 50% refund.
                     </p>
                   </div>
                 ) : (
                   <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-red-800 font-semibold">No refund available</p>
                     <p className="text-red-700 text-sm">
-                      Cancellations within 24 hours of check-in are not eligible for a refund.
+                      Cancellations after check-in are not eligible for a refund.
                     </p>
                   </div>
                 )}
@@ -579,8 +587,8 @@ export default function ManageBookingPage() {
                 <div className="mb-6 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm font-semibold mb-2">Cancellation Policy</p>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Full refund if cancelled more than 24 hours before check-in</li>
-                    <li>• No refund if cancelled within 24 hours of check-in</li>
+                    <li>• Full refund if cancelled 5+ days before check-in</li>
+                    <li>• 50% refund if cancelled within 5 days of check-in</li>
                   </ul>
                 </div>
 

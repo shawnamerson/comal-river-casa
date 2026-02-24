@@ -155,9 +155,9 @@ export function BookingConfirmationEmail({
               Cancellation Policy
             </Heading>
             <Text style={text}>
-              • Full refund if cancelled more than 24 hours before check-in
+              • Full refund if cancelled 5+ days before check-in
               <br />
-              • No refund if cancelled within 24 hours of check-in
+              • 50% refund if cancelled within 5 days of check-in
             </Text>
             <Text style={text}>
               To cancel or manage your booking, visit{" "}
