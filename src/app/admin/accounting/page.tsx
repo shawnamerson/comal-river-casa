@@ -94,7 +94,7 @@ export default function AccountingPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  ${fmt(data.summary.bookingIncome)}
+                  +${fmt(data.summary.bookingIncome)}
                 </div>
               </CardContent>
             </Card>
@@ -116,7 +116,7 @@ export default function AccountingPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  ${fmt(data.summary.damageIncome)}
+                  +${fmt(data.summary.damageIncome)}
                 </div>
               </CardContent>
             </Card>
