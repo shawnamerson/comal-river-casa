@@ -730,10 +730,9 @@ export const adminRouter = router({
       }
 
       const [bookings, cancelledBookings, damageCharges] = await Promise.all([
-        // Booking payments
+        // Booking payments (all bookings that were paid, including later-cancelled ones)
         ctx.prisma.booking.findMany({
           where: {
-            status: { in: ['CONFIRMED', 'COMPLETED'] },
             paymentStatus: 'SUCCEEDED',
             ...bookingDateFilter,
           },
