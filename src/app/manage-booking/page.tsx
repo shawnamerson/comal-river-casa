@@ -38,6 +38,14 @@ interface CancelResult {
   error?: string
 }
 
+interface DamageChargeData {
+  id: string
+  amount: number
+  description: string
+  status: string
+  createdAt: string
+}
+
 interface BookingData {
   id: string
   userId: string
@@ -59,6 +67,7 @@ interface BookingData {
   cancelledAt: string | null
   cancellationReason: string | null
   refundAmount: number | null
+  damageCharges: DamageChargeData[]
   createdAt: string
   updatedAt: string
 }
@@ -400,6 +409,41 @@ export default function ManageBookingPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Damage Charges */}
+            {booking.damageCharges.length > 0 && (
+              <Card>
+                <CardHeader className="bg-orange-50 border-b">
+                  <CardTitle className="text-orange-900">Damage Charges</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                  {booking.damageCharges.map((charge) => (
+                    <div key={charge.id} className="flex items-start justify-between gap-4 border-b last:border-0 pb-4 last:pb-0">
+                      <div className="space-y-1">
+                        <p className="font-medium text-gray-900">{charge.description}</p>
+                        <p className="text-sm text-gray-500">{format(new Date(charge.createdAt), 'MMM dd, yyyy')}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-lg text-orange-700">${charge.amount.toFixed(2)}</p>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          charge.status === 'SUCCEEDED'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {charge.status === 'SUCCEEDED' ? 'Charged' : 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="border-t pt-3 flex justify-between font-bold">
+                    <span>Total Damage Charges</span>
+                    <span className="text-orange-700">
+                      ${booking.damageCharges.reduce((sum, c) => sum + c.amount, 0).toFixed(2)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Review Section — show after checkout for CONFIRMED/COMPLETED bookings */}
             {(booking.status === 'CONFIRMED' || booking.status === 'COMPLETED') &&

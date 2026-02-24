@@ -389,6 +389,9 @@ export const bookingRouter = router({
           id: input.bookingId,
           guestEmail: input.email,
         },
+        include: {
+          damageCharges: { orderBy: { createdAt: 'desc' } },
+        },
       })
 
       if (!booking) {
@@ -420,6 +423,13 @@ export const bookingRouter = router({
         cancelledAt: booking.cancelledAt?.toISOString() || null,
         cancellationReason: booking.cancellationReason,
         refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
+        damageCharges: booking.damageCharges.map((dc) => ({
+          id: dc.id,
+          amount: Number(dc.amount),
+          description: dc.description,
+          status: dc.status,
+          createdAt: dc.createdAt.toISOString(),
+        })),
         createdAt: booking.createdAt.toISOString(),
         updatedAt: booking.updatedAt.toISOString(),
       }

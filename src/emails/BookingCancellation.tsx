@@ -81,6 +81,19 @@ export function BookingCancellationEmail({
                 </Column>
               </Row>
             )}
+            {refundAmount != null && refundAmount > 0 && (
+              <Row>
+                <Column>
+                  <Text style={label}>Refund</Text>
+                  <Text style={value}>
+                    ${refundAmount.toFixed(2)}{" "}
+                    {refundAmount < totalPrice
+                      ? "(50% — cancelled within 5 days of check-in)"
+                      : "(full refund)"}
+                  </Text>
+                </Column>
+              </Row>
+            )}
           </Section>
 
           <Section style={card}>
