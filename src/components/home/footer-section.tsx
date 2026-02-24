@@ -20,7 +20,7 @@ export function FooterSection({ propertyName, city, state }: FooterSectionProps)
         <p className="text-gray-400 mb-8">
           {city}, {state}
         </p>
-        <div className="mb-8">
+        <div className="mb-4">
           <Button
             onClick={() => router.push('/manage-booking')}
             variant="outline"
@@ -29,6 +29,12 @@ export function FooterSection({ propertyName, city, state }: FooterSectionProps)
             Manage My Booking
           </Button>
         </div>
+        <p className="text-gray-400 mb-8 text-sm">
+          Questions, concerns, contact the owner at:{' '}
+          <a href="mailto:kodybyron@yahoo.com" className="text-white hover:underline">
+            kodybyron@yahoo.com
+          </a>
+        </p>
         <div className="flex justify-center gap-6 mb-6 text-sm">
           <Link href="/policies/cancellation" className="text-gray-400 hover:text-white transition-colors">
             Cancellation Policy
@@ -39,11 +45,6 @@ export function FooterSection({ propertyName, city, state }: FooterSectionProps)
           <Link href="/policies/terms" className="text-gray-400 hover:text-white transition-colors">
             Terms of Service
           </Link>
-        </div>
-        <div className="mb-6">
-          <a href="mailto:kodybyron@yahoo.com" className="text-gray-400 hover:text-white transition-colors text-sm">
-            kodybyron@yahoo.com
-          </a>
         </div>
         <div className="border-t border-gray-800 pt-8">
           <p className="text-gray-400">
