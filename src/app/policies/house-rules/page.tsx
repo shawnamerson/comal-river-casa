@@ -103,8 +103,8 @@ export default function HouseRulesPage() {
 
         <p className="text-sm text-gray-500">
           Failure to comply with these rules may result in immediate eviction
-          without refund. Questions? Email us at the address provided in your
-          booking confirmation.
+          without refund. Questions? Email us at{' '}
+          <a href="mailto:kodybyron@yahoo.com" className="text-blue-600 hover:underline">kodybyron@yahoo.com</a>.
         </p>
       </div>
     </main>

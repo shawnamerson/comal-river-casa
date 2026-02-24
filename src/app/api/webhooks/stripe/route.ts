@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
             where: { stripePaymentIntentId: paymentIntentId },
           })
 
-          if (booking) {
+          if (booking && booking.status !== 'CANCELLED') {
             await prisma.booking.update({
               where: { id: booking.id },
               data: {
@@ -167,6 +167,16 @@ export async function POST(request: NextRequest) {
               },
             })
             console.log(`Booking ${booking.id} refunded via webhook`)
+          } else if (booking) {
+            // Booking was already cancelled by admin/guest — just update payment status and refund amount
+            await prisma.booking.update({
+              where: { id: booking.id },
+              data: {
+                paymentStatus: 'REFUNDED',
+                refundAmount: charge.amount_refunded / 100,
+              },
+            })
+            console.log(`Booking ${booking.id} refund amount updated via webhook (already cancelled)`)
           }
         }
         break

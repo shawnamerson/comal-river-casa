@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Row,
   Column,
@@ -94,11 +95,18 @@ export function DamageChargeEmail({
 
           <Text style={text}>
             This charge has been applied to the card used for your original booking.
-            If you have questions about this charge, please reply to this email.
+            If you have questions about this charge, please email us at{" "}
+            <Link href="mailto:kodybyron@yahoo.com" style={link}>
+              kodybyron@yahoo.com
+            </Link>.
           </Text>
 
           <Text style={footer}>
-            Questions? Reply to this email or visit comalrivercasa.com.
+            Questions? Email us at{" "}
+            <Link href="mailto:kodybyron@yahoo.com" style={link}>
+              kodybyron@yahoo.com
+            </Link>{" "}
+            or visit comalrivercasa.com.
           </Text>
         </Container>
       </Body>
@@ -179,6 +187,11 @@ const amountText = {
 const hr = {
   borderColor: "#e5e7eb",
   margin: "12px 0",
+}
+
+const link = {
+  color: "#2563eb",
+  textDecoration: "underline",
 }
 
 const footer = {

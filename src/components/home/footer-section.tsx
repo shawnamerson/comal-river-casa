@@ -40,6 +40,11 @@ export function FooterSection({ propertyName, city, state }: FooterSectionProps)
             Terms of Service
           </Link>
         </div>
+        <div className="mb-6">
+          <a href="mailto:kodybyron@yahoo.com" className="text-gray-400 hover:text-white transition-colors text-sm">
+            kodybyron@yahoo.com
+          </a>
+        </div>
         <div className="border-t border-gray-800 pt-8">
           <p className="text-gray-400">
             &copy; 2026 Comal River Casa. All rights reserved.

@@ -163,7 +163,9 @@ function ConfirmationContent() {
               <div>
                 <p className="font-semibold">Questions?</p>
                 <p className="text-sm text-gray-600">
-                  If you have any questions or need to make changes, please contact us using the confirmation number above.
+                  If you have any questions or need to make changes, email us at{' '}
+                  <a href="mailto:kodybyron@yahoo.com" className="text-blue-600 hover:underline">kodybyron@yahoo.com</a>{' '}
+                  with your confirmation number.
                 </p>
               </div>
             </div>

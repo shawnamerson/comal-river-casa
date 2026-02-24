@@ -219,7 +219,8 @@ export default function ManageBookingPage() {
                   Don&apos;t have your confirmation number?
                 </p>
                 <p className="text-xs text-gray-500">
-                  Check your email for the booking confirmation or contact us for assistance.
+                  Check your email for the booking confirmation or email us at{' '}
+                  <a href="mailto:kodybyron@yahoo.com" className="text-blue-600 hover:underline">kodybyron@yahoo.com</a> for assistance.
                 </p>
               </div>
             </CardContent>

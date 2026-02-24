@@ -5,6 +5,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Row,
   Column,
@@ -124,7 +125,11 @@ export function BookingCancellationEmail({
           </Section>
 
           <Text style={footer}>
-            Questions? Reply to this email or visit comalrivercasa.com.
+            Questions? Email us at{" "}
+            <Link href="mailto:kodybyron@yahoo.com" style={link}>
+              kodybyron@yahoo.com
+            </Link>{" "}
+            or visit comalrivercasa.com.
           </Text>
         </Container>
       </Body>
@@ -191,6 +196,11 @@ const value = {
 const hr = {
   borderColor: "#e5e7eb",
   margin: "12px 0",
+}
+
+const link = {
+  color: "#2563eb",
+  textDecoration: "underline",
 }
 
 const footer = {
