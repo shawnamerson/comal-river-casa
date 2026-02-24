@@ -203,17 +203,17 @@ export const adminRouter = router({
       },
     })
 
-    // Revenue from confirmed & completed bookings
-    const activeBookings = await ctx.prisma.booking.findMany({
+    // Revenue from all bookings that were actually paid
+    const paidBookings = await ctx.prisma.booking.findMany({
       where: {
-        status: { in: ['CONFIRMED', 'COMPLETED'] },
+        paymentStatus: { in: ['SUCCEEDED', 'REFUNDED', 'PARTIALLY_REFUNDED'] },
       },
       select: {
         totalPrice: true,
       },
     })
 
-    const bookingRevenue = activeBookings.reduce(
+    const bookingRevenue = paidBookings.reduce(
       (sum, booking) => sum + Number(booking.totalPrice),
       0
     )
