@@ -11,6 +11,9 @@ import type { PrismaClient } from '@prisma/client'
 // Maximum booking window — matches the 12-month admin rates/availability calendar
 const BOOKING_WINDOW_MONTHS = 12
 
+// Pending bookings older than this are expired (dates released for others to book)
+const PENDING_EXPIRY_MINUTES = 10
+
 async function assertWithinBookingWindow(checkOut: Date) {
   const { addMonths } = await import('date-fns')
   const maxDate = addMonths(new Date(), BOOKING_WINDOW_MONTHS)
@@ -123,32 +126,38 @@ export const bookingRouter = router({
       const { checkIn, checkOut } = input
       assertWithinBookingWindow(checkOut)
 
-      // Check for overlapping bookings
+      // Check for overlapping bookings (ignore expired pending bookings)
+      const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
       const existingBookings = await ctx.prisma.booking.findMany({
         where: {
-          status: {
-            in: ['PENDING', 'CONFIRMED'],
-          },
           OR: [
-            // New booking starts during existing booking
+            { status: 'CONFIRMED' },
+            { status: 'PENDING', createdAt: { gte: pendingCutoff } },
+          ],
+          AND: [
             {
-              AND: [
-                { checkIn: { lte: checkIn } },
-                { checkOut: { gt: checkIn } },
-              ],
-            },
-            // New booking ends during existing booking
-            {
-              AND: [
-                { checkIn: { lt: checkOut } },
-                { checkOut: { gte: checkOut } },
-              ],
-            },
-            // New booking encompasses existing booking
-            {
-              AND: [
-                { checkIn: { gte: checkIn } },
-                { checkOut: { lte: checkOut } },
+              OR: [
+                // New booking starts during existing booking
+                {
+                  AND: [
+                    { checkIn: { lte: checkIn } },
+                    { checkOut: { gt: checkIn } },
+                  ],
+                },
+                // New booking ends during existing booking
+                {
+                  AND: [
+                    { checkIn: { lt: checkOut } },
+                    { checkOut: { gte: checkOut } },
+                  ],
+                },
+                // New booking encompasses existing booking
+                {
+                  AND: [
+                    { checkIn: { gte: checkIn } },
+                    { checkOut: { lte: checkOut } },
+                  ],
+                },
               ],
             },
           ],
@@ -190,13 +199,15 @@ export const bookingRouter = router({
       }
     }),
 
-  // Get booked dates for calendar display
+  // Get booked dates for calendar display (ignore expired pending bookings)
   getBookedDates: publicProcedure.query(async ({ ctx }) => {
+    const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
     const bookings = await ctx.prisma.booking.findMany({
       where: {
-        status: {
-          in: ['PENDING', 'CONFIRMED'],
-        },
+        OR: [
+          { status: 'CONFIRMED' },
+          { status: 'PENDING', createdAt: { gte: pendingCutoff } },
+        ],
         checkOut: {
           gte: new Date(), // Only future/current bookings
         },
@@ -246,29 +257,35 @@ export const bookingRouter = router({
 
       // Atomic availability check + booking creation to prevent race conditions
       const booking = await ctx.prisma.$transaction(async (tx) => {
-        // Check for overlapping bookings inside the transaction
+        // Check for overlapping bookings inside the transaction (ignore expired pending)
+        const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
         const conflicts = await tx.booking.findMany({
           where: {
-            status: {
-              in: ['PENDING', 'CONFIRMED'],
-            },
             OR: [
+              { status: 'CONFIRMED' },
+              { status: 'PENDING', createdAt: { gte: pendingCutoff } },
+            ],
+            AND: [
               {
-                AND: [
-                  { checkIn: { lte: input.checkIn } },
-                  { checkOut: { gt: input.checkIn } },
-                ],
-              },
-              {
-                AND: [
-                  { checkIn: { lt: input.checkOut } },
-                  { checkOut: { gte: input.checkOut } },
-                ],
-              },
-              {
-                AND: [
-                  { checkIn: { gte: input.checkIn } },
-                  { checkOut: { lte: input.checkOut } },
+                OR: [
+                  {
+                    AND: [
+                      { checkIn: { lte: input.checkIn } },
+                      { checkOut: { gt: input.checkIn } },
+                    ],
+                  },
+                  {
+                    AND: [
+                      { checkIn: { lt: input.checkOut } },
+                      { checkOut: { gte: input.checkOut } },
+                    ],
+                  },
+                  {
+                    AND: [
+                      { checkIn: { gte: input.checkIn } },
+                      { checkOut: { lte: input.checkOut } },
+                    ],
+                  },
                 ],
               },
             ],
@@ -583,6 +600,17 @@ export const bookingRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Booking not found',
+        })
+      }
+
+      // Reject payment for expired pending bookings
+      if (
+        booking.status === 'PENDING' &&
+        Date.now() - booking.createdAt.getTime() > PENDING_EXPIRY_MINUTES * 60 * 1000
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This booking has expired. Please start a new reservation.',
         })
       }
 

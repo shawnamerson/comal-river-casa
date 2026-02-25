@@ -59,15 +59,6 @@ export default function BookingDetailPage() {
     }
   }
 
-  const handleConfirmBooking = () => {
-    if (confirm('Confirm this booking?')) {
-      updateStatus.mutate({
-        id: bookingId,
-        status: 'CONFIRMED',
-      })
-    }
-  }
-
   const handleCompleteBooking = () => {
     if (confirm('Mark this booking as completed?')) {
       updateStatus.mutate({
@@ -241,21 +232,13 @@ export default function BookingDetailPage() {
               <CardContent>
                 <div className="flex flex-wrap gap-3">
                   {booking.status === 'PENDING' && (
-                    <>
-                      <Button
-                        onClick={handleConfirmBooking}
-                        disabled={updateStatus.isPending}
-                      >
-                        Confirm Booking
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleCancelBooking}
-                        disabled={updateStatus.isPending}
-                      >
-                        Cancel Booking
-                      </Button>
-                    </>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelBooking}
+                      disabled={updateStatus.isPending}
+                    >
+                      Cancel Booking
+                    </Button>
                   )}
 
                   {booking.status === 'CONFIRMED' && (

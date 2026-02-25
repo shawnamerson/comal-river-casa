@@ -115,12 +115,16 @@ export const adminRouter = router({
     }))
   }),
 
-  // Get upcoming bookings (confirmed/pending, future check-in, soonest first)
+  // Get upcoming bookings (confirmed + recent pending, future check-in, soonest first)
   getUpcomingBookings: adminProcedure.query(async ({ ctx }) => {
     const now = new Date()
+    const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000) // 10 min expiry
     const bookings = await ctx.prisma.booking.findMany({
       where: {
-        status: { in: ['CONFIRMED', 'PENDING'] },
+        OR: [
+          { status: 'CONFIRMED' },
+          { status: 'PENDING', createdAt: { gte: pendingCutoff } },
+        ],
         checkIn: { gte: now },
       },
       include: {
@@ -196,10 +200,12 @@ export const adminRouter = router({
       },
     })
 
-    // Pending bookings (awaiting payment)
+    // Pending bookings (awaiting payment, not expired)
+    const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000)
     const pendingBookings = await ctx.prisma.booking.count({
       where: {
         status: 'PENDING',
+        createdAt: { gte: pendingCutoff },
       },
     })
 

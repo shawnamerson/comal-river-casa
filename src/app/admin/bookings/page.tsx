@@ -32,15 +32,6 @@ export default function AdminBookingsPage() {
     }
   }
 
-  const handleConfirmBooking = (bookingId: string) => {
-    if (confirm('Confirm this booking?')) {
-      updateStatus.mutate({
-        id: bookingId,
-        status: 'CONFIRMED',
-      })
-    }
-  }
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMED':
@@ -132,15 +123,6 @@ export default function AdminBookingsPage() {
                         ${booking.totalPrice}
                       </div>
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        {booking.status === 'PENDING' && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleConfirmBooking(booking.id)}
-                            disabled={updateStatus.isPending}
-                          >
-                            Confirm
-                          </Button>
-                        )}
                         {(booking.status === 'PENDING' ||
                           booking.status === 'CONFIRMED') && (
                           <Button
