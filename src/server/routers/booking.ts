@@ -99,6 +99,21 @@ async function computeBookingPrice(
   }
 }
 
+// Cancel expired pending bookings inline — runs as a fire-and-forget side effect
+async function cancelExpiredPendingBookings(prisma: PrismaClient) {
+  const cutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
+  await prisma.booking.updateMany({
+    where: {
+      status: 'PENDING',
+      createdAt: { lt: cutoff },
+    },
+    data: {
+      status: 'CANCELLED',
+      cancellationReason: 'Expired — payment not completed in time',
+    },
+  })
+}
+
 export const bookingRouter = router({
   // Calculate pricing for a date range including seasonal rates
   calculatePrice: publicProcedure
@@ -125,6 +140,9 @@ export const bookingRouter = router({
     .query(async ({ ctx, input }) => {
       const { checkIn, checkOut } = input
       assertWithinBookingWindow(checkOut)
+
+      // Clean up expired pending bookings
+      void cancelExpiredPendingBookings(ctx.prisma)
 
       // Check for overlapping bookings (ignore expired pending bookings)
       const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
@@ -201,6 +219,7 @@ export const bookingRouter = router({
 
   // Get booked dates for calendar display (ignore expired pending bookings)
   getBookedDates: publicProcedure.query(async ({ ctx }) => {
+    void cancelExpiredPendingBookings(ctx.prisma)
     const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
     const bookings = await ctx.prisma.booking.findMany({
       where: {
@@ -251,6 +270,9 @@ export const bookingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       assertWithinBookingWindow(input.checkOut)
+
+      // Clean up expired pending bookings before checking availability
+      await cancelExpiredPendingBookings(ctx.prisma)
 
       // Compute pricing server-side — never trust client-supplied values
       const pricing = await computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
