@@ -1,9 +1,8 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { format } from 'date-fns'
+import { addDays, format, isBefore } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PROPERTY } from '@/config/property'
@@ -260,6 +259,38 @@ function BookingForm() {
 
           {/* Booking Summary */}
           <div className="lg:col-span-1">
+            {/* Free Cancellation Callout */}
+            {(() => {
+              const checkInDate = new Date(checkIn)
+              const freeCancellationDate = addDays(checkInDate, -5)
+              const now = new Date()
+
+              if (isBefore(now, freeCancellationDate)) {
+                return (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <svg className="h-5 w-5 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm font-semibold text-emerald-800">
+                      Free cancellation until {format(freeCancellationDate, 'MMM dd, yyyy')}
+                    </p>
+                  </div>
+                )
+              } else if (isBefore(now, checkInDate)) {
+                return (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+                    <svg className="h-5 w-5 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                    <p className="text-sm font-medium text-amber-800">
+                      50% refund if cancelled before {format(checkInDate, 'MMM dd, yyyy')}
+                    </p>
+                  </div>
+                )
+              }
+              return null
+            })()}
+
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Booking Summary</CardTitle>
@@ -310,6 +341,23 @@ function BookingForm() {
                   </div>
                 </div>
 
+                {/* Urgency Messaging */}
+                <div className="border-t pt-4 mt-4">
+                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
+                    <svg className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-amber-900">
+                        Dates fill up fast — book now to secure your stay!
+                      </p>
+                      <p className="text-xs text-amber-700 mt-0.5">
+                        Price and availability may change
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Cancellation Policy */}
                 <div className="border-t pt-4 mt-4">
                   <p className="text-sm font-semibold mb-2">Cancellation Policy</p>
@@ -318,22 +366,6 @@ function BookingForm() {
                     <li>• 50% refund if cancelled within 5 days of check-in</li>
                   </ul>
                 </div>
-
-                <p className="text-xs text-gray-500 mt-4">
-                  By completing this booking, you agree to the{' '}
-                  <Link href="/policies/cancellation" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
-                    Cancellation Policy
-                  </Link>
-                  ,{' '}
-                  <Link href="/policies/house-rules" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
-                    House Rules
-                  </Link>
-                  , and{' '}
-                  <Link href="/policies/terms" className="text-blue-600 hover:text-blue-800 underline" target="_blank">
-                    Terms of Service
-                  </Link>
-                  .
-                </p>
               </CardContent>
             </Card>
           </div>

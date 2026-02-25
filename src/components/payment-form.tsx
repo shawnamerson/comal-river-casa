@@ -19,6 +19,7 @@ export function PaymentForm({ bookingId, onSuccess, onError }: PaymentFormProps)
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,11 +69,34 @@ export function PaymentForm({ bookingId, onSuccess, onError }: PaymentFormProps)
         </div>
       )}
 
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={agreedToTerms}
+          onChange={(e) => setAgreedToTerms(e.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <span className="text-sm text-gray-700">
+          I have read and agree to the{' '}
+          <a href="/policies/cancellation" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+            Cancellation Policy
+          </a>
+          ,{' '}
+          <a href="/policies/house-rules" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+            House Rules
+          </a>
+          , and{' '}
+          <a href="/policies/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+            Terms of Service
+          </a>
+        </span>
+      </label>
+
       <Button
         type="submit"
         className="w-full"
         size="lg"
-        disabled={!stripe || isProcessing}
+        disabled={!stripe || isProcessing || !agreedToTerms}
       >
         {isProcessing ? 'Processing Payment...' : 'Pay Now'}
       </Button>
