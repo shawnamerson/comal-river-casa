@@ -112,7 +112,7 @@ export default function AccountingPage() {
 
         {/* Summary Cards */}
         {data && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Booking Income</CardTitle>
@@ -121,6 +121,18 @@ export default function AccountingPage() {
                 <div className="text-2xl font-bold text-green-600">
                   +${fmt(data.summary.bookingIncome)}
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Tax Collected</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  ${fmt(data.summary.taxCollected)}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Included in booking income</div>
               </CardContent>
             </Card>
 

@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
                 numberOfGuests: booking.numberOfGuests,
                 pricePerNight: Number(booking.pricePerNight),
                 cleaningFee: Number(booking.cleaningFee),
+                taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
                 totalPrice: Number(booking.totalPrice),
                 specialRequests: booking.specialRequests,
               }),
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
                 numberOfNights: booking.numberOfNights,
                 numberOfGuests: booking.numberOfGuests,
                 totalPrice: Number(booking.totalPrice),
+                taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
                 specialRequests: booking.specialRequests,
               }),
             })

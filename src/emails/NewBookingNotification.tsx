@@ -22,6 +22,7 @@ interface NewBookingNotificationProps {
   numberOfNights: number
   numberOfGuests: number
   totalPrice: number
+  taxTotal?: number | null
   specialRequests?: string | null
 }
 
@@ -35,6 +36,7 @@ export function NewBookingNotificationEmail({
   numberOfNights,
   numberOfGuests,
   totalPrice,
+  taxTotal,
   specialRequests,
 }: NewBookingNotificationProps) {
   const formatDate = (dateStr: string) =>
@@ -109,6 +111,19 @@ export function NewBookingNotificationEmail({
                 <Text style={value}>{numberOfNights}</Text>
               </Column>
             </Row>
+            {taxTotal != null && taxTotal > 0 && (
+              <>
+                <Hr style={hr} />
+                <Row>
+                  <Column>
+                    <Text style={label}>Taxes</Text>
+                  </Column>
+                  <Column style={{ textAlign: "right" }}>
+                    <Text style={label}>${taxTotal.toFixed(2)}</Text>
+                  </Column>
+                </Row>
+              </>
+            )}
             <Hr style={hr} />
             <Row>
               <Column>

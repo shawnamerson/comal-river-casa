@@ -24,6 +24,7 @@ interface BookingConfirmationProps {
   numberOfGuests: number
   pricePerNight: number
   cleaningFee: number
+  taxBreakdown?: { name: string; rate: number; amount: number }[] | null
   totalPrice: number
   specialRequests?: string | null
 }
@@ -37,6 +38,7 @@ export function BookingConfirmationEmail({
   numberOfGuests,
   pricePerNight,
   cleaningFee,
+  taxBreakdown,
   totalPrice,
   specialRequests,
 }: BookingConfirmationProps) {
@@ -116,6 +118,16 @@ export function BookingConfirmationEmail({
                 <Text style={label}>${cleaningFee.toFixed(2)}</Text>
               </Column>
             </Row>
+            {taxBreakdown && taxBreakdown.length > 0 && taxBreakdown.map((tax, i) => (
+              <Row key={i}>
+                <Column>
+                  <Text style={label}>{tax.name} ({(tax.rate * 100).toFixed(1)}%)</Text>
+                </Column>
+                <Column style={{ textAlign: "right" }}>
+                  <Text style={label}>${tax.amount.toFixed(2)}</Text>
+                </Column>
+              </Row>
+            ))}
             <Hr style={hr} />
             <Row>
               <Column>

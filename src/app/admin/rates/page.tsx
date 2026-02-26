@@ -14,6 +14,169 @@ import { ArrowLeft } from 'lucide-react'
 
 const inputClass = 'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
 
+// ===== Tax Rates Card =====
+
+function TaxRatesCard() {
+  const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState({ name: '', rate: '', sortOrder: '0' })
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+
+  const { data: taxRates, refetch } = trpc.admin.getTaxRates.useQuery()
+
+  const createMut = trpc.admin.createTaxRate.useMutation({
+    onSuccess: () => { refetch(); setAdding(false); setForm({ name: '', rate: '', sortOrder: '0' }) },
+    onError: (e) => alert(`Error: ${e.message}`),
+  })
+  const updateMut = trpc.admin.updateTaxRate.useMutation({
+    onSuccess: () => { refetch(); setEditingId(null) },
+    onError: (e) => alert(`Error: ${e.message}`),
+  })
+  const deleteMut = trpc.admin.deleteTaxRate.useMutation({
+    onSuccess: () => { refetch(); setDeleteConfirm(null) },
+    onError: (e) => alert(`Error: ${e.message}`),
+  })
+
+  const handleAdd = () => {
+    const rate = parseFloat(form.rate)
+    if (!form.name.trim() || isNaN(rate) || rate <= 0) return
+    createMut.mutate({ name: form.name.trim(), rate: rate / 100, sortOrder: parseInt(form.sortOrder) || 0 })
+  }
+
+  const handleUpdate = (id: string) => {
+    const rate = parseFloat(form.rate)
+    if (!form.name.trim() || isNaN(rate) || rate <= 0) return
+    updateMut.mutate({ id, name: form.name.trim(), rate: rate / 100, sortOrder: parseInt(form.sortOrder) || 0 })
+  }
+
+  const startEdit = (r: { id: string; name: string; rate: number; sortOrder: number }) => {
+    setEditingId(r.id)
+    setAdding(false)
+    setForm({ name: r.name, rate: (r.rate * 100).toString(), sortOrder: r.sortOrder.toString() })
+  }
+
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>Tax Rates</CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Taxes are applied to the nightly subtotal (not cleaning fee)
+            </p>
+          </div>
+          {!adding && !editingId && (
+            <Button size="sm" variant="outline" onClick={() => { setAdding(true); setForm({ name: '', rate: '', sortOrder: '0' }) }}>
+              Add Tax Rate
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Tax rate list */}
+        {taxRates && taxRates.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {taxRates.map((r) => (
+              <div key={r.id}>
+                {editingId === r.id ? (
+                  <div className="border rounded-lg p-4 space-y-3 bg-blue-50">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-sm text-gray-600 mb-1 block">Name</label>
+                        <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-600 mb-1 block">Rate (%)</label>
+                        <input type="number" step="0.01" min="0" max="100" className={inputClass} value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-600 mb-1 block">Sort Order</label>
+                        <input type="number" min="0" className={inputClass} value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => handleUpdate(r.id)} disabled={updateMut.isPending}>
+                        {updateMut.isPending ? 'Saving...' : 'Save'}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between border rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="font-semibold">{r.name}</div>
+                        <div className="text-sm text-gray-600">{(r.rate * 100).toFixed(2)}%</div>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                        {r.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateMut.mutate({ id: r.id, isActive: !r.isActive })}
+                        disabled={updateMut.isPending}
+                      >
+                        {r.isActive ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Edit</Button>
+                      {deleteConfirm === r.id ? (
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="destructive" onClick={() => deleteMut.mutate({ id: r.id })} disabled={deleteMut.isPending}>
+                            Confirm
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setDeleteConfirm(null)}>No</Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteConfirm(r.id)}>
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {taxRates && taxRates.length === 0 && !adding && (
+          <p className="text-sm text-gray-500 mb-4">No tax rates configured yet.</p>
+        )}
+
+        {/* Add form */}
+        {adding && (
+          <div className="border rounded-lg p-4 space-y-3 bg-green-50">
+            <div className="font-semibold text-sm">Add Tax Rate</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Name</label>
+                <input className={inputClass} placeholder="e.g. State Hotel Tax" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Rate (%)</label>
+                <input type="number" step="0.01" min="0" max="100" className={inputClass} placeholder="e.g. 6" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Sort Order</label>
+                <input type="number" min="0" className={inputClass} value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleAdd} disabled={createMut.isPending}>
+                {createMut.isPending ? 'Adding...' : 'Add'}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setAdding(false)}>Cancel</Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 type Mode = 'price' | 'minNights'
 
 export default function RatesManagementPage() {
@@ -427,6 +590,9 @@ export default function RatesManagementPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Tax Rates Card */}
+        <TaxRatesCard />
 
         {/* Rate Calendar + Action Sidebar */}
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 items-start">

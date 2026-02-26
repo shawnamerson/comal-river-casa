@@ -134,6 +134,20 @@ model ExternalCalendar {
 }
 
 // ============================================
+// TAX RATES
+// ============================================
+
+model TaxRate {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "State Hotel Tax", "County Lodging Tax"
+  rate      Decimal  @db.Decimal(5, 4) // Percentage as decimal (0.06 = 6%)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
 // BOOKING MANAGEMENT
 // ============================================
 
@@ -157,6 +171,8 @@ model Booking {
   subtotal        Decimal       @db.Decimal(10, 2)
   cleaningFee     Decimal       @db.Decimal(10, 2)
   serviceFee      Decimal       @db.Decimal(10, 2)
+  taxBreakdown    Json?         // Snapshot: [{ name, rate, amount }]
+  taxTotal        Decimal?      @db.Decimal(10, 2)
   totalPrice      Decimal       @db.Decimal(10, 2)
 
   // Payment

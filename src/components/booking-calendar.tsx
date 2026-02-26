@@ -171,6 +171,10 @@ export function BookingCalendar() {
       subtotal: (pricingData?.subtotal ?? numberOfNights * PROPERTY.basePrice).toString(),
       cleaningFee: (pricingData?.cleaningFee ?? PROPERTY.cleaningFee).toString(),
     })
+    if (pricingData?.taxBreakdown && pricingData.taxBreakdown.length > 0) {
+      params.set('taxBreakdown', JSON.stringify(pricingData.taxBreakdown))
+      params.set('taxTotal', (pricingData.taxTotal ?? 0).toString())
+    }
 
     router.push(`/booking?${params.toString()}`)
   }
@@ -270,9 +274,15 @@ export function BookingCalendar() {
                 <span>${pricingData.serviceFee}</span>
               </div>
             )}
+            {pricingData?.taxBreakdown?.map((tax, i) => (
+              <div key={i} className="flex justify-between text-sm">
+                <span>{tax.name} ({(tax.rate * 100).toFixed(1)}%)</span>
+                <span>${tax.amount.toFixed(2)}</span>
+              </div>
+            ))}
             <div className="flex justify-between font-bold text-lg border-t pt-2">
               <span>Total</span>
-              <span>${totalPrice}</span>
+              <span>${totalPrice.toFixed(2)}</span>
             </div>
 
             {!pricingFetching && effectiveMinNights !== null && numberOfNights < effectiveMinNights && (

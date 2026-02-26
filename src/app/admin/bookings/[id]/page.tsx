@@ -427,6 +427,13 @@ export default function BookingDetailPage() {
                   </div>
                 )}
 
+                {booking.taxBreakdown?.map((tax: { name: string; rate: number; amount: number }, i: number) => (
+                  <div key={i} className="flex justify-between text-sm">
+                    <span className="text-gray-600">{tax.name} ({(tax.rate * 100).toFixed(1)}%)</span>
+                    <span className="font-semibold">${tax.amount.toFixed(2)}</span>
+                  </div>
+                ))}
+
                 <div className="flex justify-between text-lg font-bold border-t pt-3">
                   <span>Total</span>
                   <span className="text-green-600">${booking.totalPrice}</span>

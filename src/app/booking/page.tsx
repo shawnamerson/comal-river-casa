@@ -36,6 +36,10 @@ function BookingForm() {
   const pricePerNight = searchParams.get('pricePerNight')
   const subtotal = searchParams.get('subtotal')
   const cleaningFee = searchParams.get('cleaningFee')
+  const taxBreakdownParam = searchParams.get('taxBreakdown')
+  const taxBreakdown: { name: string; rate: number; amount: number }[] | null = taxBreakdownParam
+    ? JSON.parse(taxBreakdownParam)
+    : null
 
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (booking) => {
@@ -335,6 +339,12 @@ function BookingForm() {
                     <span>Cleaning fee</span>
                     <span>${cleaningFee || PROPERTY.cleaningFee}</span>
                   </div>
+                  {taxBreakdown?.map((tax, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span>{tax.name} ({(tax.rate * 100).toFixed(1)}%)</span>
+                      <span>${tax.amount.toFixed(2)}</span>
+                    </div>
+                  ))}
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total</span>
                     <span>${totalPrice}</span>

@@ -45,6 +45,8 @@ export const adminRouter = router({
         subtotal: Number(booking.subtotal),
         cleaningFee: Number(booking.cleaningFee),
         serviceFee: Number(booking.serviceFee),
+        taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+        taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
         totalPrice: Number(booking.totalPrice),
         specialRequests: booking.specialRequests,
         status: booking.status,
@@ -100,6 +102,8 @@ export const adminRouter = router({
       subtotal: Number(booking.subtotal),
       cleaningFee: Number(booking.cleaningFee),
       serviceFee: Number(booking.serviceFee),
+      taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+      taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
       totalPrice: Number(booking.totalPrice),
       specialRequests: booking.specialRequests,
       status: booking.status,
@@ -155,6 +159,8 @@ export const adminRouter = router({
       subtotal: Number(booking.subtotal),
       cleaningFee: Number(booking.cleaningFee),
       serviceFee: Number(booking.serviceFee),
+      taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+      taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
       totalPrice: Number(booking.totalPrice),
       specialRequests: booking.specialRequests,
       status: booking.status,
@@ -556,6 +562,66 @@ export const adminRouter = router({
       }
     }),
 
+  // ===== TAX RATE MANAGEMENT =====
+
+  getTaxRates: adminProcedure.query(async ({ ctx }) => {
+    const rates = await ctx.prisma.taxRate.findMany({
+      orderBy: { sortOrder: 'asc' },
+    })
+    return rates.map((r) => ({
+      id: r.id,
+      name: r.name,
+      rate: Number(r.rate),
+      isActive: r.isActive,
+      sortOrder: r.sortOrder,
+    }))
+  }),
+
+  createTaxRate: adminProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        rate: z.number().min(0).max(1),
+        sortOrder: z.number().int().default(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const rate = await ctx.prisma.taxRate.create({
+        data: {
+          name: input.name,
+          rate: input.rate,
+          sortOrder: input.sortOrder,
+        },
+      })
+      return { id: rate.id, name: rate.name, rate: Number(rate.rate), isActive: rate.isActive, sortOrder: rate.sortOrder }
+    }),
+
+  updateTaxRate: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).optional(),
+        rate: z.number().min(0).max(1).optional(),
+        isActive: z.boolean().optional(),
+        sortOrder: z.number().int().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input
+      const rate = await ctx.prisma.taxRate.update({
+        where: { id },
+        data,
+      })
+      return { id: rate.id, name: rate.name, rate: Number(rate.rate), isActive: rate.isActive, sortOrder: rate.sortOrder }
+    }),
+
+  deleteTaxRate: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.taxRate.delete({ where: { id: input.id } })
+      return { success: true }
+    }),
+
   // Get all date rate overrides
   getDateRateOverrides: adminProcedure.query(async ({ ctx }) => {
     const overrides = await ctx.prisma.dateRateOverride.findMany({
@@ -778,6 +844,7 @@ export const adminRouter = router({
             id: true,
             guestName: true,
             totalPrice: true,
+            taxTotal: true,
             numberOfNights: true,
             createdAt: true,
           },
@@ -871,6 +938,7 @@ export const adminRouter = router({
       transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
       const bookingIncome = bookings.reduce((sum, b) => sum + Number(b.totalPrice), 0)
+      const taxCollected = bookings.reduce((sum, b) => sum + (b.taxTotal ? Number(b.taxTotal) : 0), 0)
       const refunds = cancelledBookings.reduce((sum, b) => sum + Number(b.refundAmount), 0)
       const damageIncome = damageCharges.reduce((sum, dc) => sum + Number(dc.amount), 0)
 
@@ -879,6 +947,7 @@ export const adminRouter = router({
         openingBalance,
         summary: {
           bookingIncome,
+          taxCollected,
           refunds,
           damageIncome,
           netRevenue: bookingIncome - refunds + damageIncome,

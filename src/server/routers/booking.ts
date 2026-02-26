@@ -85,7 +85,21 @@ async function computeBookingPrice(
   const minNights = maxMinNights
   const subtotal = totalNightlyPrice
   const serviceFee = 0
-  const totalPrice = subtotal + cleaningFee + serviceFee
+
+  // Calculate taxes on nightly subtotal only (not cleaning fee)
+  const activeTaxRates = await prisma.taxRate.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+
+  const taxBreakdown = activeTaxRates.map((r) => ({
+    name: r.name,
+    rate: Number(r.rate),
+    amount: Math.round(subtotal * Number(r.rate) * 100) / 100,
+  }))
+
+  const taxTotal = taxBreakdown.reduce((sum, t) => sum + t.amount, 0)
+  const totalPrice = subtotal + cleaningFee + serviceFee + taxTotal
 
   return {
     numberOfNights: nights,
@@ -93,6 +107,8 @@ async function computeBookingPrice(
     subtotal,
     cleaningFee,
     serviceFee,
+    taxBreakdown,
+    taxTotal,
     totalPrice,
     minNights,
     hasCustomRate,
@@ -367,6 +383,8 @@ export const bookingRouter = router({
             subtotal: pricing.subtotal,
             cleaningFee: pricing.cleaningFee,
             serviceFee: pricing.serviceFee,
+            taxBreakdown: pricing.taxBreakdown.length > 0 ? pricing.taxBreakdown : undefined,
+            taxTotal: pricing.taxTotal > 0 ? pricing.taxTotal : undefined,
             totalPrice: pricing.totalPrice,
             specialRequests: input.specialRequests,
             status: 'PENDING',
@@ -400,6 +418,8 @@ export const bookingRouter = router({
         subtotal: Number(booking.subtotal),
         cleaningFee: Number(booking.cleaningFee),
         serviceFee: Number(booking.serviceFee),
+        taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+        taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
         totalPrice: Number(booking.totalPrice),
         specialRequests: booking.specialRequests,
         status: booking.status,
@@ -455,6 +475,8 @@ export const bookingRouter = router({
         subtotal: Number(booking.subtotal),
         cleaningFee: Number(booking.cleaningFee),
         serviceFee: Number(booking.serviceFee),
+        taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+        taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
         totalPrice: Number(booking.totalPrice),
         specialRequests: booking.specialRequests,
         status: booking.status,

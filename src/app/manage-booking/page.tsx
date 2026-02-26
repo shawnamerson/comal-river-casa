@@ -60,6 +60,8 @@ interface BookingData {
   subtotal: number
   cleaningFee: number
   serviceFee: number
+  taxBreakdown: { name: string; rate: number; amount: number }[] | null
+  taxTotal: number | null
   totalPrice: number
   specialRequests: string | null
   status: string
@@ -403,6 +405,12 @@ export default function ManageBookingPage() {
                       <span>${booking.serviceFee}</span>
                     </div>
                   )}
+                  {booking.taxBreakdown?.map((tax, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <span>{tax.name} ({(tax.rate * 100).toFixed(1)}%)</span>
+                      <span>${tax.amount.toFixed(2)}</span>
+                    </div>
+                  ))}
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total</span>
                     <span>${booking.totalPrice}</span>
