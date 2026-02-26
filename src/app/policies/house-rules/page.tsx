@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { PROPERTY } from '@/config/property'
 
 export const metadata = {
-  title: `House Rules — ${PROPERTY.name}`,
+  title: 'House Rules',
+  description:
+    'House rules and guest guidelines for Comal River Casa vacation rental in New Braunfels, TX.',
 }
 
 export default function HouseRulesPage() {

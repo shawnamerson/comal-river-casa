@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { PROPERTY } from '@/config/property'
 
 export const metadata = {
-  title: `Cancellation Policy — ${PROPERTY.name}`,
+  title: 'Cancellation Policy',
+  description:
+    'Cancellation and refund policy for Comal River Casa vacation rental in New Braunfels, TX.',
 }
 
 export default function CancellationPolicyPage() {
