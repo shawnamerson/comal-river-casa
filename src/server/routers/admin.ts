@@ -862,6 +862,7 @@ export const adminRouter = router({
             guestName: true,
             refundAmount: true,
             totalPrice: true,
+            taxTotal: true,
             cancelledAt: true,
           },
           orderBy: { cancelledAt: 'desc' },
@@ -938,7 +939,15 @@ export const adminRouter = router({
       transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
       const bookingIncome = bookings.reduce((sum, b) => sum + Number(b.totalPrice), 0)
-      const taxCollected = bookings.reduce((sum, b) => sum + (b.taxTotal ? Number(b.taxTotal) : 0), 0)
+      const grossTax = bookings.reduce((sum, b) => sum + (b.taxTotal ? Number(b.taxTotal) : 0), 0)
+      // Subtract tax proportional to each refund (refund covers taxes too)
+      const refundedTax = cancelledBookings.reduce((sum, b) => {
+        const tax = b.taxTotal ? Number(b.taxTotal) : 0
+        if (tax === 0) return sum
+        const refundRatio = Number(b.refundAmount) / Number(b.totalPrice)
+        return sum + tax * refundRatio
+      }, 0)
+      const taxCollected = Math.max(0, grossTax - refundedTax)
       const refunds = cancelledBookings.reduce((sum, b) => sum + Number(b.refundAmount), 0)
       const damageIncome = damageCharges.reduce((sum, dc) => sum + Number(dc.amount), 0)
 
