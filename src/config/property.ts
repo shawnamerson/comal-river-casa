@@ -40,16 +40,16 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
       altText: 'Living and Dining Area',
     },
     {
-      url: '/images/property/kitchen.jpg',
-      altText: 'Fully Equipped Kitchen',
+      url: '/images/property/pool.jpg',
+      altText: 'Community Pool',
     },
     {
       url: '/images/property/master_bedroom.jpg',
       altText: 'Master Bedroom',
     },
     {
-      url: '/images/property/master_bath.jpg',
-      altText: 'Master Bathroom',
+      url: '/images/property/hot_tub.jpg',
+      altText: 'Hot Tub',
     },
     {
       url: '/images/property/guest_bedroom.jpg',
@@ -60,12 +60,12 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
       altText: 'Guest Bathroom',
     },
     {
-      url: '/images/property/hot_tub.jpg',
-      altText: 'Hot Tub',
+      url: '/images/property/kitchen.jpg',
+      altText: 'Fully Equipped Kitchen',
     },
     {
-      url: '/images/property/pool.jpg',
-      altText: 'Community Pool',
+      url: '/images/property/master_bath.jpg',
+      altText: 'Master Bathroom',
     },
     {
       url: '/images/property/patio.jpg',
@@ -98,7 +98,7 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
     'WiFi',
     'Air Conditioning',
     'Heating',
-    'Full Kitchen',
+    'Fully Equipped Kitchen',
     'Free Parking',
     'TV with Cable',
     'Washer/Dryer',
