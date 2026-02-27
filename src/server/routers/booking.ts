@@ -123,8 +123,8 @@ async function computeBookingPrice(
   }
 }
 
-// Cancel expired pending bookings inline — runs as a fire-and-forget side effect
-async function cancelExpiredPendingBookings(prisma: PrismaClient) {
+// Cancel expired pending bookings — also called by the /api/cron/expire-bookings cron job
+export async function cancelExpiredPendingBookings(prisma: PrismaClient) {
   const cutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
 
   // Fetch expired bookings first so we have guest details for recovery emails
@@ -144,7 +144,7 @@ async function cancelExpiredPendingBookings(prisma: PrismaClient) {
     },
   })
 
-  if (expiredBookings.length === 0) return
+  if (expiredBookings.length === 0) return 0
 
   await prisma.booking.updateMany({
     where: {
@@ -179,6 +179,8 @@ async function cancelExpiredPendingBookings(prisma: PrismaClient) {
       console.error(`Failed to send expiry email for booking ${booking.id}:`, emailError)
     }
   }
+
+  return expiredBookings.length
 }
 
 export const bookingRouter = router({
