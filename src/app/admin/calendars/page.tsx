@@ -19,7 +19,7 @@ export default function ExternalCalendarsPage() {
 
   const getExportUrl = () => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/api/calendar/export`
+      return `${window.location.origin}/api/calendar/export?token=${process.env.NEXT_PUBLIC_CALENDAR_EXPORT_TOKEN}`
     }
     return ''
   }

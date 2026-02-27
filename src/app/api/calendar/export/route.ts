@@ -20,8 +20,15 @@ function escapeICalText(text: string): string {
     .replace(/\n/g, '\\n')
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Require secret token to prevent unauthorized access to booking data
+    const { searchParams } = new URL(request.url)
+    const token = searchParams.get('token')
+    if (!token || token !== process.env.CALENDAR_EXPORT_TOKEN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     // Get all confirmed and pending bookings (not cancelled)
     const bookings = await prisma.booking.findMany({
       where: {

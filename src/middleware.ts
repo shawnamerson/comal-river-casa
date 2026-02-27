@@ -1,34 +1,38 @@
 import NextAuth from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { NextRequest, NextResponse } from "next/server"
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 
 const { auth } = NextAuth(authConfig)
 
 // ---------------------------------------------------------------------------
-// Simple sliding-window rate limiter
-// Uses module-level state that persists for the lifetime of the edge isolate.
-// This provides meaningful per-IP brute-force protection without requiring
-// external infrastructure. For distributed/high-volume protection, swap in
-// Upstash Redis (@upstash/ratelimit) and add UPSTASH_REDIS_REST_URL/TOKEN.
+// Distributed rate limiter backed by Upstash Redis.
+// Works correctly across all Vercel serverless/edge instances.
+// Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
 // ---------------------------------------------------------------------------
-interface RateLimitWindow {
-  count: number
-  resetAt: number
-}
+const redis = Redis.fromEnv()
 
-const rateLimitStore = new Map<string, RateLimitWindow>()
+// Booking creation: 5 per hour (prevents date-spam)
+const bookingCreateLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1h"),
+  prefix: "rl:create",
+})
 
-function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now()
-  const entry = rateLimitStore.get(key)
-  if (!entry || now >= entry.resetAt) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs })
-    return true // allowed
-  }
-  if (entry.count >= limit) return false // blocked
-  entry.count++
-  return true // allowed
-}
+// Booking lookup: 10 per 5 minutes (prevents ID enumeration)
+const bookingLookupLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "5m"),
+  prefix: "rl:lookup",
+})
+
+// Booking cancel: 5 per 15 minutes
+const bookingCancelLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "15m"),
+  prefix: "rl:cancel",
+})
 
 function getIp(req: NextRequest): string {
   return (
@@ -38,25 +42,31 @@ function getIp(req: NextRequest): string {
   )
 }
 
-const MIN = 60_000
+async function isRateLimited(
+  pathname: string,
+  ip: string
+): Promise<boolean> {
+  if (pathname === "/api/trpc/booking.create") {
+    const { success } = await bookingCreateLimiter.limit(ip)
+    return !success
+  }
+  if (pathname === "/api/trpc/booking.lookup") {
+    const { success } = await bookingLookupLimiter.limit(ip)
+    return !success
+  }
+  if (pathname === "/api/trpc/booking.cancel") {
+    const { success } = await bookingCancelLimiter.limit(ip)
+    return !success
+  }
+  return false
+}
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { pathname } = req.nextUrl
   const ip = getIp(req)
 
   // Rate limiting for sensitive tRPC endpoints
-  const rateLimited =
-    // Booking creation: 5 per hour (prevents date-spam)
-    (pathname === "/api/trpc/booking.create" &&
-      !checkRateLimit(`create:${ip}`, 5, 60 * MIN)) ||
-    // Booking lookup: 10 per 5 minutes (prevents ID enumeration)
-    (pathname === "/api/trpc/booking.lookup" &&
-      !checkRateLimit(`lookup:${ip}`, 10, 5 * MIN)) ||
-    // Booking cancel: 5 per 15 minutes
-    (pathname === "/api/trpc/booking.cancel" &&
-      !checkRateLimit(`cancel:${ip}`, 5, 15 * MIN))
-
-  if (rateLimited) {
+  if (await isRateLimited(pathname, ip)) {
     return new NextResponse("Too many requests", { status: 429 })
   }
 

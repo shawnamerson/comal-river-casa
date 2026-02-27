@@ -30,6 +30,8 @@
     "@trpc/next": "^10.45.4",
     "@trpc/react-query": "^10.45.4",
     "@trpc/server": "^10.45.4",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.3",
     "@vercel/analytics": "^1.6.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
