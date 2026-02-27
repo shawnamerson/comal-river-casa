@@ -94,6 +94,12 @@ export const adminRouter = router({
   // Get all bookings with user details
   getAllBookings: adminProcedure.query(async ({ ctx }) => {
     const bookings = await ctx.prisma.booking.findMany({
+      where: {
+        NOT: {
+          status: 'CANCELLED',
+          paymentStatus: 'PENDING',
+        },
+      },
       include: {
         user: {
           select: {
