@@ -247,6 +247,24 @@ model DamageCharge {
 }
 
 // ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // e.g. "booking.cancel", "booking.status_change", "damage.charge", "password.change"
+  targetId  String?  // ID of the affected record (booking, etc.)
+  details   String?  @db.Text // JSON string with action-specific details
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================
 // REVIEW SYSTEM
 // ============================================
 

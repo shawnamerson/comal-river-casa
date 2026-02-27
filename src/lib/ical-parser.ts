@@ -101,16 +101,29 @@ export async function fetchAndParseICal(url: string): Promise<ICalEvent[]> {
     throw new Error('Only HTTPS iCal URLs are supported')
   }
 
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 10_000) // 10s timeout
+
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'ComalRiverCasa/1.0',
     },
-  })
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout))
 
   if (!response.ok) {
     throw new Error(`Failed to fetch iCal: ${response.status} ${response.statusText}`)
   }
 
+  const contentLength = response.headers.get('content-length')
+  if (contentLength && parseInt(contentLength, 10) > 1_000_000) {
+    throw new Error('iCal response too large (>1MB)')
+  }
+
   const text = await response.text()
+  if (text.length > 1_000_000) {
+    throw new Error('iCal response too large (>1MB)')
+  }
+
   return parseICal(text)
 }

@@ -8,6 +8,27 @@ import { CancellationNotificationEmail } from '@/emails/CancellationNotification
 import { DamageChargeEmail } from '@/emails/DamageCharge'
 import { TRPCError } from '@trpc/server'
 
+async function auditLog(
+  prisma: Parameters<typeof adminRouter.createCaller>[0]['prisma'],
+  userId: string,
+  action: string,
+  targetId?: string,
+  details?: Record<string, unknown>,
+) {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        action,
+        targetId,
+        details: details ? JSON.stringify(details) : null,
+      },
+    })
+  } catch (err) {
+    console.error('Failed to write audit log:', err)
+  }
+}
+
 export const adminRouter = router({
   // Get a single booking by ID
   getBooking: adminProcedure
@@ -401,6 +422,13 @@ export const adminRouter = router({
         data: updateData,
       })
 
+      void auditLog(ctx.prisma, ctx.session!.user.id, 'booking.status_change', booking.id, {
+        from: existingBooking.status,
+        to: input.status,
+        refundAmount,
+        cancellationReason: input.cancellationReason,
+      })
+
       // Send cancellation emails
       if (input.status === 'CANCELLED') {
         try {
@@ -519,6 +547,12 @@ export const adminRouter = router({
             stripePaymentIntentId: paymentIntent.id,
             status: paymentIntent.status === 'succeeded' ? 'SUCCEEDED' : 'PENDING',
           },
+        })
+
+        void auditLog(ctx.prisma, ctx.session!.user.id, 'damage.charge', booking.id, {
+          amount: input.amount,
+          description: input.description,
+          damageChargeId: damageCharge.id,
         })
 
         // Send notification email to guest
@@ -969,7 +1003,11 @@ export const adminRouter = router({
     .input(
       z.object({
         currentPassword: z.string().min(1),
-        newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+        newPassword: z.string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .regex(/[0-9]/, 'Password must contain at least one number'),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -992,6 +1030,8 @@ export const adminRouter = router({
         where: { id: userId },
         data: { password: hash },
       })
+
+      void auditLog(ctx.prisma, userId, 'password.change', userId)
 
       return { success: true }
     }),
