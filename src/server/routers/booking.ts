@@ -3,6 +3,7 @@ import { router, publicProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
+import { BookingExpiredEmail } from '@/emails/BookingExpired'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 import { TRPCError } from '@trpc/server'
 import { PROPERTY } from '@/config/property'
@@ -125,6 +126,26 @@ async function computeBookingPrice(
 // Cancel expired pending bookings inline — runs as a fire-and-forget side effect
 async function cancelExpiredPendingBookings(prisma: PrismaClient) {
   const cutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
+
+  // Fetch expired bookings first so we have guest details for recovery emails
+  const expiredBookings = await prisma.booking.findMany({
+    where: {
+      status: 'PENDING',
+      createdAt: { lt: cutoff },
+    },
+    select: {
+      id: true,
+      guestName: true,
+      guestEmail: true,
+      checkIn: true,
+      checkOut: true,
+      numberOfNights: true,
+      numberOfGuests: true,
+    },
+  })
+
+  if (expiredBookings.length === 0) return
+
   await prisma.booking.updateMany({
     where: {
       status: 'PENDING',
@@ -135,6 +156,29 @@ async function cancelExpiredPendingBookings(prisma: PrismaClient) {
       cancellationReason: 'Expired — payment not completed in time',
     },
   })
+
+  // Send recovery emails to each expired guest (non-blocking)
+  for (const booking of expiredBookings) {
+    try {
+      const { error } = await resend.emails.send({
+        from: process.env.EMAIL_FROM!,
+        to: booking.guestEmail,
+        subject: 'Your reservation hold has expired — Comal River Casa',
+        react: BookingExpiredEmail({
+          guestName: booking.guestName,
+          checkIn: booking.checkIn.toISOString(),
+          checkOut: booking.checkOut.toISOString(),
+          numberOfNights: booking.numberOfNights,
+          numberOfGuests: booking.numberOfGuests,
+        }),
+      })
+      if (error) {
+        console.error(`Failed to send expiry email for booking ${booking.id}:`, error)
+      }
+    } catch (emailError) {
+      console.error(`Failed to send expiry email for booking ${booking.id}:`, emailError)
+    }
+  }
 }
 
 export const bookingRouter = router({
