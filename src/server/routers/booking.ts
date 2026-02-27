@@ -29,11 +29,18 @@ async function assertWithinBookingWindow(checkOut: Date) {
 // so the client can never supply its own pricing.
 async function computeBookingPrice(
   prisma: PrismaClient,
-  checkIn: Date,
-  checkOut: Date
+  checkInRaw: Date,
+  checkOutRaw: Date
 ) {
   const { eachDayOfInterval, differenceInDays } = await import('date-fns')
   const { PROPERTY } = await import('@/config/property')
+
+  // Normalize to UTC midnight — the client sends dates with a local-timezone
+  // offset (e.g. 2026-06-15T05:00:00Z for CDT) but DateRateOverride rows are
+  // stored at UTC midnight.  Without this, the Prisma `gte` / `lt` filter can
+  // miss the first night's override, producing the wrong nightly rate.
+  const checkIn = new Date(Date.UTC(checkInRaw.getUTCFullYear(), checkInRaw.getUTCMonth(), checkInRaw.getUTCDate()))
+  const checkOut = new Date(Date.UTC(checkOutRaw.getUTCFullYear(), checkOutRaw.getUTCMonth(), checkOutRaw.getUTCDate()))
 
   const nights = differenceInDays(checkOut, checkIn)
 
