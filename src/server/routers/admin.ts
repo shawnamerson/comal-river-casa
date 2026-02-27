@@ -201,8 +201,15 @@ export const adminRouter = router({
   getStats: adminProcedure.query(async ({ ctx }) => {
     const now = new Date()
 
-    // Total bookings
-    const totalBookings = await ctx.prisma.booking.count()
+    // Total bookings — exclude expired pending bookings that never paid
+    const totalBookings = await ctx.prisma.booking.count({
+      where: {
+        NOT: {
+          status: 'CANCELLED',
+          paymentStatus: 'PENDING',
+        },
+      },
+    })
 
     // Upcoming bookings (confirmed, not started yet)
     const upcomingBookings = await ctx.prisma.booking.count({
