@@ -75,6 +75,13 @@ export default function AnalyticsPage() {
             <div className="flex flex-wrap items-end gap-4">
               <div className="flex gap-2">
                 <Button
+                  variant={startDate === formatDateInput(today) && endDate === formatDateInput(today) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => { setStartDate(formatDateInput(today)); setEndDate(formatDateInput(today)) }}
+                >
+                  Today
+                </Button>
+                <Button
                   variant={startDate === formatDateInput(subDays(today, 7)) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setRange(7)}
