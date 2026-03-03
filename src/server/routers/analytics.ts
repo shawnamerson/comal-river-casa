@@ -8,10 +8,15 @@ const dateRangeInput = z.object({
 })
 
 function dateRange(input: z.infer<typeof dateRangeInput>) {
+  // Add 1 day buffer to endDate so that users behind UTC (e.g. CST)
+  // still see today's data (their evening creates next-day UTC timestamps)
+  const end = new Date(input.endDate)
+  end.setUTCDate(end.getUTCDate() + 1)
+  end.setUTCHours(23, 59, 59, 999)
   return {
     timestamp: {
       gte: new Date(input.startDate),
-      lte: new Date(input.endDate + 'T23:59:59.999Z'),
+      lte: end,
     },
   }
 }

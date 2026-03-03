@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
 
   const dateInput = { startDate, endDate }
 
-  const { data: overview, isLoading: overviewLoading, error: overviewError } = trpc.analytics.overview.useQuery(dateInput)
+  const { data: overview, isLoading: overviewLoading } = trpc.analytics.overview.useQuery(dateInput)
   const { data: funnel } = trpc.analytics.bookingFunnel.useQuery(dateInput)
   const { data: timeseries } = trpc.analytics.pageViewsTimeseries.useQuery(dateInput)
   const { data: topPages } = trpc.analytics.topPages.useQuery(dateInput)
@@ -127,16 +127,6 @@ export default function AnalyticsPage() {
               <p className="text-gray-400 text-sm">
                 Page views will appear here once visitors start browsing the site.
               </p>
-              {overviewError && (
-                <p className="text-red-500 text-sm mt-4">
-                  Error: {overviewError.message}
-                </p>
-              )}
-              {overview && (
-                <p className="text-gray-400 text-xs mt-4">
-                  Debug: totalViews={overview.totalViews}, range={startDate} to {endDate}
-                </p>
-              )}
             </CardContent>
           </Card>
         ) : (
