@@ -263,12 +263,12 @@ export default function AdminDashboard() {
             >
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">
-                  Page Views (30d)
+                  Visitors (30d)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-purple-600">
-                  {stats.pageViews30d.toLocaleString()}
+                  {stats.visitors30d.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
