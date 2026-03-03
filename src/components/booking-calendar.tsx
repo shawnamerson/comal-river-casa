@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
 import { format, differenceInDays, eachDayOfInterval, addMonths, startOfMonth } from 'date-fns'
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
+import { trackFunnelEvent } from '@/lib/analytics/funnel'
 
 export function BookingCalendar() {
   const router = useRouter()
@@ -136,6 +137,23 @@ export function BookingCalendar() {
     }
   )
 
+  // Track availability check when pricing data arrives for a new date range
+  const lastTrackedRange = useRef<string>('')
+  useEffect(() => {
+    if (!pricingData || !range?.from || !range?.to) return
+    const rangeKey = `${range.from.toISOString()}_${range.to.toISOString()}`
+    if (rangeKey === lastTrackedRange.current) return
+    lastTrackedRange.current = rangeKey
+    trackFunnelEvent('availability_check', {
+      metadata: {
+        checkIn: range.from.toISOString(),
+        checkOut: range.to.toISOString(),
+        totalPrice: pricingData.totalPrice,
+        nights: numberOfNights,
+      },
+    })
+  }, [pricingData, range?.from, range?.to, numberOfNights])
+
   const calculateTotalPrice = () => {
     if (pricingData) return pricingData.totalPrice
     // Fallback while pricing data is loading
@@ -159,6 +177,15 @@ export function BookingCalendar() {
 
   const handleBookNow = () => {
     if (!range?.from || !range?.to || !isValidBooking()) return
+
+    trackFunnelEvent('booking_started', {
+      metadata: {
+        checkIn: range.from.toISOString(),
+        checkOut: range.to.toISOString(),
+        totalPrice,
+        nights: numberOfNights,
+      },
+    })
 
     // Navigate to booking page with details including dynamic pricing
     const params = new URLSearchParams({

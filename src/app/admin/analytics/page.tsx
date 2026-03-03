@@ -39,6 +39,7 @@ export default function AnalyticsPage() {
   const dateInput = { startDate, endDate }
 
   const { data: overview, isLoading: overviewLoading } = trpc.analytics.overview.useQuery(dateInput)
+  const { data: funnel } = trpc.analytics.bookingFunnel.useQuery(dateInput)
   const { data: timeseries } = trpc.analytics.pageViewsTimeseries.useQuery(dateInput)
   const { data: topPages } = trpc.analytics.topPages.useQuery(dateInput)
   const { data: topReferrers } = trpc.analytics.topReferrers.useQuery(dateInput)
@@ -167,6 +168,69 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Booking Funnel */}
+            {funnel && funnel.steps.some((s) => s.sessions > 0) && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Booking Funnel</CardTitle>
+                    <span className="text-sm font-medium text-gray-600">
+                      Overall conversion: <span className="text-blue-600 font-bold">{funnel.overallConversion}%</span>
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-56 mb-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={funnel.steps.map((s) => ({
+                          ...s,
+                          label: s.event
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (c) => c.toUpperCase()),
+                        }))}
+                        layout="vertical"
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" fontSize={12} />
+                        <YAxis
+                          type="category"
+                          dataKey="label"
+                          fontSize={12}
+                          width={140}
+                        />
+                        <Tooltip />
+                        <Bar dataKey="sessions" fill="#3b82f6" name="Sessions" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left">
+                        <th className="pb-2 font-medium text-gray-600">Step</th>
+                        <th className="pb-2 font-medium text-gray-600 text-right">Sessions</th>
+                        <th className="pb-2 font-medium text-gray-600 text-right">Conversion %</th>
+                        <th className="pb-2 font-medium text-gray-600 text-right">Drop-off %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {funnel.steps.map((step) => (
+                        <tr key={step.event} className="border-b last:border-0">
+                          <td className="py-2 capitalize">
+                            {step.event.replace(/_/g, ' ')}
+                          </td>
+                          <td className="py-2 text-right">{step.sessions.toLocaleString()}</td>
+                          <td className="py-2 text-right text-green-600">{step.conversionRate}%</td>
+                          <td className="py-2 text-right text-red-600">{step.dropOff}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Timeseries Chart */}
             {timeseries && timeseries.length > 0 && (

@@ -9,6 +9,7 @@ import { PROPERTY } from '@/config/property'
 import { trpc } from '@/lib/trpc/client'
 import { StripeProvider } from '@/components/stripe-provider'
 import { PaymentForm } from '@/components/payment-form'
+import { trackFunnelEvent } from '@/lib/analytics/funnel'
 
 type BookingStep = 'details' | 'payment'
 
@@ -44,6 +45,7 @@ function BookingForm() {
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (booking) => {
       setBookingId(booking.id)
+      trackFunnelEvent('booking_created', { bookingId: booking.id })
       // Create payment intent after booking is created
       createPaymentIntent.mutate({ bookingId: booking.id })
     },
@@ -67,6 +69,7 @@ function BookingForm() {
   const confirmPayment = trpc.booking.confirmPayment.useMutation({
     onSuccess: (result) => {
       if (result.success) {
+        trackFunnelEvent('booking_completed', { bookingId: bookingId! })
         // Navigate to confirmation page
         const confirmationParams = new URLSearchParams({
           bookingId: bookingId!,

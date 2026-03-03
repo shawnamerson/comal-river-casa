@@ -290,6 +290,19 @@ model PageView {
   @@index([sessionId])
 }
 
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  sessionId String
+  event     String   // "availability_check" | "booking_started" | "booking_created" | "booking_completed"
+  bookingId String?
+  metadata  Json?    // checkIn, checkOut, price, etc.
+  timestamp DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([sessionId])
+  @@index([event])
+}
+
 model Review {
   id        String  @id @default(cuid())
   bookingId String? @unique

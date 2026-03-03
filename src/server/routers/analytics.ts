@@ -191,4 +191,45 @@ export const analyticsRouter = router({
       views: c._count.id,
     }))
   }),
+
+  bookingFunnel: adminProcedure.input(dateRangeInput).query(async ({ input }) => {
+    const where = dateRange(input)
+
+    const STEPS = [
+      'availability_check',
+      'booking_started',
+      'booking_created',
+      'booking_completed',
+    ] as const
+
+    // Count unique sessions per funnel step
+    const stepCounts = await Promise.all(
+      STEPS.map(async (event) => {
+        const sessions = await prisma.funnelEvent.groupBy({
+          by: ['sessionId'],
+          where: { ...where, event },
+        })
+        return { event, sessions: sessions.length }
+      })
+    )
+
+    const steps = stepCounts.map((step, i) => {
+      const prevSessions = i === 0 ? step.sessions : stepCounts[i - 1].sessions
+      const conversionRate = prevSessions > 0 ? step.sessions / prevSessions : 0
+      const dropOff = prevSessions > 0 ? 1 - conversionRate : 0
+
+      return {
+        event: step.event,
+        sessions: step.sessions,
+        conversionRate: Math.round(conversionRate * 1000) / 10, // percentage with 1 decimal
+        dropOff: Math.round(dropOff * 1000) / 10,
+      }
+    })
+
+    const first = steps[0]?.sessions || 0
+    const last = steps[steps.length - 1]?.sessions || 0
+    const overallConversion = first > 0 ? Math.round((last / first) * 1000) / 10 : 0
+
+    return { steps, overallConversion }
+  }),
 })
