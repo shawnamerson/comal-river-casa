@@ -268,6 +268,28 @@ model AuditLog {
 // REVIEW SYSTEM
 // ============================================
 
+// ============================================
+// PAGE VIEW ANALYTICS
+// ============================================
+
+model PageView {
+  id         String   @id @default(cuid())
+  sessionId  String?
+  path       String
+  referrer   String?
+  country    String?
+  region     String?
+  city       String?
+  deviceType String?  // "desktop" | "mobile" | "tablet"
+  browser    String?
+  os         String?
+  timestamp  DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([path])
+  @@index([sessionId])
+}
+
 model Review {
   id        String  @id @default(cuid())
   bookingId String? @unique

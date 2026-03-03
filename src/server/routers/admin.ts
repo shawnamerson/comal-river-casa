@@ -297,6 +297,12 @@ export const adminRouter = router({
 
     const totalRevenue = bookingRevenue - totalRefunds + damageRevenue
 
+    // Page views in the last 30 days
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const pageViews30d = await ctx.prisma.pageView.count({
+      where: { timestamp: { gte: thirtyDaysAgo } },
+    })
+
     return {
       totalBookings,
       upcomingBookings,
@@ -304,6 +310,7 @@ export const adminRouter = router({
       pendingBookings,
       totalRevenue,
       damageRevenue,
+      pageViews30d,
     }
   }),
 

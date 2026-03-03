@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 import { Analytics } from "@vercel/analytics/next"
+import { PageViewTracker } from '@/components/PageViewTracker'
 import { PROPERTY } from '@/config/property'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -83,6 +84,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <TRPCProvider>{children}</TRPCProvider>
+        <PageViewTracker />
         <Analytics />
       </body>
     </html>

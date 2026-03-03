@@ -182,6 +182,9 @@ export default function AdminDashboard() {
             <Button onClick={() => router.push('/admin/accounting')} variant="outline">
               📊 Accounting
             </Button>
+            <Button onClick={() => router.push('/admin/analytics')} variant="outline">
+              📈 Analytics
+            </Button>
           </div>
         </div>
 
@@ -250,6 +253,22 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">
                   ${stats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => router.push('/admin/analytics')}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Page Views (30d)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-purple-600">
+                  {stats.pageViews30d.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
