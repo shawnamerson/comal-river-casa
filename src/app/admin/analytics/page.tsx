@@ -65,14 +65,14 @@ export default function AnalyticsPage() {
             <ArrowLeft size={18} />
             Back to Dashboard
           </button>
-          <h1 className="text-4xl font-bold mb-2">Analytics</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2">Analytics</h1>
           <p className="text-gray-600">Site traffic and visitor insights</p>
         </div>
 
         {/* Date Range Filter */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-end sm:gap-4">
               <div className="flex gap-2">
                 <Button
                   variant={startDate === formatDateInput(today) && endDate === formatDateInput(today) ? 'default' : 'outline'}
@@ -103,23 +103,25 @@ export default function AnalyticsPage() {
                   90d
                 </Button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex gap-3">
+                <div className="flex-1 sm:flex-none">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">From</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex-1 sm:flex-none">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -180,7 +182,7 @@ export default function AnalyticsPage() {
             {funnel && funnel.steps.some((s) => s.sessions > 0) && (
               <Card className="mb-8">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle>Booking Funnel</CardTitle>
                     <span className="text-sm font-medium text-gray-600">
                       Overall conversion: <span className="text-blue-600 font-bold">{funnel.overallConversion}%</span>
@@ -198,14 +200,18 @@ export default function AnalyticsPage() {
                             .replace(/\b\w/g, (c) => c.toUpperCase()),
                         }))}
                         layout="vertical"
+                        margin={{ left: 10, right: 10 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" fontSize={12} />
                         <YAxis
                           type="category"
                           dataKey="label"
-                          fontSize={12}
-                          width={140}
+                          fontSize={11}
+                          width={100}
+                          tickFormatter={(v: string) =>
+                            v.length > 14 ? v.slice(0, 14) + '...' : v
+                          }
                         />
                         <Tooltip />
                         <Bar dataKey="sessions" fill="#3b82f6" name="Sessions" />
@@ -213,28 +219,30 @@ export default function AnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
 
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left">
-                        <th className="pb-2 font-medium text-gray-600">Step</th>
-                        <th className="pb-2 font-medium text-gray-600 text-right">Sessions</th>
-                        <th className="pb-2 font-medium text-gray-600 text-right">Conversion %</th>
-                        <th className="pb-2 font-medium text-gray-600 text-right">Drop-off %</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {funnel.steps.map((step) => (
-                        <tr key={step.event} className="border-b last:border-0">
-                          <td className="py-2 capitalize">
-                            {step.event.replace(/_/g, ' ')}
-                          </td>
-                          <td className="py-2 text-right">{step.sessions.toLocaleString()}</td>
-                          <td className="py-2 text-right text-green-600">{step.conversionRate}%</td>
-                          <td className="py-2 text-right text-red-600">{step.dropOff}%</td>
+                  <div className="overflow-x-auto -mx-6 px-6">
+                    <table className="w-full text-sm min-w-[360px]">
+                      <thead>
+                        <tr className="border-b text-left">
+                          <th className="pb-2 font-medium text-gray-600">Step</th>
+                          <th className="pb-2 font-medium text-gray-600 text-right">Sessions</th>
+                          <th className="pb-2 font-medium text-gray-600 text-right">Conv %</th>
+                          <th className="pb-2 font-medium text-gray-600 text-right">Drop %</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {funnel.steps.map((step) => (
+                          <tr key={step.event} className="border-b last:border-0">
+                            <td className="py-2 capitalize whitespace-nowrap">
+                              {step.event.replace(/_/g, ' ')}
+                            </td>
+                            <td className="py-2 text-right">{step.sessions.toLocaleString()}</td>
+                            <td className="py-2 text-right text-green-600">{step.conversionRate}%</td>
+                            <td className="py-2 text-right text-red-600">{step.dropOff}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -246,7 +254,7 @@ export default function AnalyticsPage() {
                   <CardTitle>Page Views Over Time</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
+                  <div className="h-60 sm:h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={timeseries}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -293,24 +301,26 @@ export default function AnalyticsPage() {
                     <CardTitle>Top Pages</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-left">
-                          <th className="pb-2 font-medium text-gray-600">Path</th>
-                          <th className="pb-2 font-medium text-gray-600 text-right">Views</th>
-                          <th className="pb-2 font-medium text-gray-600 text-right">Visitors</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topPages.map((p) => (
-                          <tr key={p.path} className="border-b last:border-0">
-                            <td className="py-2 font-mono text-xs">{p.path}</td>
-                            <td className="py-2 text-right">{p.views.toLocaleString()}</td>
-                            <td className="py-2 text-right">{p.visitors.toLocaleString()}</td>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-left">
+                            <th className="pb-2 font-medium text-gray-600">Path</th>
+                            <th className="pb-2 font-medium text-gray-600 text-right">Views</th>
+                            <th className="pb-2 font-medium text-gray-600 text-right">Visitors</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {topPages.map((p) => (
+                            <tr key={p.path} className="border-b last:border-0">
+                              <td className="py-2 font-mono text-xs break-all">{p.path}</td>
+                              <td className="py-2 text-right whitespace-nowrap">{p.views.toLocaleString()}</td>
+                              <td className="py-2 text-right whitespace-nowrap">{p.visitors.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -321,22 +331,24 @@ export default function AnalyticsPage() {
                     <CardTitle>Top Referrers</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b text-left">
-                          <th className="pb-2 font-medium text-gray-600">Referrer</th>
-                          <th className="pb-2 font-medium text-gray-600 text-right">Views</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {topReferrers.map((r) => (
-                          <tr key={r.referrer} className="border-b last:border-0">
-                            <td className="py-2 text-xs truncate max-w-[300px]">{r.referrer}</td>
-                            <td className="py-2 text-right">{r.views.toLocaleString()}</td>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b text-left">
+                            <th className="pb-2 font-medium text-gray-600">Referrer</th>
+                            <th className="pb-2 font-medium text-gray-600 text-right">Views</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {topReferrers.map((r) => (
+                            <tr key={r.referrer} className="border-b last:border-0">
+                              <td className="py-2 text-xs break-all max-w-[200px] sm:max-w-[300px]">{r.referrer}</td>
+                              <td className="py-2 text-right whitespace-nowrap">{r.views.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -351,7 +363,7 @@ export default function AnalyticsPage() {
                     <CardTitle>Device Type</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64">
+                    <div className="h-52 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -360,7 +372,7 @@ export default function AnalyticsPage() {
                             nameKey="name"
                             cx="50%"
                             cy="50%"
-                            outerRadius={80}
+                            outerRadius={70}
                             label={({ name, percent }) =>
                               `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
                             }
@@ -382,7 +394,7 @@ export default function AnalyticsPage() {
                     <CardTitle>Browsers</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64">
+                    <div className="h-52 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={devices.browsers} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" />
@@ -410,7 +422,7 @@ export default function AnalyticsPage() {
                     <CardTitle>Operating Systems</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64">
+                    <div className="h-52 sm:h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={devices.os} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" />
@@ -441,22 +453,24 @@ export default function AnalyticsPage() {
                   <CardTitle>Top Countries</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left">
-                        <th className="pb-2 font-medium text-gray-600">Country</th>
-                        <th className="pb-2 font-medium text-gray-600 text-right">Page Views</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {geography.map((g) => (
-                        <tr key={g.country} className="border-b last:border-0">
-                          <td className="py-2">{g.country}</td>
-                          <td className="py-2 text-right">{g.views.toLocaleString()}</td>
+                  <div className="overflow-x-auto -mx-6 px-6">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-left">
+                          <th className="pb-2 font-medium text-gray-600">Country</th>
+                          <th className="pb-2 font-medium text-gray-600 text-right">Page Views</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {geography.map((g) => (
+                          <tr key={g.country} className="border-b last:border-0">
+                            <td className="py-2">{g.country}</td>
+                            <td className="py-2 text-right whitespace-nowrap">{g.views.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </CardContent>
               </Card>
             )}
