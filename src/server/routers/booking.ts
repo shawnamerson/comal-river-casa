@@ -194,7 +194,7 @@ export const bookingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      assertWithinBookingWindow(input.checkOut)
+      await assertWithinBookingWindow(input.checkOut)
       return computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
     }),
 
@@ -208,7 +208,7 @@ export const bookingRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { checkIn, checkOut } = input
-      assertWithinBookingWindow(checkOut)
+      await assertWithinBookingWindow(checkOut)
 
       // Clean up expired pending bookings
       void cancelExpiredPendingBookings(ctx.prisma)
@@ -338,7 +338,7 @@ export const bookingRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      assertWithinBookingWindow(input.checkOut)
+      await assertWithinBookingWindow(input.checkOut)
 
       // Clean up expired pending bookings before checking availability
       await cancelExpiredPendingBookings(ctx.prisma)
