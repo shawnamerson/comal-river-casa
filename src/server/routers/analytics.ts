@@ -191,10 +191,14 @@ export const analyticsRouter = router({
       take: 15,
     })
 
-    return countries.map((c) => ({
-      country: c.country || 'Unknown',
-      views: c._count.id,
-    }))
+    const regionNames = new Intl.DisplayNames(['en'], { type: 'region' })
+    return countries.map((c) => {
+      let name = 'Unknown'
+      if (c.country) {
+        try { name = regionNames.of(c.country) || c.country } catch { name = c.country }
+      }
+      return { country: name, views: c._count.id }
+    })
   }),
 
   bookingFunnel: adminProcedure.input(dateRangeInput).query(async ({ input }) => {
