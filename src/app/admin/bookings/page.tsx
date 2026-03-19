@@ -48,22 +48,12 @@ export default function AdminBookingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <button
-            onClick={() => router.push('/admin')}
-            className="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-flex items-center gap-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </button>
-          <h1 className="text-4xl font-bold">All Bookings</h1>
-        </div>
+    <>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold">All Bookings</h1>
+      </div>
 
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle>All Bookings</CardTitle>
           </CardHeader>
@@ -161,7 +151,6 @@ export default function AdminBookingsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </main>
+    </>
   )
 }

@@ -5,8 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
 import { format } from 'date-fns'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 
 export default function ExternalCalendarsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
@@ -100,14 +98,7 @@ export default function ExternalCalendarsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <Link
-        href="/admin"
-        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Admin
-      </Link>
+    <>
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">External Calendar Sync</h1>
@@ -366,6 +357,6 @@ export default function ExternalCalendarsPage() {
           </Card>
         )}
       </div>
-    </div>
+    </>
   )
 }

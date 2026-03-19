@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
 import { format, subDays } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -30,7 +28,6 @@ function formatDateInput(date: Date) {
 }
 
 export default function AnalyticsPage() {
-  const router = useRouter()
   const today = useMemo(() => new Date(), [])
 
   const [startDate, setStartDate] = useState(formatDateInput(subDays(today, 30)))
@@ -54,20 +51,12 @@ export default function AnalyticsPage() {
   const hasData = overview && overview.totalViews > 0
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/admin')}
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft size={18} />
-            Back to Dashboard
-          </button>
-          <h1 className="text-2xl sm:text-4xl font-bold mb-2">Analytics</h1>
-          <p className="text-gray-600">Site traffic and visitor insights</p>
-        </div>
+    <>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-2">Analytics</h1>
+        <p className="text-gray-600">Site traffic and visitor insights</p>
+      </div>
 
         {/* Date Range Filter */}
         <Card className="mb-6">
@@ -476,7 +465,6 @@ export default function AnalyticsPage() {
             )}
           </>
         )}
-      </div>
-    </main>
+    </>
   )
 }

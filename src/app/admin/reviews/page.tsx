@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -43,7 +42,6 @@ function SourceBadge({ source }: { source: string }) {
 }
 
 export default function AdminReviewsPage() {
-  const router = useRouter()
   const [showAddForm, setShowAddForm] = useState(false)
   const [respondingTo, setRespondingTo] = useState<string | null>(null)
   const [responseText, setResponseText] = useState('')
@@ -96,20 +94,10 @@ export default function AdminReviewsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <button
-            onClick={() => router.push('/admin')}
-            className="text-blue-600 hover:text-blue-800 text-sm mb-4 inline-flex items-center gap-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </button>
-          <div className="flex justify-between items-center">
-            <h1 className="text-4xl font-bold">Reviews</h1>
+    <>
+      <div className="mb-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl font-bold">Reviews</h1>
             <Button onClick={() => setShowAddForm(!showAddForm)}>
               {showAddForm ? 'Cancel' : 'Add Review'}
             </Button>
@@ -317,7 +305,6 @@ export default function AdminReviewsPage() {
             ))}
           </div>
         )}
-      </div>
-    </main>
+    </>
   )
 }

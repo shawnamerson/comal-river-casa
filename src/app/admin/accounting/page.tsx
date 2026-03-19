@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
@@ -96,19 +95,11 @@ export default function AccountingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <button
-            onClick={() => router.push('/admin')}
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft size={18} />
-            Back to Dashboard
-          </button>
-          <h1 className="text-4xl font-bold mb-2">Accounting</h1>
-          <p className="text-gray-600">Revenue breakdown and transaction history</p>
-        </div>
+    <>
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold mb-2">Accounting</h1>
+        <p className="text-gray-600">Revenue breakdown and transaction history</p>
+      </div>
 
         {/* Summary Cards */}
         {data && (
@@ -272,7 +263,6 @@ export default function AccountingPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </main>
+    </>
   )
 }

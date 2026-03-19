@@ -19,8 +19,6 @@ import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 
 function parseLocalDate(s: string): Date {
   return new Date(s.slice(0, 10) + 'T00:00:00')
@@ -266,22 +264,13 @@ export default function AvailabilityManagementPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <Link
-          href="/admin"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Admin
-        </Link>
-
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Availability Management</h1>
-          <p className="text-gray-600">
-            View all bookings and blocked dates in one place
-          </p>
-        </div>
+    <>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2">Availability Management</h1>
+        <p className="text-gray-600">
+          View all bookings and blocked dates in one place
+        </p>
+      </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -676,7 +665,6 @@ export default function AvailabilityManagementPage() {
             </div>
           </div>
         )}
-      </div>
-    </main>
+    </>
   )
 }

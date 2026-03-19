@@ -6,8 +6,6 @@ import { format } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc/client'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 
 export default function BookingDetailPage() {
   const params = useParams()
@@ -98,25 +96,17 @@ export default function BookingDetailPage() {
 
   if (!booking) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-16">
         <div className="text-center">
           <div className="text-2xl mb-4">Loading booking...</div>
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="mb-8 flex justify-between items-center">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Admin
-          </Link>
+    <div className="max-w-5xl">
+      <div className="mb-8 flex justify-between items-center">
           <div
             className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
               booking.status
@@ -489,7 +479,6 @@ export default function BookingDetailPage() {
             </Card>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   )
 }
