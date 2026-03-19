@@ -103,6 +103,7 @@ model BlockedDate {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
+  @@unique([externalCalendarId, externalEventId])
   @@index([startDate, endDate])
   @@index([externalCalendarId])
 }

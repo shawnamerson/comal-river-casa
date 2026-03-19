@@ -43,7 +43,12 @@ function createMockPrisma({
 }
 
 // Import and create a caller for the booking router
-import { bookingRouter } from '@/server/routers/booking'
+import { bookingRouter, clearPropertySettingsCache } from '@/server/routers/booking'
+import { beforeEach } from 'vitest'
+
+beforeEach(() => {
+  clearPropertySettingsCache()
+})
 
 function createCaller(prisma: any) {
   return bookingRouter.createCaller({ prisma, session: null })

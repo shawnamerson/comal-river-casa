@@ -79,8 +79,9 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        >
+          {JSON.stringify(jsonLd)}
+        </script>
       </head>
       <body className={inter.className}>
         <TRPCProvider>{children}</TRPCProvider>

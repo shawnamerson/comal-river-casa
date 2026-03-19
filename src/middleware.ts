@@ -20,10 +20,10 @@ const bookingCreateLimiter = new Ratelimit({
   prefix: "rl:create",
 })
 
-// Booking lookup: 10 per 5 minutes (prevents ID enumeration)
+// Booking lookup: 5 per 5 minutes (prevents ID enumeration)
 const bookingLookupLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, "5m"),
+  limiter: Ratelimit.slidingWindow(5, "5m"),
   prefix: "rl:lookup",
 })
 

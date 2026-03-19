@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       try {
         const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates = events.map((event) => ({
+        const incomingEvents = events.map((event) => ({
           startDate: event.start,
           endDate: event.end,
           reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
@@ -32,15 +32,46 @@ export async function GET(request: NextRequest) {
           externalEventId: event.uid || '',
         }))
 
-        // Delete old blocked dates from this calendar
-        await prisma.blockedDate.deleteMany({
+        // Incremental sync: compare with existing blocked dates
+        const existing = await prisma.blockedDate.findMany({
           where: { externalCalendarId: calendar.id },
         })
 
-        // Create new blocked dates
-        if (blockedDates.length > 0) {
-          await prisma.blockedDate.createMany({
-            data: blockedDates,
+        const existingByUid = new Map(existing.map((e) => [e.externalEventId, e]))
+        const incomingUids = new Set(incomingEvents.map((e) => e.externalEventId))
+
+        // Delete events no longer in the calendar
+        const toDelete = existing.filter((e) => e.externalEventId && !incomingUids.has(e.externalEventId))
+        if (toDelete.length > 0) {
+          await prisma.blockedDate.deleteMany({
+            where: { id: { in: toDelete.map((e) => e.id) } },
+          })
+        }
+
+        // Upsert new/changed events
+        for (const event of incomingEvents) {
+          const existingEvent = existingByUid.get(event.externalEventId)
+          if (
+            existingEvent &&
+            existingEvent.startDate.getTime() === event.startDate.getTime() &&
+            existingEvent.endDate.getTime() === event.endDate.getTime() &&
+            existingEvent.reason === event.reason
+          ) {
+            continue // unchanged, skip
+          }
+          await prisma.blockedDate.upsert({
+            where: {
+              externalCalendarId_externalEventId: {
+                externalCalendarId: calendar.id,
+                externalEventId: event.externalEventId,
+              },
+            },
+            update: {
+              startDate: event.startDate,
+              endDate: event.endDate,
+              reason: event.reason,
+            },
+            create: event,
           })
         }
 
@@ -58,7 +89,7 @@ export async function GET(request: NextRequest) {
           calendarId: calendar.id,
           name: calendar.name,
           success: true,
-          syncedEvents: blockedDates.length,
+          syncedEvents: incomingEvents.length,
         })
       } catch (error) {
         await prisma.externalCalendar.update({

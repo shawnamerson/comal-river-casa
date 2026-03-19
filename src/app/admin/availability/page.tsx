@@ -47,7 +47,8 @@ export default function AvailabilityManagementPage() {
   }, [lastAction])
 
   // Fetch data
-  const { data: bookings } = trpc.admin.getAllBookings.useQuery()
+  const { data: bookingsData } = trpc.admin.getAllBookings.useQuery()
+  const bookings = bookingsData?.items
   const { data: blockedDates, refetch: refetchBlocked } = trpc.admin.getBlockedDates.useQuery()
 
   // Mutations

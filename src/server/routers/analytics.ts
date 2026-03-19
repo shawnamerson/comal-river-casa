@@ -95,30 +95,28 @@ export const analyticsRouter = router({
   topPages: adminProcedure.input(dateRangeInput).query(async ({ input }) => {
     const where = dateRange(input)
 
-    const pages = await prisma.pageView.groupBy({
-      by: ['path'],
+    // Single query: group by path + sessionId, then aggregate in memory
+    const pathSessions = await prisma.pageView.groupBy({
+      by: ['path', 'sessionId'],
       where,
       _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: 10,
     })
 
-    // Get unique visitors per page
-    const result = await Promise.all(
-      pages.map(async (p) => {
-        const visitors = await prisma.pageView.groupBy({
-          by: ['sessionId'],
-          where: { ...where, path: p.path, sessionId: { not: null } },
-        })
-        return {
-          path: p.path,
-          views: p._count.id,
-          visitors: visitors.length,
-        }
-      })
-    )
+    // Aggregate: total views and unique visitors per path
+    const pathMap = new Map<string, { views: number; visitors: Set<string | null> }>()
+    for (const row of pathSessions) {
+      if (!pathMap.has(row.path)) {
+        pathMap.set(row.path, { views: 0, visitors: new Set() })
+      }
+      const entry = pathMap.get(row.path)!
+      entry.views += row._count.id
+      if (row.sessionId) entry.visitors.add(row.sessionId)
+    }
 
-    return result
+    return Array.from(pathMap.entries())
+      .map(([path, { views, visitors }]) => ({ path, views, visitors: visitors.size }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 10)
   }),
 
   topReferrers: adminProcedure.input(dateRangeInput).query(async ({ input }) => {

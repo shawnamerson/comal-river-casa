@@ -15,6 +15,24 @@ const BOOKING_WINDOW_MONTHS = 12
 // Pending bookings older than this are expired (dates released for others to book)
 const PENDING_EXPIRY_MINUTES = 10
 
+// In-memory cache for PropertySettings (singleton, rarely changes)
+const SETTINGS_CACHE_TTL_MS = 60 * 1000 // 1 minute
+let settingsCache: { data: Awaited<ReturnType<PrismaClient['propertySettings']['findUnique']>>; expiresAt: number } | null = null
+
+async function getPropertySettings(prisma: PrismaClient) {
+  if (settingsCache && Date.now() < settingsCache.expiresAt) {
+    return settingsCache.data
+  }
+  const data = await prisma.propertySettings.findUnique({ where: { id: 'default' } })
+  settingsCache = { data, expiresAt: Date.now() + SETTINGS_CACHE_TTL_MS }
+  return data
+}
+
+/** Clear the settings cache (used in tests and after admin updates) */
+export function clearPropertySettingsCache() {
+  settingsCache = null
+}
+
 async function assertWithinBookingWindow(checkOut: Date) {
   const { addMonths } = await import('date-fns')
   const maxDate = addMonths(new Date(), BOOKING_WINDOW_MONTHS)
@@ -45,7 +63,7 @@ async function computeBookingPrice(
 
   const nights = differenceInDays(checkOut, checkIn)
 
-  const dbSettings = await prisma.propertySettings.findUnique({ where: { id: 'default' } })
+  const dbSettings = await getPropertySettings(prisma)
   const defaultBasePrice = dbSettings ? Number(dbSettings.basePrice) : PROPERTY.basePrice
   const defaultCleaningFee = dbSettings ? Number(dbSettings.cleaningFee) : PROPERTY.cleaningFee
   const defaultMinNights = dbSettings ? dbSettings.minNights : PROPERTY.minNights
@@ -210,8 +228,8 @@ export const bookingRouter = router({
       const { checkIn, checkOut } = input
       await assertWithinBookingWindow(checkOut)
 
-      // Clean up expired pending bookings
-      void cancelExpiredPendingBookings(ctx.prisma)
+      // Clean up expired pending bookings before checking availability
+      await cancelExpiredPendingBookings(ctx.prisma)
 
       // Check for overlapping bookings (ignore expired pending bookings)
       const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
@@ -288,7 +306,7 @@ export const bookingRouter = router({
 
   // Get booked dates for calendar display (ignore expired pending bookings)
   getBookedDates: publicProcedure.query(async ({ ctx }) => {
-    void cancelExpiredPendingBookings(ctx.prisma)
+    await cancelExpiredPendingBookings(ctx.prisma)
     const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MINUTES * 60 * 1000)
     const bookings = await ctx.prisma.booking.findMany({
       where: {

@@ -9,7 +9,11 @@ import { trpc } from '@/lib/trpc/client'
 export default function AdminBookingsPage() {
   const router = useRouter()
 
-  const { data: bookings, refetch: refetchBookings } = trpc.admin.getAllBookings.useQuery()
+  const { data, refetch: refetchBookings, fetchNextPage, hasNextPage, isFetchingNextPage } = trpc.admin.getAllBookings.useInfiniteQuery(
+    { limit: 50 },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor },
+  )
+  const bookings = data?.pages.flatMap((p) => p.items)
 
   const updateStatus = trpc.admin.updateBookingStatus.useMutation({
     onSuccess: () => {
@@ -147,6 +151,17 @@ export default function AdminBookingsPage() {
                     </div>
                   </div>
                 ))}
+              {hasNextPage && (
+                <div className="text-center pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? 'Loading...' : 'Load More'}
+                  </Button>
+                </div>
+              )}
               </div>
             )}
           </CardContent>

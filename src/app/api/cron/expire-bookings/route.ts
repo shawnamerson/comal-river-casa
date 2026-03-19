@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Expired booking cleanup complete',
-      cancelledCount: cancelledCount ?? 0,
+      cancelledCount,
       ranAt: new Date().toISOString(),
     })
   } catch (error) {

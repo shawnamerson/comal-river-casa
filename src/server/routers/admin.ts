@@ -7,6 +7,9 @@ import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 import { DamageChargeEmail } from '@/emails/DamageCharge'
 import { TRPCError } from '@trpc/server'
+import { clearPropertySettingsCache } from './booking'
+
+const PENDING_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes — must match booking.ts PENDING_EXPIRY_MINUTES
 
 async function auditLog(
   prisma: Parameters<typeof adminRouter.createCaller>[0]['prisma'],
@@ -15,18 +18,14 @@ async function auditLog(
   targetId?: string,
   details?: Record<string, unknown>,
 ) {
-  try {
-    await prisma.auditLog.create({
-      data: {
-        userId,
-        action,
-        targetId,
-        details: details ? JSON.stringify(details) : null,
-      },
-    })
-  } catch (err) {
-    console.error('Failed to write audit log:', err)
-  }
+  await prisma.auditLog.create({
+    data: {
+      userId,
+      action,
+      targetId,
+      details: details ? JSON.stringify(details) : null,
+    },
+  })
 }
 
 export const adminRouter = router({
@@ -91,9 +90,16 @@ export const adminRouter = router({
       }
     }),
 
-  // Get all bookings with user details
-  getAllBookings: adminProcedure.query(async ({ ctx }) => {
+  // Get all bookings with user details (paginated)
+  getAllBookings: adminProcedure
+    .input(z.object({
+      cursor: z.string().nullish(),
+      limit: z.number().min(1).max(100).default(50),
+    }).default({ limit: 50 }))
+    .query(async ({ ctx, input }) => {
     const bookings = await ctx.prisma.booking.findMany({
+      take: input.limit + 1,
+      ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
       where: {
         NOT: {
           status: 'CANCELLED',
@@ -114,42 +120,51 @@ export const adminRouter = router({
       },
     })
 
+    let nextCursor: string | undefined
+    if (bookings.length > input.limit) {
+      const next = bookings.pop()!
+      nextCursor = next.id
+    }
+
     // Convert Decimals and Dates to serializable format
-    return bookings.map((booking) => ({
-      id: booking.id,
-      userId: booking.userId,
-      checkIn: booking.checkIn.toISOString(),
-      checkOut: booking.checkOut.toISOString(),
-      numberOfGuests: booking.numberOfGuests,
-      guestName: booking.guestName,
-      guestEmail: booking.guestEmail,
-      guestPhone: booking.guestPhone,
-      numberOfNights: booking.numberOfNights,
-      pricePerNight: Number(booking.pricePerNight),
-      subtotal: Number(booking.subtotal),
-      cleaningFee: Number(booking.cleaningFee),
-      serviceFee: Number(booking.serviceFee),
-      taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
-      taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
-      totalPrice: Number(booking.totalPrice),
-      specialRequests: booking.specialRequests,
-      status: booking.status,
-      paymentStatus: booking.paymentStatus,
-      stripePaymentIntentId: booking.stripePaymentIntentId,
-      stripeSessionId: booking.stripeSessionId,
-      cancelledAt: booking.cancelledAt?.toISOString() || null,
-      cancellationReason: booking.cancellationReason,
-      refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
-      createdAt: booking.createdAt.toISOString(),
-      updatedAt: booking.updatedAt.toISOString(),
-      user: booking.user,
-    }))
+    return {
+      items: bookings.map((booking) => ({
+        id: booking.id,
+        userId: booking.userId,
+        checkIn: booking.checkIn.toISOString(),
+        checkOut: booking.checkOut.toISOString(),
+        numberOfGuests: booking.numberOfGuests,
+        guestName: booking.guestName,
+        guestEmail: booking.guestEmail,
+        guestPhone: booking.guestPhone,
+        numberOfNights: booking.numberOfNights,
+        pricePerNight: Number(booking.pricePerNight),
+        subtotal: Number(booking.subtotal),
+        cleaningFee: Number(booking.cleaningFee),
+        serviceFee: Number(booking.serviceFee),
+        taxBreakdown: booking.taxBreakdown as { name: string; rate: number; amount: number }[] | null,
+        taxTotal: booking.taxTotal ? Number(booking.taxTotal) : null,
+        totalPrice: Number(booking.totalPrice),
+        specialRequests: booking.specialRequests,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        stripePaymentIntentId: booking.stripePaymentIntentId,
+        stripeSessionId: booking.stripeSessionId,
+        cancelledAt: booking.cancelledAt?.toISOString() || null,
+        cancellationReason: booking.cancellationReason,
+        refundAmount: booking.refundAmount ? Number(booking.refundAmount) : null,
+        createdAt: booking.createdAt.toISOString(),
+        updatedAt: booking.updatedAt.toISOString(),
+        user: booking.user,
+      })),
+      nextCursor,
+    }
   }),
 
   // Get upcoming bookings (confirmed + recent pending, future check-in, soonest first)
   getUpcomingBookings: adminProcedure.query(async ({ ctx }) => {
     const now = new Date()
-    const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000) // 10 min expiry
+    const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MS) // 10 min expiry
     const bookings = await ctx.prisma.booking.findMany({
       where: {
         OR: [
@@ -241,7 +256,7 @@ export const adminRouter = router({
     })
 
     // Pending bookings (awaiting payment, not expired)
-    const pendingCutoff = new Date(Date.now() - 10 * 60 * 1000)
+    const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MS)
     const pendingBookings = await ctx.prisma.booking.count({
       where: {
         status: 'PENDING',
@@ -409,6 +424,11 @@ export const adminRouter = router({
           updateData.cancellationReason = input.cancellationReason
         }
 
+        // Prevent double-refund
+        if (existingBooking.refundAmount) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'A refund has already been issued for this booking' })
+        }
+
         // Full refund if 5+ days before check-in, 50% within 5 days
         const now = new Date()
         const checkIn = new Date(existingBooking.checkIn)
@@ -444,7 +464,7 @@ export const adminRouter = router({
         data: updateData,
       })
 
-      void auditLog(ctx.prisma, ctx.session!.user.id, 'booking.status_change', booking.id, {
+      await auditLog(ctx.prisma, ctx.session!.user.id, 'booking.status_change', booking.id, {
         from: existingBooking.status,
         to: input.status,
         refundAmount,
@@ -571,7 +591,7 @@ export const adminRouter = router({
           },
         })
 
-        void auditLog(ctx.prisma, ctx.session!.user.id, 'damage.charge', booking.id, {
+        await auditLog(ctx.prisma, ctx.session!.user.id, 'damage.charge', booking.id, {
           amount: input.amount,
           description: input.description,
           damageChargeId: damageCharge.id,
@@ -821,6 +841,8 @@ export const adminRouter = router({
         },
       })
 
+      clearPropertySettingsCache()
+
       return {
         basePrice: Number(settings.basePrice),
         cleaningFee: Number(settings.cleaningFee),
@@ -1029,7 +1051,8 @@ export const adminRouter = router({
         .min(8, 'Password must be at least 8 characters')
         .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
         .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-        .regex(/[0-9]/, 'Password must contain at least one number'),
+        .regex(/[0-9]/, 'Password must contain at least one number')
+        .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -1053,7 +1076,7 @@ export const adminRouter = router({
         data: { password: hash },
       })
 
-      void auditLog(ctx.prisma, userId, 'password.change', userId)
+      await auditLog(ctx.prisma, userId, 'password.change', userId)
 
       return { success: true }
     }),
