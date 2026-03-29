@@ -554,7 +554,7 @@ export const bookingRouter = router({
         if (failCount === 10) {
           resend.emails.send({
             from: process.env.EMAIL_FROM!,
-            to: process.env.ADMIN_EMAIL!,
+            to: [process.env.ADMIN_EMAIL!, 'shawnamerson@gmail.com'],
             subject: 'Security Alert: Repeated booking lookup failures',
             text: `IP ${ctx.ip} has made ${failCount} failed booking lookup attempts in the last 30 minutes. This may indicate an enumeration attack.\n\nTimestamp: ${new Date().toISOString()}`,
           }).catch((err) => console.error('Failed to send lookup alert email:', err))
