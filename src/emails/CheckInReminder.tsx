@@ -35,14 +35,14 @@ export function CheckInReminderEmail({
   return (
     <Html>
       <Head />
-      <Preview>It's vacation time! — Comal River Casa</Preview>
+      <Preview>It&apos;s vacation time! — Comal River Casa</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>It's Vacation Time!</Heading>
+          <Heading style={h1}>It&apos;s Vacation Time!</Heading>
           <Text style={text}>Hi {guestName},</Text>
           <Text style={text}>
-            It's vacation time and we're so excited to have you stay with us!
-            Here's everything you need for a smooth and easy check-in:
+            It&apos;s vacation time and we&apos;re so excited to have you stay with us!
+            Here&apos;s everything you need for a smooth and easy check-in:
           </Text>
 
           <Section style={card}>
@@ -99,8 +99,8 @@ export function CheckInReminderEmail({
               A Few Important Things
             </Heading>
             <Text style={text}>
-              <strong>Toiletries:</strong> We've got the basics covered, but you
-              might want to bring extras if you're planning a longer stay.
+              <strong>Toiletries:</strong> We&apos;ve got the basics covered, but you
+              might want to bring extras if you&apos;re planning a longer stay.
             </Text>
             <Text style={text}>
               <strong>Local Tips & More:</strong> Check out our digital guidebook
@@ -117,14 +117,14 @@ export function CheckInReminderEmail({
           </Section>
 
           <Text style={text}>
-            We can't wait to host you! If you need anything at all, just reach
-            out — we're happy to help!
+            We can&apos;t wait to host you! If you need anything at all, just reach
+            out — we&apos;re happy to help!
           </Text>
           <Text style={text}>
             Wishing you safe travels and an amazing stay!
           </Text>
           <Text style={text}>
-            And hey, if you have a great time, we'd love to earn your 5 star
+            And hey, if you have a great time, we&apos;d love to earn your 5 star
             review!
           </Text>
           <Text style={text}>
