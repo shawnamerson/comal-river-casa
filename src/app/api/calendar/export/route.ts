@@ -92,6 +92,9 @@ export async function GET(request: Request) {
     for (const blocked of blockedDates) {
       const startDate = new Date(blocked.startDate)
       const endDate = new Date(blocked.endDate)
+      // iCal DTEND;VALUE=DATE is exclusive, so add one day to ensure the last day is blocked
+      const dtEnd = new Date(endDate)
+      dtEnd.setUTCDate(dtEnd.getUTCDate() + 1)
       const created = new Date(blocked.createdAt)
 
       const event = [
@@ -99,7 +102,7 @@ export async function GET(request: Request) {
         `UID:blocked-${blocked.id}@comalrivercasa.com`,
         `DTSTAMP:${formatDateToICal(now)}`,
         `DTSTART;VALUE=DATE:${formatDateOnly(startDate)}`,
-        `DTEND;VALUE=DATE:${formatDateOnly(endDate)}`,
+        `DTEND;VALUE=DATE:${formatDateOnly(dtEnd)}`,
         `CREATED:${formatDateToICal(created)}`,
         `SUMMARY:${escapeICalText(blocked.reason || 'Blocked')}`,
         `DESCRIPTION:${escapeICalText(`Manually blocked dates`)}`,
