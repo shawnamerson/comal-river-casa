@@ -3,7 +3,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Link,
   Preview,
@@ -141,11 +140,6 @@ const card = {
   borderRadius: "8px",
   margin: "16px 40px",
   padding: "24px",
-}
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "12px 0",
 }
 
 const link = {
