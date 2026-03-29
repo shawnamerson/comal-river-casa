@@ -188,6 +188,9 @@ model Booking {
   // Special requests
   specialRequests String?       @db.Text
 
+  // Review token for frictionless review links
+  reviewToken     String?       @unique @default(cuid())
+
   // Relations
   user            User            @relation(fields: [userId], references: [id])
   review          Review?

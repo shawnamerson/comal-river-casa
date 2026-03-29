@@ -85,6 +85,77 @@ export const reviewRouter = router({
       return { id: review.id }
     }),
 
+  // Look up booking by review token (for frictionless review links)
+  getBookingByToken: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { reviewToken: input.token },
+        include: { review: true },
+      })
+
+      if (!booking) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Invalid review link' })
+      }
+
+      return {
+        id: booking.id,
+        guestName: booking.guestName,
+        guestEmail: booking.guestEmail,
+        checkIn: booking.checkIn.toISOString(),
+        checkOut: booking.checkOut.toISOString(),
+        status: booking.status,
+        hasReview: !!booking.review,
+      }
+    }),
+
+  submitReviewByToken: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const booking = await ctx.prisma.booking.findUnique({
+        where: { reviewToken: input.token },
+        include: { review: true },
+      })
+
+      if (!booking) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Invalid review link' })
+      }
+
+      if (booking.status !== 'CONFIRMED' && booking.status !== 'COMPLETED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Reviews can only be left for confirmed or completed bookings',
+        })
+      }
+
+      if (booking.review) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'A review has already been submitted for this booking',
+        })
+      }
+
+      const review = await ctx.prisma.review.create({
+        data: {
+          bookingId: booking.id,
+          userId: booking.userId,
+          rating: input.rating,
+          comment: input.comment || null,
+          guestName: booking.guestName,
+          source: 'DIRECT',
+          isPublished: false,
+        },
+      })
+
+      return { id: review.id }
+    }),
+
   // ---- Admin procedures ----
 
   getAllReviews: adminProcedure.query(async ({ ctx }) => {
