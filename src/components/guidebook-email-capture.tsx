@@ -33,7 +33,7 @@ export function GuidebookEmailCapture() {
       <div className="my-12 rounded-2xl bg-blue-50 border border-blue-200 p-8 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">You&apos;re in!</h2>
         <p className="text-gray-600">
-          Keep an eye on your inbox for the complete NB Local Guide with insider tips, directions, and more.
+          We&apos;ll keep you in the loop with local events, seasonal discounts, and insider tips for your next New Braunfels getaway.
         </p>
       </div>
     )
@@ -42,11 +42,10 @@ export function GuidebookEmailCapture() {
   return (
     <div className="my-12 rounded-2xl bg-blue-50 border border-blue-200 p-8 text-center">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        Get the Complete NB Local Guide
+        Stay in the Loop
       </h2>
       <p className="text-gray-600 mb-6 max-w-lg mx-auto">
-        Want directions, insider tips, and hidden gems that didn&apos;t make the list?
-        Drop your email and we&apos;ll send you the full guide — plus exclusive deals on your next stay.
+        Love New Braunfels? Sign up to get notified about local events, seasonal discounts, and special offers for your next stay.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
         <input
@@ -62,7 +61,7 @@ export function GuidebookEmailCapture() {
           disabled={status === 'loading'}
           className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {status === 'loading' ? 'Sending...' : 'Send Me the Guide'}
+          {status === 'loading' ? 'Signing up...' : 'Sign Me Up'}
         </button>
       </form>
       {status === 'error' && (
