@@ -40,6 +40,7 @@ const sections: Section[] = [
       {
         name: "McAdoo's Seafood Company",
         url: 'https://www.mcadoos.com/',
+        image: '/images/guidebook/mcadoos.jpg',
         description:
           "Looking for seafood with a side of cajun? You're here! Brunch served as well.",
         suggestions:
