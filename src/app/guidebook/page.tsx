@@ -49,6 +49,7 @@ const sections: Section[] = [
       {
         name: "Krause's Cafe",
         url: 'https://krausescafe.com/',
+        image: '/images/guidebook/krauses.jpg',
         description:
           'A biergarten with a full bar and menu, outdoor seating, and live music, what more could you ask for?',
         suggestions:
@@ -57,6 +58,7 @@ const sections: Section[] = [
       {
         name: "Myron's Prime Steakhouse",
         url: 'https://myronsprime.com/',
+        image: '/images/guidebook/myrons.jpg',
         description:
           'Cozy, classy, and private. Low lighting, food with amazing flavor, and a full bar. Shareable sides as 1 side can serve 2-3!',
         suggestions:
@@ -65,6 +67,7 @@ const sections: Section[] = [
       {
         name: 'Muck & Fuss',
         url: 'https://muckandfuss.com/',
+        image: '/images/guidebook/muckandfuss.avif',
         description:
           'Amazing selection of burgers! Indoor and outdoor seating. Get there before the crowd as it gets very busy!',
         suggestions:
@@ -73,6 +76,7 @@ const sections: Section[] = [
       {
         name: "Calahan's Pub and Pizza",
         url: 'https://www.calahanspubandpizza.com/',
+        image: '/images/guidebook/calahans.jpg',
         description:
           'Relaxed vibe serving pizza, full bar, games, tvs, and outdoor seating.',
         suggestions:
@@ -81,7 +85,7 @@ const sections: Section[] = [
       {
         name: 'Downtown Social',
         url: 'https://www.downtownsocialnb.com/',
-        image: '/images/guidebook/downtown-social.jpg',
+        image: '/images/guidebook/downtonsocial.webp',
         description:
           'Bring the family for bowling, games, food, drinks, and music! Under 21 allowed until 9pm.',
       },
@@ -97,7 +101,7 @@ const sections: Section[] = [
       {
         name: 'Fork and Spoon',
         url: 'https://www.forkandspoontexas.com/',
-        image: '/images/guidebook/fork-and-spoon.png',
+        image: '/images/guidebook/forkspoon1.avif',
         description: 'Great breakfast and lunch spot with mimosas!',
         suggestions:
           'Classic or Jillian Eggs Benedict, Mediterranean Salad, Turkey Bacon and Avocado, Grilled Chicken and Sun-dried Tomato Sandwich',
