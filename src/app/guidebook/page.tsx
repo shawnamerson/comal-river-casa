@@ -316,8 +316,8 @@ const sections: Section[] = [
 ]
 
 function PlaceCard({ place }: { place: Place }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+  const content = (
+    <>
       {place.image && (
         <div className="relative h-48 w-full">
           <Image
@@ -329,13 +329,7 @@ function PlaceCard({ place }: { place: Place }) {
         </div>
       )}
       <div className="p-5">
-        {place.url ? (
-          <a href={place.url} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline">
-            {place.name}
-          </a>
-        ) : (
-          <h3 className="text-lg font-bold text-gray-900">{place.name}</h3>
-        )}
+        <h3 className="text-lg font-bold text-blue-600">{place.name}</h3>
         {place.description && (
           <p className="mt-2 text-gray-600 text-sm leading-relaxed">
             {place.description}
@@ -347,6 +341,25 @@ function PlaceCard({ place }: { place: Place }) {
           </p>
         )}
       </div>
+    </>
+  )
+
+  if (place.url) {
+    return (
+      <a
+        href={place.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden block hover:shadow-md hover:border-blue-300 transition-all"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      {content}
     </div>
   )
 }
