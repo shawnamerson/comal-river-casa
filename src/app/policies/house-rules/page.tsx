@@ -4,7 +4,7 @@ import { PROPERTY } from '@/config/property'
 export const metadata = {
   title: 'House Rules',
   description:
-    'House rules and guest guidelines for Comal River Casa vacation rental in New Braunfels, TX.',
+    'House rules and guest guidelines for Comal River Casa — 2BR/2BA riverfront condo with pool, hot tub, and river access in New Braunfels, TX.',
 }
 
 export default function HouseRulesPage() {

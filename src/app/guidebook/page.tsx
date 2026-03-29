@@ -3,9 +3,9 @@ import Image from 'next/image'
 import { GuidebookEmailCapture } from '@/components/guidebook-email-capture'
 
 export const metadata = {
-  title: 'Local Guidebook — Comal River Casa',
+  title: 'New Braunfels Local Guide — Best Restaurants, Bars & Things to Do',
   description:
-    'Our favorite local spots in New Braunfels, TX — restaurants, bars, activities, shopping, and river tubing recommendations.',
+    'Curated guide to the best restaurants, bars, river tubing, attractions, and shopping in New Braunfels, TX — insider picks from local hosts at Comal River Casa.',
 }
 
 interface Place {

@@ -3,7 +3,7 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Cancellation Policy',
   description:
-    'Cancellation and refund policy for Comal River Casa vacation rental in New Braunfels, TX.',
+    'Cancellation and refund policy for Comal River Casa — New Braunfels vacation rental. Full refund 5+ days before check-in, 50% within 5 days.',
 }
 
 export default function CancellationPolicyPage() {
