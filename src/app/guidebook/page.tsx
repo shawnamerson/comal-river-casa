@@ -109,6 +109,7 @@ const sections: Section[] = [
       {
         name: 'La Cosecha Mexican Table',
         url: 'https://www.lacosechatx.com/',
+        image: '/images/guidebook/lacosecha.jpg',
         description:
           'Outdoor patio and bar with some great cocktails; we love this upscale Mexican restaurant and its vibe. Brunch served as well.',
         suggestions:
@@ -134,6 +135,7 @@ const sections: Section[] = [
       {
         name: 'Gruene River Grill',
         url: 'https://www.gruenerivergrill.com/',
+        image: '/images/guidebook/gruenerivergrill.jpg',
         description:
           'Down the road from Gruene Hall and such a cute and cozy place to dine!',
         suggestions:
@@ -149,12 +151,14 @@ const sections: Section[] = [
       {
         name: 'Gourmage',
         url: 'https://www.gourmage.com/',
+        image: '/images/guidebook/gourmage.jpg',
         description:
           'Great place for meats and cheeses to make your charcuterie board!',
       },
       {
         name: 'Bootleggers Pizza Parlor',
         url: 'https://bootleggerspizzaparlor.com/',
+        image: '/images/guidebook/bootleggers.webp',
         description: 'Pizza! Games and playground for kids (and adults)!',
       },
     ],
@@ -166,7 +170,7 @@ const sections: Section[] = [
       {
         name: 'Pour Haus Patio Bar',
         url: 'https://www.pourhausnb.com/',
-        image: '/images/guidebook/pour-haus.png',
+        image: '/images/guidebook/pourhaus.webp',
         description:
           'Outdoor bar with rooftop bar and live music. Under 21 allowed until 9pm.',
       },
@@ -202,18 +206,21 @@ const sections: Section[] = [
       {
         name: 'Vino en Verde',
         url: 'http://www.getdrinkingingruene.com/',
+        image: '/images/guidebook/vino-en-verde.jpg',
         description:
           "Looking for the best espresso martini in town? You've found it!",
       },
       {
         name: 'Sidecar',
         url: 'https://sidecarnb.com/',
+        image: '/images/guidebook/sidecar.avif',
         description:
           'Great vibes with great crafty cocktails and live music. Be sure to make a reservation!',
       },
       {
         name: 'The Villa | Gruene, TX',
         url: 'https://www.drinklokal.com/',
+        image: '/images/guidebook/thevilla.jpg',
         description:
           'Live music, trivia, and great drinks! Kid friendly until 8pm!',
       },
@@ -232,17 +239,18 @@ const sections: Section[] = [
     intro: 'These places have a play area or playscape:',
     places: [
       { name: "Herbert's", url: 'https://www.herbertstx.com/', image: '/images/guidebook/herberts.jpg' },
-      { name: 'The Hideaway New Braunfels', url: 'https://hideaway-texas.com/' },
-      { name: 'Iron Horse Bar & Grill', url: 'https://ironhorsegrillnbtx.com/' },
+      { name: 'The Hideaway New Braunfels', url: 'https://hideaway-texas.com/', image: '/images/guidebook/thehideaway.png' },
+      { name: 'Iron Horse Bar & Grill', url: 'https://ironhorsegrillnbtx.com/', image: '/images/guidebook/ironhorse.jpg' },
       { name: "Casa Garcia's - New Braunfels", url: 'https://www.casagarcias.com/', image: '/images/guidebook/casa-garcias.jpg' },
       { name: 'Guadalupe Brewing Company & Pizza Kitchen', url: 'https://www.guadalupebrew.com/', image: '/images/guidebook/guadalupe-brewing.png' },
       {
         name: 'Freiheit Country Store',
         url: 'https://www.freiheitcountrystore.net/',
+        image: '/images/guidebook/freiheit.webp',
         description:
           'Amazing people, homestyle cooking, full bar, and live music! Freiheit is a staple in this town.',
       },
-      { name: 'The Longhorn Cafe', url: 'https://www.thelonghorncafe.com/' },
+      { name: 'The Longhorn Cafe', url: 'https://www.thelonghorncafe.com/', image: '/images/guidebook/longhorncafe.avif' },
       { name: 'Tin Top Burger Shop', url: 'https://tintopburgers.com/', image: '/images/guidebook/tin-top.jpg' },
       { name: "Willie's Grill & Icehouse", url: 'https://williesgrillandicehouse.com/', image: '/images/guidebook/willies.jpg' },
     ],
@@ -252,11 +260,11 @@ const sections: Section[] = [
     emoji: '\uD83C\uDFA2',
     places: [
       { name: 'Schlitterbahn Waterpark & Resort', url: 'https://www.schlitterbahn.com/new-braunfels/', image: '/images/guidebook/schlitterbahn.jpg' },
-      { name: 'The Float In', url: 'https://floatintx.com/' },
+      { name: 'The Float In', url: 'https://floatintx.com/', image: '/images/guidebook/floatin.jpg' },
       {
         name: 'Gruene Hall',
         url: 'https://gruenehall.com/',
-        image: '/images/guidebook/gruene-hall.jpg',
+        image: '/images/guidebook/gruenehall.webp',
         description: 'What else is there to say?! CASH ONLY!',
       },
     ],
@@ -268,14 +276,15 @@ const sections: Section[] = [
       {
         name: 'Princess Be',
         url: 'https://www.facebook.com/princessbeboutique/',
+        image: '/images/guidebook/princessbe.jpg',
         description:
           'Kids, women, accessories, and the best candles ever!',
       },
-      { name: 'Boutique Chloe Rose', url: 'https://www.boutiquechloerose.com/' },
-      { name: 'River Rose', url: 'https://www.shopriverrose.com/' },
-      { name: 'The Local', url: 'https://www.thelocaltx.com/' },
-      { name: 'Lot 59', url: 'https://www.facebook.com/lot59/' },
-      { name: 'Alibi Boutique', url: 'https://www.facebook.com/alibiboutiquenb/' },
+      { name: 'Boutique Chloe Rose', url: 'https://www.boutiquechloerose.com/', image: '/images/guidebook/chloerose.jpg' },
+      { name: 'River Rose', url: 'https://www.shopriverrose.com/', image: '/images/guidebook/riverrose.jpg' },
+      { name: 'The Local', url: 'https://www.thelocaltx.com/', image: '/images/guidebook/thelocal.webp' },
+      { name: 'Lot 59', url: 'https://www.facebook.com/lot59/', image: '/images/guidebook/lot59.png' },
+      { name: 'Alibi Boutique', url: 'https://www.facebook.com/alibiboutiquenb/', image: '/images/guidebook/alibiboutique.jpg' },
       {
         name: "Ducky's Swimwear & T-shirts",
         url: 'https://duckysswim.com/',
@@ -294,7 +303,7 @@ const sections: Section[] = [
         image: '/images/guidebook/texas-tubes.jpg',
         description: 'This is a local spot, shhhh! Shuttle and tube rentals!',
       },
-      { name: "Felger's River Center & Toob Rental", url: 'https://www.facebook.com/FelgersRiverCenter/' },
+      { name: "Felger's River Center & Toob Rental", url: 'https://www.facebook.com/FelgersRiverCenter/', image: '/images/guidebook/felgers.jpg' },
       {
         name: 'Landa Falls',
         url: 'https://landafalls.com/',
