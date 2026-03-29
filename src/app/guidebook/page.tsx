@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { GuidebookEmailCapture } from '@/components/guidebook-email-capture'
+import { GuidebookSlideshowTrigger } from '@/components/guidebook-slideshow-trigger'
 
 export const metadata = {
   title: 'New Braunfels Local Guide — Best Restaurants, Bars & Things to Do',
@@ -364,6 +365,13 @@ function PlaceCard({ place }: { place: Place }) {
   )
 }
 
+// Build flat list of places with images for the slideshow
+const slideshowPlaces = sections.flatMap((section) =>
+  section.places
+    .filter((p) => p.image)
+    .map((p) => ({ ...p, section: section.title }))
+)
+
 export default function GuidebookPage() {
   return (
     <main className="min-h-screen bg-white py-16 px-4">
@@ -378,9 +386,10 @@ export default function GuidebookPage() {
         {/* Hero / Intro */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-3">NB Local Spots</h1>
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-gray-500 mb-6">
             Our favorite places in New Braunfels — from Kody &amp; Dahlia
           </p>
+          <GuidebookSlideshowTrigger places={slideshowPlaces} />
         </div>
 
         {/* Sections */}
