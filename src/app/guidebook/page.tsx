@@ -80,12 +80,14 @@ const sections: Section[] = [
       {
         name: 'Downtown Social',
         url: 'https://www.downtownsocialnb.com/',
+        image: '/images/guidebook/downtown-social.jpg',
         description:
           'Bring the family for bowling, games, food, drinks, and music! Under 21 allowed until 9pm.',
       },
       {
         name: "Cody's Restaurant, Bar, & Patio NB",
         url: 'https://www.codyssmtx.com/',
+        image: '/images/guidebook/codys.jpg',
         description:
           'Perfect date night! Upscale dining. Everything on the menu is great!',
         suggestions:
@@ -94,6 +96,7 @@ const sections: Section[] = [
       {
         name: 'Fork and Spoon',
         url: 'https://www.forkandspoontexas.com/',
+        image: '/images/guidebook/fork-and-spoon.png',
         description: 'Great breakfast and lunch spot with mimosas!',
         suggestions:
           'Classic or Jillian Eggs Benedict, Mediterranean Salad, Turkey Bacon and Avocado, Grilled Chicken and Sun-dried Tomato Sandwich',
@@ -109,6 +112,7 @@ const sections: Section[] = [
       {
         name: 'Gristmill River Restaurant & Bar',
         url: 'https://gristmillrestaurant.com/',
+        image: '/images/guidebook/gristmill.jpg',
         description:
           'The old cotton gin turned restaurant! Indoor and outdoor seating, great food and in Gruene, we just love this place!',
         suggestions:
@@ -132,6 +136,7 @@ const sections: Section[] = [
       {
         name: "Otto's Cheese Shop",
         url: 'https://ottoscheeseshop.com/',
+        image: '/images/guidebook/ottos-cheese.jpg',
         description:
           'Great place for meats and cheeses to make your charcuterie board!',
       },
@@ -161,6 +166,7 @@ const sections: Section[] = [
       {
         name: 'Moonshine & Ale',
         url: 'https://moonshineale.com/',
+        image: '/images/guidebook/moonshine-ale.jpg',
         description: 'Piano bar - make your requests!',
       },
       {
@@ -174,6 +180,7 @@ const sections: Section[] = [
       {
         name: 'Scores Sports Bar & Grill',
         url: 'https://www.scoresnbtx.com/',
+        image: '/images/guidebook/scores.jpg',
         description: 'Serving food, too! Under 21 allowed until 9pm.',
         suggestions:
           'Firecracker Shrimp, anything fried, and their pizzas, too!',
@@ -181,6 +188,7 @@ const sections: Section[] = [
       {
         name: "Gruene Tini's",
         url: 'https://gruenetinis.com/',
+        image: '/images/guidebook/gruene-tinis.jpg',
         description: 'Small martini bar, wide selection of martinis and beer.',
       },
       {
@@ -215,11 +223,11 @@ const sections: Section[] = [
     emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66',
     intro: 'These places have a play area or playscape:',
     places: [
-      { name: "Herbert's", url: 'https://www.herbertstx.com/' },
+      { name: "Herbert's", url: 'https://www.herbertstx.com/', image: '/images/guidebook/herberts.jpg' },
       { name: 'The Hideaway New Braunfels', url: 'https://hideaway-texas.com/' },
       { name: 'Iron Horse Bar & Grill', url: 'https://ironhorsegrillnbtx.com/' },
       { name: "Casa Garcia's - New Braunfels", url: 'https://www.casagarcias.com/' },
-      { name: 'Guadalupe Brewing Company & Pizza Kitchen', url: 'https://www.guadalupebrew.com/' },
+      { name: 'Guadalupe Brewing Company & Pizza Kitchen', url: 'https://www.guadalupebrew.com/', image: '/images/guidebook/guadalupe-brewing.png' },
       {
         name: 'Freiheit Country Store',
         url: 'https://www.freiheitcountrystore.net/',
@@ -235,7 +243,7 @@ const sections: Section[] = [
     title: 'Attractions',
     emoji: '\uD83C\uDFA2',
     places: [
-      { name: 'Schlitterbahn Waterpark & Resort', url: 'https://www.schlitterbahn.com/new-braunfels/' },
+      { name: 'Schlitterbahn Waterpark & Resort', url: 'https://www.schlitterbahn.com/new-braunfels/', image: '/images/guidebook/schlitterbahn.jpg' },
       { name: 'The Float In', url: 'https://floatintx.com/' },
       {
         name: 'Gruene Hall',
@@ -273,12 +281,14 @@ const sections: Section[] = [
       {
         name: 'Texas Tubes',
         url: 'https://www.texastubes.com/',
+        image: '/images/guidebook/texas-tubes.jpg',
         description: 'This is a local spot, shhhh! Shuttle and tube rentals!',
       },
       { name: "Felger's River Center & Toob Rental", url: 'https://www.facebook.com/FelgersRiverCenter/' },
       {
         name: 'Landa Falls',
         url: 'https://landafalls.com/',
+        image: '/images/guidebook/landa-falls.jpg',
         description: 'Longest float for the Comal!',
       },
       { name: 'Corner Tubes', url: 'https://cornertubes.com/' },
