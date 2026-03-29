@@ -59,8 +59,23 @@ export function BookingConfirmationEmail({
           <Heading style={h1}>Booking Confirmed!</Heading>
           <Text style={text}>Hi {guestName},</Text>
           <Text style={text}>
-            Your booking at <strong>Comal River Casa</strong> is confirmed and
-            your payment has been received. We can&apos;t wait to host you!
+            Thank you so much for choosing <strong>Comal River Casa</strong>!
+            We look forward to hosting you {formatDate(checkIn)} – {formatDate(checkOut)}.
+          </Text>
+          <Text style={text}>
+            A few things:
+          </Text>
+          <Text style={text}>
+            • Please ensure the amount of guests is accurately reflected in your
+            reservation as we will provide wristbands (8 max).
+            <br /><br />
+            • We will send easy self check-in instructions and information prior
+            to your arrival.
+            <br /><br />
+            • If you have any questions in the meantime, just drop us a message.
+          </Text>
+          <Text style={text}>
+            Again, we look forward to hosting you and earning your 5 star review!
           </Text>
 
           <Section style={card}>
