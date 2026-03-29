@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { GuidebookEmailCapture } from '@/components/guidebook-email-capture'
 
 export const metadata = {
@@ -12,6 +13,7 @@ interface Place {
   description?: string
   suggestions?: string
   url?: string
+  image?: string
 }
 
 interface Section {
@@ -29,6 +31,7 @@ const sections: Section[] = [
       {
         name: 'Huisache Grill',
         url: 'https://huisachegrill.com/',
+        image: '/images/guidebook/huisache-grill.jpg',
         description:
           'Quaint restaurant perfect for an intimate evening. Exceptional food, wine, and beer. Their outdoor patio has a bar, fire pits, seating, and live music - serving up apps, wine and beer. The "Grassmarket" is adjacent to the restaurant with some great little shops! Tell Susie we sent y\'all!',
         suggestions:
@@ -285,24 +288,36 @@ const sections: Section[] = [
 
 function PlaceCard({ place }: { place: Place }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      {place.url ? (
-        <a href={place.url} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline">
-          {place.name}
-        </a>
-      ) : (
-        <h3 className="text-lg font-bold text-gray-900">{place.name}</h3>
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      {place.image && (
+        <div className="relative h-48 w-full">
+          <Image
+            src={place.image}
+            alt={place.name}
+            fill
+            className="object-cover"
+          />
+        </div>
       )}
-      {place.description && (
-        <p className="mt-2 text-gray-600 text-sm leading-relaxed">
-          {place.description}
-        </p>
-      )}
-      {place.suggestions && (
-        <p className="mt-2 text-sm italic text-blue-700">
-          Try: {place.suggestions}
-        </p>
-      )}
+      <div className="p-5">
+        {place.url ? (
+          <a href={place.url} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline">
+            {place.name}
+          </a>
+        ) : (
+          <h3 className="text-lg font-bold text-gray-900">{place.name}</h3>
+        )}
+        {place.description && (
+          <p className="mt-2 text-gray-600 text-sm leading-relaxed">
+            {place.description}
+          </p>
+        )}
+        {place.suggestions && (
+          <p className="mt-2 text-sm italic text-blue-700">
+            Try: {place.suggestions}
+          </p>
+        )}
+      </div>
     </div>
   )
 }
