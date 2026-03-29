@@ -16,6 +16,7 @@ const navItems = [
   { href: '/admin/reviews', label: 'Reviews', icon: '\u2B50' },
   { href: '/admin/accounting', label: 'Accounting', icon: '\u{1F4CA}' },
   { href: '/admin/analytics', label: 'Analytics', icon: '\u{1F4C8}' },
+  { href: '/admin/leads', label: 'Leads', icon: '\u{1F4E7}' },
 ]
 
 export default function AdminHeader() {

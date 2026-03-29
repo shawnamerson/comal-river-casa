@@ -1080,4 +1080,26 @@ export const adminRouter = router({
 
       return { success: true }
     }),
+
+  // Email leads
+  getLeads: adminProcedure
+    .input(
+      z.object({
+        source: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const leads = await ctx.prisma.emailLead.findMany({
+        where: input?.source ? { source: input.source } : undefined,
+        orderBy: { createdAt: 'desc' },
+      })
+      return leads
+    }),
+
+  deleteLead: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.emailLead.delete({ where: { id: input.id } })
+      return { success: true }
+    }),
 })
