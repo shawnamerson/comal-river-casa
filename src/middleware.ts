@@ -2,7 +2,7 @@ import NextAuth from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { NextRequest, NextResponse } from "next/server"
 import { Ratelimit } from "@upstash/ratelimit"
-import { Redis } from "@upstash/redis"
+import { redis } from "@/lib/redis"
 
 const { auth } = NextAuth(authConfig)
 
@@ -11,7 +11,6 @@ const { auth } = NextAuth(authConfig)
 // Works correctly across all Vercel serverless/edge instances.
 // Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN env vars.
 // ---------------------------------------------------------------------------
-const redis = Redis.fromEnv()
 
 // Booking creation: 5 per hour (prevents date-spam)
 const bookingCreateLimiter = new Ratelimit({

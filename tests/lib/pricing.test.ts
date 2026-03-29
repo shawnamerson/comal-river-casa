@@ -51,7 +51,7 @@ beforeEach(() => {
 })
 
 function createCaller(prisma: any) {
-  return bookingRouter.createCaller({ prisma, session: null })
+  return bookingRouter.createCaller({ prisma, session: null, ip: '127.0.0.1' })
 }
 
 describe('calculatePrice', () => {

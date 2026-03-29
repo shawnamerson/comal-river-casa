@@ -5,6 +5,7 @@ import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { BookingExpiredEmail } from '@/emails/BookingExpired'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
+import { redis } from '@/lib/redis'
 import { TRPCError } from '@trpc/server'
 import { PROPERTY } from '@/config/property'
 import type { PrismaClient } from '@prisma/client'
@@ -514,6 +515,18 @@ export const bookingRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Exponential backoff: check if IP is temporarily blocked from failed attempts
+      const failKey = `lookup-fail:${ctx.ip}`
+      const blockKey = `lookup-block:${ctx.ip}`
+
+      const blocked = await redis.get(blockKey)
+      if (blocked) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Too many failed attempts. Please wait and try again.',
+        })
+      }
+
       const booking = await ctx.prisma.booking.findFirst({
         where: {
           id: input.bookingId,
@@ -525,11 +538,36 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
+        // Track failed attempt
+        const failCount = await redis.incr(failKey)
+        if (failCount === 1) {
+          await redis.expire(failKey, 1800) // 30 min TTL
+        }
+
+        // Apply exponential backoff after 3 failures: 10s, 20s, 40s, ... max 5min
+        if (failCount >= 3) {
+          const delaySec = Math.min(Math.pow(2, failCount - 3) * 10, 300)
+          await redis.set(blockKey, '1', { ex: delaySec })
+        }
+
+        // Alert admin at 10 failures
+        if (failCount === 10) {
+          resend.emails.send({
+            from: process.env.EMAIL_FROM!,
+            to: process.env.ADMIN_EMAIL!,
+            subject: 'Security Alert: Repeated booking lookup failures',
+            text: `IP ${ctx.ip} has made ${failCount} failed booking lookup attempts in the last 30 minutes. This may indicate an enumeration attack.\n\nTimestamp: ${new Date().toISOString()}`,
+          }).catch((err) => console.error('Failed to send lookup alert email:', err))
+        }
+
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Booking not found. Please check your confirmation number and email address.',
         })
       }
+
+      // Clear failure state on successful lookup
+      await redis.del(failKey, blockKey)
 
       // Convert Decimals to numbers and Dates to strings for serialization
       return {
