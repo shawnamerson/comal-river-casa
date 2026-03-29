@@ -11,6 +11,7 @@ interface Place {
   name: string
   description?: string
   suggestions?: string
+  url?: string
 }
 
 interface Section {
@@ -27,6 +28,7 @@ const sections: Section[] = [
     places: [
       {
         name: 'Huisache Grill',
+        url: 'https://huisachegrill.com/',
         description:
           'Quaint restaurant perfect for an intimate evening. Exceptional food, wine, and beer. Their outdoor patio has a bar, fire pits, seating, and live music - serving up apps, wine and beer. The "Grassmarket" is adjacent to the restaurant with some great little shops! Tell Susie we sent y\'all!',
         suggestions:
@@ -34,6 +36,7 @@ const sections: Section[] = [
       },
       {
         name: "McAdoo's Seafood Company",
+        url: 'https://www.mcadoos.com/',
         description:
           "Looking for seafood with a side of cajun? You're here! Brunch served as well.",
         suggestions:
@@ -41,6 +44,7 @@ const sections: Section[] = [
       },
       {
         name: "Krause's Cafe",
+        url: 'https://krausescafe.com/',
         description:
           'A biergarten with a full bar and menu, outdoor seating, and live music, what more could you ask for?',
         suggestions:
@@ -48,6 +52,7 @@ const sections: Section[] = [
       },
       {
         name: "Myron's Prime Steakhouse",
+        url: 'https://myronsprime.com/',
         description:
           'Cozy, classy, and private. Low lighting, food with amazing flavor, and a full bar. Shareable sides as 1 side can serve 2-3!',
         suggestions:
@@ -55,6 +60,7 @@ const sections: Section[] = [
       },
       {
         name: 'Muck & Fuss',
+        url: 'https://muckandfuss.com/',
         description:
           'Amazing selection of burgers! Indoor and outdoor seating. Get there before the crowd as it gets very busy!',
         suggestions:
@@ -62,6 +68,7 @@ const sections: Section[] = [
       },
       {
         name: "Calahan's Pub and Pizza",
+        url: 'https://www.calahanspubandpizza.com/',
         description:
           'Relaxed vibe serving pizza, full bar, games, tvs, and outdoor seating.',
         suggestions:
@@ -69,11 +76,13 @@ const sections: Section[] = [
       },
       {
         name: 'Downtown Social',
+        url: 'https://www.downtownsocialnb.com/',
         description:
           'Bring the family for bowling, games, food, drinks, and music! Under 21 allowed until 9pm.',
       },
       {
         name: "Cody's Restaurant, Bar, & Patio NB",
+        url: 'https://www.codyssmtx.com/',
         description:
           'Perfect date night! Upscale dining. Everything on the menu is great!',
         suggestions:
@@ -81,12 +90,14 @@ const sections: Section[] = [
       },
       {
         name: 'Fork and Spoon',
+        url: 'https://www.forkandspoontexas.com/',
         description: 'Great breakfast and lunch spot with mimosas!',
         suggestions:
           'Classic or Jillian Eggs Benedict, Mediterranean Salad, Turkey Bacon and Avocado, Grilled Chicken and Sun-dried Tomato Sandwich',
       },
       {
         name: 'La Cosecha Mexican Table',
+        url: 'https://www.lacosechatx.com/',
         description:
           'Outdoor patio and bar with some great cocktails; we love this upscale Mexican restaurant and its vibe. Brunch served as well.',
         suggestions:
@@ -94,6 +105,7 @@ const sections: Section[] = [
       },
       {
         name: 'Gristmill River Restaurant & Bar',
+        url: 'https://gristmillrestaurant.com/',
         description:
           'The old cotton gin turned restaurant! Indoor and outdoor seating, great food and in Gruene, we just love this place!',
         suggestions:
@@ -101,12 +113,14 @@ const sections: Section[] = [
       },
       {
         name: "Mozie's",
+        url: 'https://mozies.com/',
         description: 'Across from Gruene Hall!',
         suggestions:
           'Gruene Gimlet (cocktail), Shiner Bock Onion Rings, Lettuce Wedge, Sliders, Panko Parmesan Chicken, Smoked Turkey Sandwich',
       },
       {
         name: 'Gruene River Grill',
+        url: 'https://www.gruenerivergrill.com/',
         description:
           'Down the road from Gruene Hall and such a cute and cozy place to dine!',
         suggestions:
@@ -114,16 +128,19 @@ const sections: Section[] = [
       },
       {
         name: "Otto's Cheese Shop",
+        url: 'https://ottoscheeseshop.com/',
         description:
           'Great place for meats and cheeses to make your charcuterie board!',
       },
       {
         name: 'Gourmage',
+        url: 'https://www.gourmage.com/',
         description:
           'Great place for meats and cheeses to make your charcuterie board!',
       },
       {
         name: 'Bootleggers Pizza Parlor',
+        url: 'https://bootleggerspizzaparlor.com/',
         description: 'Pizza! Games and playground for kids (and adults)!',
       },
     ],
@@ -134,15 +151,18 @@ const sections: Section[] = [
     places: [
       {
         name: 'Pour Haus Patio Bar',
+        url: 'https://www.pourhausnb.com/',
         description:
           'Outdoor bar with rooftop bar and live music. Under 21 allowed until 9pm.',
       },
       {
         name: 'Moonshine & Ale',
+        url: 'https://moonshineale.com/',
         description: 'Piano bar - make your requests!',
       },
       {
         name: 'The Oyster Bar',
+        url: 'https://www.nboysterbar.com/',
         description:
           'Home of the signature "Breakfast Shot". Under 21 allowed until 9pm.',
         suggestions:
@@ -150,26 +170,31 @@ const sections: Section[] = [
       },
       {
         name: 'Scores Sports Bar & Grill',
+        url: 'https://www.scoresnbtx.com/',
         description: 'Serving food, too! Under 21 allowed until 9pm.',
         suggestions:
           'Firecracker Shrimp, anything fried, and their pizzas, too!',
       },
       {
         name: "Gruene Tini's",
+        url: 'https://gruenetinis.com/',
         description: 'Small martini bar, wide selection of martinis and beer.',
       },
       {
         name: 'Vino en Verde',
+        url: 'http://www.getdrinkingingruene.com/',
         description:
           "Looking for the best espresso martini in town? You've found it!",
       },
       {
         name: 'Sidecar',
+        url: 'https://sidecarnb.com/',
         description:
           'Great vibes with great crafty cocktails and live music. Be sure to make a reservation!',
       },
       {
         name: 'The Villa | Gruene, TX',
+        url: 'https://www.drinklokal.com/',
         description:
           'Live music, trivia, and great drinks! Kid friendly until 8pm!',
       },
@@ -187,30 +212,31 @@ const sections: Section[] = [
     emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66',
     intro: 'These places have a play area or playscape:',
     places: [
-      { name: "Herbert's" },
-      { name: 'The Hideaway New Braunfels' },
-      { name: 'Iron Horse Bar & Grill' },
-      { name: "Casa Garcia's - New Braunfels" },
-      { name: 'Guadalupe Brewing Company & Pizza Kitchen' },
+      { name: "Herbert's", url: 'https://www.herbertstx.com/' },
+      { name: 'The Hideaway New Braunfels', url: 'https://hideaway-texas.com/' },
+      { name: 'Iron Horse Bar & Grill', url: 'https://ironhorsegrillnbtx.com/' },
+      { name: "Casa Garcia's - New Braunfels", url: 'https://www.casagarcias.com/' },
+      { name: 'Guadalupe Brewing Company & Pizza Kitchen', url: 'https://www.guadalupebrew.com/' },
       {
         name: 'Freiheit Country Store',
+        url: 'https://www.freiheitcountrystore.net/',
         description:
           'Amazing people, homestyle cooking, full bar, and live music! Freiheit is a staple in this town.',
       },
-      { name: 'Adobe Verde' },
-      { name: 'The Longhorn Cafe' },
-      { name: 'Tin Top Burger Shop' },
-      { name: "Willie's Grill & Icehouse" },
+      { name: 'The Longhorn Cafe', url: 'https://www.thelonghorncafe.com/' },
+      { name: 'Tin Top Burger Shop', url: 'https://tintopburgers.com/' },
+      { name: "Willie's Grill & Icehouse", url: 'https://williesgrillandicehouse.com/' },
     ],
   },
   {
     title: 'Attractions',
     emoji: '\uD83C\uDFA2',
     places: [
-      { name: 'Schlitterbahn Waterpark & Resort' },
-      { name: 'The Float In' },
+      { name: 'Schlitterbahn Waterpark & Resort', url: 'https://www.schlitterbahn.com/new-braunfels/' },
+      { name: 'The Float In', url: 'https://floatintx.com/' },
       {
         name: 'Gruene Hall',
+        url: 'https://gruenehall.com/',
         description: 'What else is there to say?! CASH ONLY!',
       },
     ],
@@ -221,16 +247,18 @@ const sections: Section[] = [
     places: [
       {
         name: 'Princess Be',
+        url: 'https://www.facebook.com/princessbeboutique/',
         description:
           'Kids, women, accessories, and the best candles ever!',
       },
-      { name: 'Boutique Chloe Rose' },
-      { name: 'River Rose' },
-      { name: 'The Local' },
-      { name: 'Lot 59' },
-      { name: 'Alibi Boutique' },
+      { name: 'Boutique Chloe Rose', url: 'https://www.boutiquechloerose.com/' },
+      { name: 'River Rose', url: 'https://www.shopriverrose.com/' },
+      { name: 'The Local', url: 'https://www.thelocaltx.com/' },
+      { name: 'Lot 59', url: 'https://www.facebook.com/lot59/' },
+      { name: 'Alibi Boutique', url: 'https://www.facebook.com/alibiboutiquenb/' },
       {
         name: "Ducky's Swimwear & T-shirts",
+        url: 'https://duckysswim.com/',
         description: 'Get your summer gear here!',
       },
     ],
@@ -241,14 +269,16 @@ const sections: Section[] = [
     places: [
       {
         name: 'Texas Tubes',
+        url: 'https://www.texastubes.com/',
         description: 'This is a local spot, shhhh! Shuttle and tube rentals!',
       },
-      { name: "Felger's River Center & Toob Rental" },
+      { name: "Felger's River Center & Toob Rental", url: 'https://www.facebook.com/FelgersRiverCenter/' },
       {
         name: 'Landa Falls',
+        url: 'https://landafalls.com/',
         description: 'Longest float for the Comal!',
       },
-      { name: 'Corner Tubes' },
+      { name: 'Corner Tubes', url: 'https://cornertubes.com/' },
     ],
   },
 ]
@@ -256,7 +286,13 @@ const sections: Section[] = [
 function PlaceCard({ place }: { place: Place }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-bold text-gray-900">{place.name}</h3>
+      {place.url ? (
+        <a href={place.url} target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-blue-600 hover:underline">
+          {place.name}
+        </a>
+      ) : (
+        <h3 className="text-lg font-bold text-gray-900">{place.name}</h3>
+      )}
       {place.description && (
         <p className="mt-2 text-gray-600 text-sm leading-relaxed">
           {place.description}
