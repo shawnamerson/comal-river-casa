@@ -126,6 +126,7 @@ const sections: Section[] = [
       {
         name: "Mozie's",
         url: 'https://mozies.com/',
+        image: '/images/guidebook/mozies.png',
         description: 'Across from Gruene Hall!',
         suggestions:
           'Gruene Gimlet (cocktail), Shiner Bock Onion Rings, Lettuce Wedge, Sliders, Panko Parmesan Chicken, Smoked Turkey Sandwich',
@@ -165,6 +166,7 @@ const sections: Section[] = [
       {
         name: 'Pour Haus Patio Bar',
         url: 'https://www.pourhausnb.com/',
+        image: '/images/guidebook/pour-haus.png',
         description:
           'Outdoor bar with rooftop bar and live music. Under 21 allowed until 9pm.',
       },
@@ -177,6 +179,7 @@ const sections: Section[] = [
       {
         name: 'The Oyster Bar',
         url: 'https://www.nboysterbar.com/',
+        image: '/images/guidebook/oyster-bar.jpeg',
         description:
           'Home of the signature "Breakfast Shot". Under 21 allowed until 9pm.',
         suggestions:
@@ -231,7 +234,7 @@ const sections: Section[] = [
       { name: "Herbert's", url: 'https://www.herbertstx.com/', image: '/images/guidebook/herberts.jpg' },
       { name: 'The Hideaway New Braunfels', url: 'https://hideaway-texas.com/' },
       { name: 'Iron Horse Bar & Grill', url: 'https://ironhorsegrillnbtx.com/' },
-      { name: "Casa Garcia's - New Braunfels", url: 'https://www.casagarcias.com/' },
+      { name: "Casa Garcia's - New Braunfels", url: 'https://www.casagarcias.com/', image: '/images/guidebook/casa-garcias.jpg' },
       { name: 'Guadalupe Brewing Company & Pizza Kitchen', url: 'https://www.guadalupebrew.com/', image: '/images/guidebook/guadalupe-brewing.png' },
       {
         name: 'Freiheit Country Store',
@@ -240,8 +243,8 @@ const sections: Section[] = [
           'Amazing people, homestyle cooking, full bar, and live music! Freiheit is a staple in this town.',
       },
       { name: 'The Longhorn Cafe', url: 'https://www.thelonghorncafe.com/' },
-      { name: 'Tin Top Burger Shop', url: 'https://tintopburgers.com/' },
-      { name: "Willie's Grill & Icehouse", url: 'https://williesgrillandicehouse.com/' },
+      { name: 'Tin Top Burger Shop', url: 'https://tintopburgers.com/', image: '/images/guidebook/tin-top.jpg' },
+      { name: "Willie's Grill & Icehouse", url: 'https://williesgrillandicehouse.com/', image: '/images/guidebook/willies.jpg' },
     ],
   },
   {
@@ -253,6 +256,7 @@ const sections: Section[] = [
       {
         name: 'Gruene Hall',
         url: 'https://gruenehall.com/',
+        image: '/images/guidebook/gruene-hall.jpg',
         description: 'What else is there to say?! CASH ONLY!',
       },
     ],
@@ -275,6 +279,7 @@ const sections: Section[] = [
       {
         name: "Ducky's Swimwear & T-shirts",
         url: 'https://duckysswim.com/',
+        image: '/images/guidebook/duckys.webp',
         description: 'Get your summer gear here!',
       },
     ],
@@ -296,7 +301,7 @@ const sections: Section[] = [
         image: '/images/guidebook/landa-falls.jpg',
         description: 'Longest float for the Comal!',
       },
-      { name: 'Corner Tubes', url: 'https://cornertubes.com/' },
+      { name: 'Corner Tubes', url: 'https://cornertubes.com/', image: '/images/guidebook/corner-tubes.jpeg' },
     ],
   },
 ]
