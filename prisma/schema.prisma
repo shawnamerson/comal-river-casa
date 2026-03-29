@@ -327,3 +327,17 @@ model Review {
   @@index([userId])
   @@index([isPublished])
 }
+
+// ============================================
+// EMAIL LEADS
+// ============================================
+
+model EmailLead {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   // e.g. "guidebook", "newsletter"
+  createdAt DateTime @default(now())
+
+  @@index([source])
+  @@index([createdAt])
+}
