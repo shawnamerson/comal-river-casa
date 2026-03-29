@@ -1,11 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc/client'
 import Link from 'next/link'
 
 export default function ReviewPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </main>
+    }>
+      <ReviewContent />
+    </Suspense>
+  )
+}
+
+function ReviewContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
