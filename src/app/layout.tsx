@@ -56,8 +56,10 @@ const jsonLd = {
   image: 'https://www.comalrivercasa.com/images/property/main.jpg',
   address: {
     '@type': 'PostalAddress',
+    streetAddress: '371 W Lincoln St, Unit B114',
     addressLocality: 'New Braunfels',
     addressRegion: 'TX',
+    postalCode: '78130',
     addressCountry: 'US',
   },
   numberOfRooms: PROPERTY.bedrooms,

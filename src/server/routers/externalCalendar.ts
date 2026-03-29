@@ -3,6 +3,11 @@ import { router, adminProcedure } from '../trpc'
 import { fetchAndParseICal } from '@/lib/ical-parser'
 
 export const externalCalendarRouter = router({
+  // Get the calendar export token (server-side only, never exposed to client bundle)
+  getExportToken: adminProcedure.query(() => {
+    return { token: process.env.CALENDAR_EXPORT_TOKEN ?? '' }
+  }),
+
   // List all external calendars
   list: adminProcedure.query(async ({ ctx }) => {
     const calendars = await ctx.prisma.externalCalendar.findMany({

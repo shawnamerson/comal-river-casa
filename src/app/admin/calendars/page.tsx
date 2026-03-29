@@ -15,9 +15,11 @@ export default function ExternalCalendarsPage() {
     icalUrl: '',
   })
 
+  const { data: exportToken } = trpc.externalCalendar.getExportToken.useQuery()
+
   const getExportUrl = () => {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/api/calendar/export?token=${process.env.NEXT_PUBLIC_CALENDAR_EXPORT_TOKEN}`
+    if (typeof window !== 'undefined' && exportToken?.token) {
+      return `${window.location.origin}/api/calendar/export?token=${exportToken.token}`
     }
     return ''
   }

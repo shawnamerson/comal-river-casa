@@ -153,7 +153,7 @@ export function BookingConfirmationEmail({
               Property Address
             </Heading>
             <Text style={text}>
-              1750 Common St Unit 1108
+              371 W Lincoln St, Unit B114
               <br />
               New Braunfels, TX 78130
             </Text>
