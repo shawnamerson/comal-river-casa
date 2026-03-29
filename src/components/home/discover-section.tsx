@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 export function DiscoverSection() {
   return (
@@ -120,6 +121,22 @@ export function DiscoverSection() {
               the Texas stars.
             </p>
           </div>
+        </div>
+
+        {/* Local Guide CTA */}
+        <div className="mt-24 text-center bg-blue-50 rounded-2xl p-10">
+          <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            Explore New Braunfels Like a Local
+          </h3>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            Our curated guide to the best restaurants, bars, river tubing spots, and hidden gems in New Braunfels — straight from your hosts.
+          </p>
+          <Link
+            href="/guidebook"
+            className="inline-block px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-lg"
+          >
+            View Our Local Guide
+          </Link>
         </div>
       </div>
     </section>
