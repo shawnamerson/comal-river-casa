@@ -8,6 +8,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: 'https://www.comalrivercasa.com/guidebook',
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: 'https://www.comalrivercasa.com/policies/terms',
       changeFrequency: 'monthly',
       priority: 0.3,
