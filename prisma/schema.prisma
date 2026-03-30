@@ -201,6 +201,10 @@ model Booking {
   cancellationReason String?    @db.Text
   refundAmount    Decimal?      @db.Decimal(10, 2)
 
+  // Recovery email tracking
+  recoveryEmailSentAt  DateTime?
+  recoveryEmail2SentAt DateTime?
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
