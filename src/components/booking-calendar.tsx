@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { DayPicker, DateRange } from 'react-day-picker'
-import { format, differenceInDays, eachDayOfInterval, addMonths, startOfMonth } from 'date-fns'
+import { format, differenceInDays, eachDayOfInterval, addMonths, startOfMonth, subDays } from 'date-fns'
 import 'react-day-picker/dist/style.css'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -63,9 +63,10 @@ export function BookingCalendar() {
               return
             }
 
+            // checkOut is exclusive (departure day), so subtract 1 to get last occupied night
             const dates = eachDayOfInterval({
               start: startDate,
-              end: endDate,
+              end: subDays(endDate, 1),
             })
             disabled.push(...dates)
           } catch (error) {

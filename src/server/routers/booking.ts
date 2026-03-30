@@ -270,14 +270,14 @@ export const bookingRouter = router({
         },
       })
 
-      // Check for blocked dates
+      // Check for blocked dates (endDate is stored as inclusive — the last blocked night)
       const blockedDates = await ctx.prisma.blockedDate.findMany({
         where: {
           OR: [
             {
               AND: [
                 { startDate: { lte: checkIn } },
-                { endDate: { gt: checkIn } },
+                { endDate: { gte: checkIn } },
               ],
             },
             {
@@ -289,7 +289,7 @@ export const bookingRouter = router({
             {
               AND: [
                 { startDate: { gte: checkIn } },
-                { endDate: { lte: checkOut } },
+                { endDate: { lt: checkOut } },
               ],
             },
           ],
@@ -409,14 +409,14 @@ export const bookingRouter = router({
           })
         }
 
-        // Check for blocked dates inside the transaction
+        // Check for blocked dates inside the transaction (endDate is inclusive)
         const blockedConflicts = await tx.blockedDate.findMany({
           where: {
             OR: [
               {
                 AND: [
                   { startDate: { lte: input.checkIn } },
-                  { endDate: { gt: input.checkIn } },
+                  { endDate: { gte: input.checkIn } },
                 ],
               },
               {
@@ -428,7 +428,7 @@ export const bookingRouter = router({
               {
                 AND: [
                   { startDate: { gte: input.checkIn } },
-                  { endDate: { lte: input.checkOut } },
+                  { endDate: { lt: input.checkOut } },
                 ],
               },
             ],

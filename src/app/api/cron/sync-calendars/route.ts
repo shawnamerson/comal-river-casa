@@ -24,13 +24,18 @@ export async function GET(request: NextRequest) {
       try {
         const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const incomingEvents = events.map((event) => ({
-          startDate: event.start,
-          endDate: event.end,
-          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-          externalCalendarId: calendar.id,
-          externalEventId: event.uid || '',
-        }))
+        const incomingEvents = events.map((event) => {
+          // iCal DTEND is exclusive, convert to inclusive endDate for consistent storage
+          const inclusiveEnd = new Date(event.end)
+          inclusiveEnd.setUTCDate(inclusiveEnd.getUTCDate() - 1)
+          return {
+            startDate: event.start,
+            endDate: inclusiveEnd,
+            reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+            externalCalendarId: calendar.id,
+            externalEventId: event.uid || '',
+          }
+        })
 
         // Incremental sync: compare with existing blocked dates
         const existing = await prisma.blockedDate.findMany({
