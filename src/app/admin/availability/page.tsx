@@ -119,7 +119,7 @@ export default function AvailabilityManagementPage() {
 
   // Single-click handler: toggle block/unblock with range splitting
   const handleDayClick: DayMouseEventHandler = useCallback(async (date, modifiers) => {
-    if (modifiers.disabled) return
+    if (modifiers.disabled || modifiers.booked) return
 
     const dateStr = format(date, 'yyyy-MM-dd')
     if (pendingDates.has(dateStr)) return
@@ -427,9 +427,10 @@ export default function AvailabilityManagementPage() {
                 background-color: rgb(254 226 226);
                 border-radius: 6px;
               }
-              .avail-calendar .rdp-day.rdp-booked-day:not(.rdp-disabled) {
+              .avail-calendar .rdp-day.rdp-booked-day {
                 background-color: rgb(187 247 208);
                 border-radius: 6px;
+                cursor: not-allowed;
               }
               .avail-calendar .rdp-day.rdp-pending-day {
                 opacity: 0.5;
@@ -446,7 +447,7 @@ export default function AvailabilityManagementPage() {
                   numberOfMonths={12}
                   startMonth={calendarStart}
                   endMonth={calendarEnd}
-                  disabled={[{ before: today }, ...pendingDateObjects]}
+                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates]}
                   modifiers={{
                     blocked: blockedCalendarDates,
                     booked: bookedDates,
@@ -468,7 +469,7 @@ export default function AvailabilityManagementPage() {
                   numberOfMonths={12}
                   startMonth={calendarStart}
                   endMonth={calendarEnd}
-                  disabled={[{ before: today }, ...pendingDateObjects]}
+                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates]}
                   modifiers={{
                     blocked: blockedCalendarDates,
                     booked: bookedDates,
