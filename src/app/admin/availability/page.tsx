@@ -79,7 +79,7 @@ export default function AvailabilityManagementPage() {
   const { blockedDateSet, blockedReasonMap, dateToBlockedRange } = useMemo(() => {
     const set = new Set<string>()
     const reasonMap = new Map<string, string>()
-    const rangeMap = new Map<string, { id: string; startDate: string; endDate: string; reason?: string | null }>()
+    const rangeMap = new Map<string, { id: string; startDate: string; endDate: string; reason?: string | null; externalCalendarId?: string | null }>()
     if (!blockedDates) return { blockedDateSet: set, blockedReasonMap: reasonMap, dateToBlockedRange: rangeMap }
     for (const b of blockedDates) {
       const start = parseLocalDate(b.startDate)
@@ -111,6 +111,22 @@ export default function AvailabilityManagementPage() {
     [blockedDateSet]
   )
 
+  // External blocked dates (from VRBO/Airbnb) — should not be toggleable
+  const externalBlockedDates = useMemo(() => {
+    if (!blockedDates) return []
+    const dates: Date[] = []
+    blockedDates
+      .filter((b) => b.externalCalendarId)
+      .forEach((b) => {
+        const days = eachDayOfInterval({
+          start: parseLocalDate(b.startDate),
+          end: parseLocalDate(b.endDate),
+        })
+        dates.push(...days)
+      })
+    return dates
+  }, [blockedDates])
+
   // Pending dates as Date[] for DayPicker modifiers
   const pendingDateObjects = useMemo(
     () => Array.from(pendingDates).map((d) => new Date(d + 'T00:00:00')),
@@ -123,6 +139,10 @@ export default function AvailabilityManagementPage() {
 
     const dateStr = format(date, 'yyyy-MM-dd')
     if (pendingDates.has(dateStr)) return
+
+    // Don't allow toggling dates imported from external calendars
+    const existingRange = dateToBlockedRange.get(dateStr)
+    if (existingRange?.externalCalendarId) return
 
     const addPending = (key: string) =>
       setPendingDates((prev) => new Set(prev).add(key))
@@ -423,7 +443,7 @@ export default function AvailabilityManagementPage() {
                 justify-content: center;
                 font-size: 0.8rem;
               }
-              .avail-calendar .rdp-day.rdp-blocked-day:not(.rdp-disabled) {
+              .avail-calendar .rdp-day.rdp-blocked-day {
                 background-color: rgb(254 226 226);
                 border-radius: 6px;
               }
@@ -447,7 +467,7 @@ export default function AvailabilityManagementPage() {
                   numberOfMonths={12}
                   startMonth={calendarStart}
                   endMonth={calendarEnd}
-                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates]}
+                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates, ...externalBlockedDates]}
                   modifiers={{
                     blocked: blockedCalendarDates,
                     booked: bookedDates,
@@ -469,7 +489,7 @@ export default function AvailabilityManagementPage() {
                   numberOfMonths={12}
                   startMonth={calendarStart}
                   endMonth={calendarEnd}
-                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates]}
+                  disabled={[{ before: today }, ...pendingDateObjects, ...bookedDates, ...externalBlockedDates]}
                   modifiers={{
                     blocked: blockedCalendarDates,
                     booked: bookedDates,
