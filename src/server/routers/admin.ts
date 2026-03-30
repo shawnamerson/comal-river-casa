@@ -360,6 +360,21 @@ export const adminRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Reject if any booking overlaps with the requested blocked range
+      const overlapping = await ctx.prisma.booking.findFirst({
+        where: {
+          status: { in: ['CONFIRMED', 'PENDING'] },
+          checkIn: { lt: input.endDate },
+          checkOut: { gt: input.startDate },
+        },
+      })
+      if (overlapping) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'These dates overlap with an existing booking',
+        })
+      }
+
       const blockedDate = await ctx.prisma.blockedDate.create({
         data: {
           startDate: input.startDate,
