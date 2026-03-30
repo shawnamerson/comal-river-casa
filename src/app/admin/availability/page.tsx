@@ -269,7 +269,6 @@ export default function AvailabilityManagementPage() {
     const dateStr = format(day.date, 'yyyy-MM-dd')
     const isBlocked = blockedDateSet.has(dateStr)
     const isPending = pendingDates.has(dateStr)
-    const isDisabled = modifiers?.disabled
     const reasonLabel = blockedReasonMap.get(dateStr)
 
     return (
