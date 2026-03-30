@@ -265,7 +265,7 @@ export default function AvailabilityManagementPage() {
   }, [blockedDates, today])
 
   // DayButton for availability calendar
-  const AvailDayButton = ({ day, modifiers, children, ...props }: any) => {
+  const AvailDayButton = ({ day, children, ...props }: any) => {
     const dateStr = format(day.date, 'yyyy-MM-dd')
     const isBlocked = blockedDateSet.has(dateStr)
     const isPending = pendingDates.has(dateStr)
