@@ -42,9 +42,20 @@ export async function GET(request: Request) {
     })
 
     // Get manually blocked dates (not imported from external calendars)
+    // Exclude any that overlap with bookings to avoid duplicate events
     const blockedDates = await prisma.blockedDate.findMany({
       where: {
         externalCalendarId: null,
+        NOT: bookings.length > 0
+          ? {
+              OR: bookings.map((b) => ({
+                AND: [
+                  { startDate: { lt: b.checkOut } },
+                  { endDate: { gte: b.checkIn } },
+                ],
+              })),
+            }
+          : undefined,
       },
       orderBy: {
         startDate: 'asc',
