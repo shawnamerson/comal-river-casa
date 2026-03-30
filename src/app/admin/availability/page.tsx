@@ -275,7 +275,7 @@ export default function AvailabilityManagementPage() {
     return (
       <button {...props}>
         {isPending ? '...' : children}
-        {!isDisabled && !isPending && isBlocked && (
+        {!isPending && isBlocked && (
           <span className="block text-[8px] leading-tight font-medium text-red-600 truncate max-w-full">
             {reasonLabel || 'blocked'}
           </span>
