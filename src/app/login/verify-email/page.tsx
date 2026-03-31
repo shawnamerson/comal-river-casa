@@ -1,13 +1,12 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { trpc } from "@/lib/trpc/client"
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const token = searchParams.get("token")
   const [status, setStatus] = useState<"verifying" | "success" | "error">(
     token ? "verifying" : "error"
@@ -17,7 +16,9 @@ function VerifyEmailContent() {
   const verifyEmail = trpc.auth.verifyEmail.useMutation({
     onSuccess: () => {
       setStatus("success")
-      setTimeout(() => router.push("/admin"), 2000)
+      // Full page navigation to ensure the admin layout re-renders
+      // server-side and picks up the updated emailVerified status
+      setTimeout(() => { window.location.href = "/admin" }, 2000)
     },
     onError: (err) => {
       setStatus("error")
