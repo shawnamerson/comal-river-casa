@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, adminProcedure, verifiedAdminProcedure } from '../trpc'
+import { router, verifiedAdminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
