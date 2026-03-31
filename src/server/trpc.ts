@@ -15,9 +15,22 @@ const t = initTRPC.context<Context>().create({
 export const router = t.router
 export const publicProcedure = t.procedure
 
+// Requires ADMIN role but allows unverified email (for sending verification emails)
 export const adminProcedure = t.procedure.use(({ ctx, next }) => {
   if (!ctx.session || ctx.session.user?.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" })
+  }
+  return next({ ctx })
+})
+
+// Requires ADMIN role AND verified email
+export const verifiedAdminProcedure = adminProcedure.use(async ({ ctx, next }) => {
+  const user = await ctx.prisma.user.findUnique({
+    where: { id: ctx.session!.user.id },
+    select: { emailVerified: true },
+  })
+  if (!user?.emailVerified) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Email verification required" })
   }
   return next({ ctx })
 })

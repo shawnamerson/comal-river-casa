@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, adminProcedure } from '../trpc'
+import { router, verifiedAdminProcedure as adminProcedure } from '../trpc'
 import { fetchAndParseICal } from '@/lib/ical-parser'
 
 export const externalCalendarRouter = router({

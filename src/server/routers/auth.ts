@@ -86,53 +86,55 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const hashed = hashToken(input.token)
 
-      const verificationToken = await ctx.prisma.verificationToken.findFirst({
-        where: {
-          token: hashed,
-          identifier: { startsWith: 'reset:' },
-        },
-      })
-
-      if (!verificationToken || verificationToken.expires < new Date()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Invalid or expired reset link. Please request a new one.',
-        })
-      }
-
-      const email = verificationToken.identifier.replace('reset:', '')
-      const user = await ctx.prisma.user.findUnique({ where: { email } })
-
-      if (!user) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
-      }
-
-      const hash = await bcrypt.hash(input.newPassword, 10)
-
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: { password: hash },
-      })
-
-      // Delete used token
-      await ctx.prisma.verificationToken.delete({
-        where: {
-          identifier_token: {
-            identifier: verificationToken.identifier,
-            token: verificationToken.token,
+      return await ctx.prisma.$transaction(async (tx) => {
+        const verificationToken = await tx.verificationToken.findFirst({
+          where: {
+            token: hashed,
+            identifier: { startsWith: 'reset:' },
           },
-        },
-      })
+        })
 
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: 'password.reset_completed',
-          targetId: user.id,
-        },
-      })
+        if (!verificationToken || verificationToken.expires < new Date()) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid or expired reset link. Please request a new one.',
+          })
+        }
 
-      return { success: true }
+        // Delete token immediately to prevent reuse
+        await tx.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: verificationToken.identifier,
+              token: verificationToken.token,
+            },
+          },
+        })
+
+        const email = verificationToken.identifier.replace('reset:', '')
+        const user = await tx.user.findUnique({ where: { email } })
+
+        if (!user) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
+        }
+
+        const hash = await bcrypt.hash(input.newPassword, 10)
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: { password: hash },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: user.id,
+            action: 'password.reset_completed',
+            targetId: user.id,
+          },
+        })
+
+        return { success: true }
+      })
     }),
 
   sendVerificationEmail: adminProcedure
@@ -189,51 +191,53 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const hashed = hashToken(input.token)
 
-      const verificationToken = await ctx.prisma.verificationToken.findFirst({
-        where: {
-          token: hashed,
-          identifier: { startsWith: 'verify:' },
-        },
-      })
-
-      if (!verificationToken || verificationToken.expires < new Date()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Invalid or expired verification link. Please request a new one.',
-        })
-      }
-
-      const email = verificationToken.identifier.replace('verify:', '')
-      const user = await ctx.prisma.user.findUnique({ where: { email } })
-
-      if (!user) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
-      }
-
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerified: new Date() },
-      })
-
-      // Delete used token
-      await ctx.prisma.verificationToken.delete({
-        where: {
-          identifier_token: {
-            identifier: verificationToken.identifier,
-            token: verificationToken.token,
+      return await ctx.prisma.$transaction(async (tx) => {
+        const verificationToken = await tx.verificationToken.findFirst({
+          where: {
+            token: hashed,
+            identifier: { startsWith: 'verify:' },
           },
-        },
-      })
+        })
 
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: 'email.verified',
-          targetId: user.id,
-        },
-      })
+        if (!verificationToken || verificationToken.expires < new Date()) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid or expired verification link. Please request a new one.',
+          })
+        }
 
-      return { success: true }
+        // Delete token immediately to prevent reuse
+        await tx.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: verificationToken.identifier,
+              token: verificationToken.token,
+            },
+          },
+        })
+
+        const email = verificationToken.identifier.replace('verify:', '')
+        const user = await tx.user.findUnique({ where: { email } })
+
+        if (!user) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
+        }
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: { emailVerified: new Date() },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: user.id,
+            action: 'email.verified',
+            targetId: user.id,
+          },
+        })
+
+        return { success: true }
+      })
     }),
 
   confirmPasswordChange: publicProcedure
@@ -241,54 +245,52 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const hashed = hashToken(input.token)
 
-      const verificationToken = await ctx.prisma.verificationToken.findFirst({
-        where: {
-          token: hashed,
-          identifier: { startsWith: 'pwchange:' },
-        },
-      })
-
-      if (!verificationToken || verificationToken.expires < new Date()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Invalid or expired confirmation link. Please request a new password change.',
-        })
-      }
-
-      // identifier format: "pwchange:{email}:{hashedNewPassword}"
-      const parts = verificationToken.identifier.split(':')
-      const email = parts[1]
-      const newPasswordHash = parts.slice(2).join(':')
-
-      const user = await ctx.prisma.user.findUnique({ where: { email } })
-
-      if (!user) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
-      }
-
-      await ctx.prisma.user.update({
-        where: { id: user.id },
-        data: { password: newPasswordHash },
-      })
-
-      // Delete used token
-      await ctx.prisma.verificationToken.delete({
-        where: {
-          identifier_token: {
-            identifier: verificationToken.identifier,
-            token: verificationToken.token,
+      return await ctx.prisma.$transaction(async (tx) => {
+        const verificationToken = await tx.verificationToken.findFirst({
+          where: {
+            token: hashed,
+            identifier: { startsWith: 'pwchange:' },
           },
-        },
-      })
+        })
 
-      await ctx.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          action: 'password.changed',
-          targetId: user.id,
-        },
-      })
+        if (!verificationToken || verificationToken.expires < new Date()) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Invalid or expired confirmation link. Please request a new password change.',
+          })
+        }
 
-      return { success: true }
+        // Delete token immediately to prevent reuse
+        await tx.verificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier: verificationToken.identifier,
+              token: verificationToken.token,
+            },
+          },
+        })
+
+        const email = verificationToken.identifier.replace('pwchange:', '')
+        const user = await tx.user.findUnique({ where: { email } })
+
+        if (!user || !user.pendingPasswordHash) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No pending password change found' })
+        }
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: { password: user.pendingPasswordHash, pendingPasswordHash: null },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            userId: user.id,
+            action: 'password.changed',
+            targetId: user.id,
+          },
+        })
+
+        return { success: true }
+      })
     }),
 })

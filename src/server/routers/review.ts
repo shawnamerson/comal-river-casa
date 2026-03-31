@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, publicProcedure, adminProcedure } from '../trpc'
+import { router, publicProcedure, verifiedAdminProcedure as adminProcedure } from '../trpc'
 import { TRPCError } from '@trpc/server'
 
 export const reviewRouter = router({

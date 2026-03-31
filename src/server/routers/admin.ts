@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, adminProcedure } from '../trpc'
+import { router, adminProcedure, verifiedAdminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
@@ -42,7 +42,7 @@ async function auditLog(
 
 export const adminRouter = router({
   // Get a single booking by ID
-  getBooking: adminProcedure
+  getBooking: verifiedAdminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const booking = await ctx.prisma.booking.findUnique({
@@ -103,7 +103,7 @@ export const adminRouter = router({
     }),
 
   // Get all bookings with user details (paginated)
-  getAllBookings: adminProcedure
+  getAllBookings: verifiedAdminProcedure
     .input(z.object({
       cursor: z.string().nullish(),
       limit: z.number().min(1).max(100).default(50),
@@ -174,7 +174,7 @@ export const adminRouter = router({
   }),
 
   // Get upcoming bookings (confirmed + recent pending, future check-in, soonest first)
-  getUpcomingBookings: adminProcedure.query(async ({ ctx }) => {
+  getUpcomingBookings: verifiedAdminProcedure.query(async ({ ctx }) => {
     const now = new Date()
     const pendingCutoff = new Date(Date.now() - PENDING_EXPIRY_MS) // 10 min expiry
     const bookings = await ctx.prisma.booking.findMany({
@@ -231,7 +231,7 @@ export const adminRouter = router({
   }),
 
   // Get booking statistics
-  getStats: adminProcedure.query(async ({ ctx }) => {
+  getStats: verifiedAdminProcedure.query(async ({ ctx }) => {
     const now = new Date()
 
     // Total bookings — exclude expired pending bookings that never paid
@@ -344,7 +344,7 @@ export const adminRouter = router({
   }),
 
   // Get all blocked dates
-  getBlockedDates: adminProcedure.query(async ({ ctx }) => {
+  getBlockedDates: verifiedAdminProcedure.query(async ({ ctx }) => {
     const blockedDates = await ctx.prisma.blockedDate.findMany({
       orderBy: {
         startDate: 'desc',
@@ -363,7 +363,7 @@ export const adminRouter = router({
   }),
 
   // Create a blocked date range
-  createBlockedDate: adminProcedure
+  createBlockedDate: verifiedAdminProcedure
     .input(
       z.object({
         startDate: z.string().transform((val) => new Date(val)),
@@ -406,7 +406,7 @@ export const adminRouter = router({
     }),
 
   // Delete a blocked date
-  deleteBlockedDate: adminProcedure
+  deleteBlockedDate: verifiedAdminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.blockedDate.delete({
@@ -416,7 +416,7 @@ export const adminRouter = router({
     }),
 
   // Update booking status
-  updateBookingStatus: adminProcedure
+  updateBookingStatus: verifiedAdminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -553,7 +553,7 @@ export const adminRouter = router({
     }),
 
   // Charge damage fee against guest's saved card
-  chargeDamage: adminProcedure
+  chargeDamage: verifiedAdminProcedure
     .input(
       z.object({
         bookingId: z.string(),
@@ -667,7 +667,7 @@ export const adminRouter = router({
 
   // ===== TAX RATE MANAGEMENT =====
 
-  getTaxRates: adminProcedure.query(async ({ ctx }) => {
+  getTaxRates: verifiedAdminProcedure.query(async ({ ctx }) => {
     const rates = await ctx.prisma.taxRate.findMany({
       orderBy: { sortOrder: 'asc' },
     })
@@ -680,7 +680,7 @@ export const adminRouter = router({
     }))
   }),
 
-  createTaxRate: adminProcedure
+  createTaxRate: verifiedAdminProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -699,7 +699,7 @@ export const adminRouter = router({
       return { id: rate.id, name: rate.name, rate: Number(rate.rate), isActive: rate.isActive, sortOrder: rate.sortOrder }
     }),
 
-  updateTaxRate: adminProcedure
+  updateTaxRate: verifiedAdminProcedure
     .input(
       z.object({
         id: z.string(),
@@ -718,7 +718,7 @@ export const adminRouter = router({
       return { id: rate.id, name: rate.name, rate: Number(rate.rate), isActive: rate.isActive, sortOrder: rate.sortOrder }
     }),
 
-  deleteTaxRate: adminProcedure
+  deleteTaxRate: verifiedAdminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.taxRate.delete({ where: { id: input.id } })
@@ -726,7 +726,7 @@ export const adminRouter = router({
     }),
 
   // Get all date rate overrides
-  getDateRateOverrides: adminProcedure.query(async ({ ctx }) => {
+  getDateRateOverrides: verifiedAdminProcedure.query(async ({ ctx }) => {
     const overrides = await ctx.prisma.dateRateOverride.findMany({
       orderBy: { date: 'asc' },
     })
@@ -738,7 +738,7 @@ export const adminRouter = router({
   }),
 
   // Set price per night for specific dates
-  setDateRatePrice: adminProcedure
+  setDateRatePrice: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()), pricePerNight: z.number().positive() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.$transaction(
@@ -754,7 +754,7 @@ export const adminRouter = router({
     }),
 
   // Clear price per night for specific dates
-  clearDateRatePrice: adminProcedure
+  clearDateRatePrice: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
       for (const d of input.dates) {
@@ -772,7 +772,7 @@ export const adminRouter = router({
     }),
 
   // Set minimum nights for specific dates
-  setDateRateMinNights: adminProcedure
+  setDateRateMinNights: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()), minNights: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.$transaction(
@@ -788,7 +788,7 @@ export const adminRouter = router({
     }),
 
   // Clear minimum nights for specific dates
-  clearDateRateMinNights: adminProcedure
+  clearDateRateMinNights: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
       for (const d of input.dates) {
@@ -805,7 +805,7 @@ export const adminRouter = router({
     }),
 
   // Get property settings (singleton)
-  getPropertySettings: adminProcedure.query(async ({ ctx }) => {
+  getPropertySettings: verifiedAdminProcedure.query(async ({ ctx }) => {
     const settings = await ctx.prisma.propertySettings.findUnique({
       where: { id: 'default' },
     })
@@ -841,7 +841,7 @@ export const adminRouter = router({
   }),
 
   // Update property settings
-  updatePropertySettings: adminProcedure
+  updatePropertySettings: verifiedAdminProcedure
     .input(
       z.object({
         basePrice: z.number().positive(),
@@ -880,7 +880,7 @@ export const adminRouter = router({
     }),
 
   // Get financial transactions for accounting
-  getTransactions: adminProcedure
+  getTransactions: verifiedAdminProcedure
     .input(
       z.object({
         startDate: z.string().optional(),
@@ -1070,7 +1070,7 @@ export const adminRouter = router({
     }),
 
   // Change admin password — sends confirmation email before applying
-  changePassword: adminProcedure
+  changePassword: verifiedAdminProcedure
     .input(
       z.object({
         currentPassword: z.string().min(1),
@@ -1092,21 +1092,25 @@ export const adminRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Current password is incorrect' })
       }
 
-      // Hash the new password and store it in the token identifier
       const newHash = await bcrypt.hash(input.newPassword, 10)
       const identifier = `pwchange:${user.email}`
 
       // Delete any existing password change tokens for this user
       await ctx.prisma.verificationToken.deleteMany({
-        where: { identifier: { startsWith: identifier } },
+        where: { identifier },
       })
 
       const { raw, hashed } = generateToken()
 
-      // Store the new password hash in a separate field by encoding it in the identifier
+      // Store pending hash on user, token just gates confirmation
+      await ctx.prisma.user.update({
+        where: { id: userId },
+        data: { pendingPasswordHash: newHash },
+      })
+
       await ctx.prisma.verificationToken.create({
         data: {
-          identifier: `${identifier}:${newHash}`,
+          identifier,
           token: hashed,
           expires: new Date(Date.now() + TOKEN_EXPIRY_MS),
         },
@@ -1127,7 +1131,7 @@ export const adminRouter = router({
     }),
 
   // Email leads
-  getLeads: adminProcedure
+  getLeads: verifiedAdminProcedure
     .input(
       z.object({
         source: z.string().optional(),
@@ -1141,7 +1145,7 @@ export const adminRouter = router({
       return leads
     }),
 
-  deleteLead: adminProcedure
+  deleteLead: verifiedAdminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.emailLead.delete({ where: { id: input.id } })

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, adminProcedure } from '../trpc'
+import { router, verifiedAdminProcedure as adminProcedure } from '../trpc'
 import { prisma } from '@/lib/db/prisma'
 
 const dateRangeInput = z.object({
