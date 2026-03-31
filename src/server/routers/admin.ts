@@ -2,13 +2,24 @@ import { z } from 'zod'
 import { router, adminProcedure } from '../trpc'
 import { stripe } from '@/lib/stripe'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { resend } from '@/lib/resend'
 import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 import { DamageChargeEmail } from '@/emails/DamageCharge'
+import { PasswordChangeConfirmationEmail } from '@/emails/PasswordChangeConfirmation'
 import { TRPCError } from '@trpc/server'
 import { passwordSchema } from './auth'
 import { clearPropertySettingsCache } from './booking'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.comalrivercasa.com'
+const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+
+function generateToken(): { raw: string; hashed: string } {
+  const raw = crypto.randomBytes(32).toString('hex')
+  const hashed = crypto.createHash('sha256').update(raw).digest('hex')
+  return { raw, hashed }
+}
 
 const PENDING_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes — must match booking.ts PENDING_EXPIRY_MINUTES
 
@@ -1058,7 +1069,7 @@ export const adminRouter = router({
       }
     }),
 
-  // Change admin password
+  // Change admin password — sends confirmation email before applying
   changePassword: adminProcedure
     .input(
       z.object({
@@ -1081,13 +1092,36 @@ export const adminRouter = router({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Current password is incorrect' })
       }
 
-      const hash = await bcrypt.hash(input.newPassword, 10)
-      await ctx.prisma.user.update({
-        where: { id: userId },
-        data: { password: hash },
+      // Hash the new password and store it in the token identifier
+      const newHash = await bcrypt.hash(input.newPassword, 10)
+      const identifier = `pwchange:${user.email}`
+
+      // Delete any existing password change tokens for this user
+      await ctx.prisma.verificationToken.deleteMany({
+        where: { identifier: { startsWith: identifier } },
       })
 
-      await auditLog(ctx.prisma, userId, 'password.change', userId)
+      const { raw, hashed } = generateToken()
+
+      // Store the new password hash in a separate field by encoding it in the identifier
+      await ctx.prisma.verificationToken.create({
+        data: {
+          identifier: `${identifier}:${newHash}`,
+          token: hashed,
+          expires: new Date(Date.now() + TOKEN_EXPIRY_MS),
+        },
+      })
+
+      const confirmUrl = `${APP_URL}/login/confirm-password-change?token=${raw}`
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM!,
+        to: user.email,
+        subject: 'Confirm Password Change — Comal River Casa',
+        react: PasswordChangeConfirmationEmail({ confirmUrl, name: user.name ?? undefined }),
+      })
+
+      await auditLog(ctx.prisma, userId, 'password.change_requested', userId)
 
       return { success: true }
     }),

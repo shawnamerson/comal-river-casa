@@ -79,6 +79,10 @@ async function isRateLimited(
     const { success } = await verifyEmailLimiter.limit(ip)
     return !success
   }
+  if (pathname === "/api/trpc/admin.changePassword") {
+    const { success } = await passwordResetLimiter.limit(ip)
+    return !success
+  }
   return false
 }
 

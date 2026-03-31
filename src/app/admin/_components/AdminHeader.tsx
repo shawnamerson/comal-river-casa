@@ -50,7 +50,7 @@ export default function AdminHeader() {
 
   const changePassword = trpc.admin.changePassword.useMutation({
     onSuccess: () => {
-      setPwSuccess('Password changed successfully')
+      setPwSuccess('A confirmation email has been sent. Please check your inbox and click the link to confirm the password change.')
       setPwError('')
       setPwForm({ current: '', next: '', confirm: '' })
     },

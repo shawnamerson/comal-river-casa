@@ -235,4 +235,60 @@ export const authRouter = router({
 
       return { success: true }
     }),
+
+  confirmPasswordChange: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const hashed = hashToken(input.token)
+
+      const verificationToken = await ctx.prisma.verificationToken.findFirst({
+        where: {
+          token: hashed,
+          identifier: { startsWith: 'pwchange:' },
+        },
+      })
+
+      if (!verificationToken || verificationToken.expires < new Date()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid or expired confirmation link. Please request a new password change.',
+        })
+      }
+
+      // identifier format: "pwchange:{email}:{hashedNewPassword}"
+      const parts = verificationToken.identifier.split(':')
+      const email = parts[1]
+      const newPasswordHash = parts.slice(2).join(':')
+
+      const user = await ctx.prisma.user.findUnique({ where: { email } })
+
+      if (!user) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' })
+      }
+
+      await ctx.prisma.user.update({
+        where: { id: user.id },
+        data: { password: newPasswordHash },
+      })
+
+      // Delete used token
+      await ctx.prisma.verificationToken.delete({
+        where: {
+          identifier_token: {
+            identifier: verificationToken.identifier,
+            token: verificationToken.token,
+          },
+        },
+      })
+
+      await ctx.prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'password.changed',
+          targetId: user.id,
+        },
+      })
+
+      return { success: true }
+    }),
 })
