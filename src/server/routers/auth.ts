@@ -17,6 +17,8 @@ function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex')
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.comalrivercasa.com'
+
 export const passwordSchema = z.string()
   .min(8, 'Password must be at least 8 characters')
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
@@ -56,7 +58,7 @@ export const authRouter = router({
         },
       })
 
-      const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/login/reset-password?token=${raw}`
+      const resetUrl = `${APP_URL}/login/reset-password?token=${raw}`
 
       await resend.emails.send({
         from: process.env.EMAIL_FROM!,
@@ -162,7 +164,7 @@ export const authRouter = router({
         },
       })
 
-      const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/login/verify-email?token=${raw}`
+      const verificationUrl = `${APP_URL}/login/verify-email?token=${raw}`
 
       await resend.emails.send({
         from: process.env.EMAIL_FROM!,
