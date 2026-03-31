@@ -33,6 +33,20 @@ const bookingCancelLimiter = new Ratelimit({
   prefix: "rl:cancel",
 })
 
+// Password reset: 3 per 15 minutes
+const passwordResetLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "15m"),
+  prefix: "rl:pw-reset",
+})
+
+// Verification email: 3 per 15 minutes
+const verifyEmailLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(3, "15m"),
+  prefix: "rl:verify-email",
+})
+
 function getIp(req: NextRequest): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
@@ -55,6 +69,14 @@ async function isRateLimited(
   }
   if (pathname === "/api/trpc/booking.cancel") {
     const { success } = await bookingCancelLimiter.limit(ip)
+    return !success
+  }
+  if (pathname === "/api/trpc/auth.requestPasswordReset") {
+    const { success } = await passwordResetLimiter.limit(ip)
+    return !success
+  }
+  if (pathname === "/api/trpc/auth.sendVerificationEmail") {
+    const { success } = await verifyEmailLimiter.limit(ip)
     return !success
   }
   return false

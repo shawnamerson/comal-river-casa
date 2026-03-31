@@ -7,6 +7,7 @@ import { BookingCancellationEmail } from '@/emails/BookingCancellation'
 import { CancellationNotificationEmail } from '@/emails/CancellationNotification'
 import { DamageChargeEmail } from '@/emails/DamageCharge'
 import { TRPCError } from '@trpc/server'
+import { passwordSchema } from './auth'
 import { clearPropertySettingsCache } from './booking'
 
 const PENDING_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes — must match booking.ts PENDING_EXPIRY_MINUTES
@@ -1062,12 +1063,7 @@ export const adminRouter = router({
     .input(
       z.object({
         currentPassword: z.string().min(1),
-        newPassword: z.string()
-        .min(8, 'Password must be at least 8 characters')
-        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-        .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-        .regex(/[0-9]/, 'Password must contain at least one number')
-        .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+        newPassword: passwordSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
