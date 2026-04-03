@@ -50,6 +50,17 @@ export async function POST(request: NextRequest) {
         const bookingId = paymentIntent.metadata.bookingId
 
         if (bookingId) {
+          // Idempotency: skip if already confirmed (Stripe may retry webhooks)
+          const existing = await prisma.booking.findUnique({ where: { id: bookingId } })
+          if (!existing) {
+            console.log(`Webhook: booking ${bookingId} not found, skipping`)
+            break
+          }
+          if (existing.status === 'CONFIRMED' && existing.paymentStatus === 'SUCCEEDED') {
+            console.log(`Webhook: booking ${bookingId} already confirmed, skipping duplicate`)
+            break
+          }
+
           const booking = await prisma.booking.update({
             where: { id: bookingId },
             data: {

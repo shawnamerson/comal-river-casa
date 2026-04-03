@@ -12,11 +12,14 @@ import { trpc } from '@/lib/trpc/client'
 function StarRating({ rating, onRate }: { rating: number; onRate: (r: number) => void }) {
   const [hover, setHover] = useState(0)
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1" role="radiogroup" aria-label="Rating">
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
+          role="radio"
+          aria-checked={rating === star}
+          aria-label={`${star} star${star !== 1 ? 's' : ''}`}
           className={`text-3xl transition-colors ${
             star <= (hover || rating) ? 'text-yellow-500' : 'text-gray-300'
           }`}

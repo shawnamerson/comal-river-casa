@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { UAParser } from 'ua-parser-js'
+import { Ratelimit } from '@upstash/ratelimit'
+import { redis } from '@/lib/redis'
+
+const analyticsLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, '1m'),
+  prefix: 'rl:analytics',
+})
 
 const BOT_PATTERN =
   /bot|crawl|spider|slurp|facebookexternalhit|baiduspider|yandex|duckduck|google|bing|yahoo|semrush|ahref|lighthouse|pagespeed|gtmetrix|pingdom|uptime/i
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
+    const { success } = await analyticsLimiter.limit(ip)
+    if (!success) return new NextResponse(null, { status: 204 })
     const body = await request.json()
     const { path, referrer, sessionId } = body as {
       path?: string

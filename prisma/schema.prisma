@@ -213,6 +213,7 @@ model Booking {
   @@index([checkIn, checkOut])
   @@index([status])
   @@index([paymentStatus])
+  @@index([status, paymentStatus])
 }
 
 enum BookingStatus {

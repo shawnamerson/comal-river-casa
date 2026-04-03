@@ -1,11 +1,20 @@
 import { z } from 'zod'
 import { router, verifiedAdminProcedure as adminProcedure } from '../trpc'
 import { fetchAndParseICal } from '@/lib/ical-parser'
+import { TRPCError } from '@trpc/server'
+import crypto from 'crypto'
 
 export const externalCalendarRouter = router({
-  // Get the calendar export token (server-side only, never exposed to client bundle)
+  // Generate a time-limited, HMAC-signed calendar export URL (expires in 1 hour)
   getExportToken: adminProcedure.query(() => {
-    return { token: process.env.CALENDAR_EXPORT_TOKEN ?? '' }
+    const secret = process.env.CALENDAR_EXPORT_TOKEN
+    if (!secret) return { token: '' }
+    const expires = Math.floor(Date.now() / 1000) + 3600 // 1 hour
+    const signature = crypto
+      .createHmac('sha256', secret)
+      .update(String(expires))
+      .digest('hex')
+    return { token: `${expires}.${signature}` }
   }),
 
   // List all external calendars
@@ -82,7 +91,7 @@ export const externalCalendarRouter = router({
       })
 
       if (!calendar) {
-        throw new Error('Calendar not found')
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Calendar not found' })
       }
 
       try {
@@ -97,26 +106,26 @@ export const externalCalendarRouter = router({
           externalEventId: event.uid || '',
         }))
 
-        // Delete old blocked dates from this calendar
-        await ctx.prisma.blockedDate.deleteMany({
-          where: { externalCalendarId: calendar.id },
-        })
-
-        // Create new blocked dates
-        if (blockedDates.length > 0) {
-          await ctx.prisma.blockedDate.createMany({
-            data: blockedDates,
+        // Atomic delete + create to prevent race conditions with booking availability checks
+        await ctx.prisma.$transaction(async (tx) => {
+          await tx.blockedDate.deleteMany({
+            where: { externalCalendarId: calendar.id },
           })
-        }
 
-        // Update sync status
-        await ctx.prisma.externalCalendar.update({
-          where: { id: calendar.id },
-          data: {
-            lastSyncAt: new Date(),
-            lastSyncStatus: 'SUCCESS',
-            lastSyncError: null,
-          },
+          if (blockedDates.length > 0) {
+            await tx.blockedDate.createMany({
+              data: blockedDates,
+            })
+          }
+
+          await tx.externalCalendar.update({
+            where: { id: calendar.id },
+            data: {
+              lastSyncAt: new Date(),
+              lastSyncStatus: 'SUCCESS',
+              lastSyncError: null,
+            },
+          })
         })
 
         return {
@@ -125,7 +134,7 @@ export const externalCalendarRouter = router({
           calendar,
         }
       } catch (error) {
-        // Update with error status
+        // Update with error status (outside transaction so it persists even on failure)
         await ctx.prisma.externalCalendar.update({
           where: { id: calendar.id },
           data: {
@@ -135,9 +144,10 @@ export const externalCalendarRouter = router({
           },
         })
 
-        throw new Error(
-          `Failed to sync calendar: ${error instanceof Error ? error.message : String(error)}`
-        )
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to sync calendar: ${error instanceof Error ? error.message : String(error)}`,
+        })
       }
     }),
 
@@ -161,23 +171,26 @@ export const externalCalendarRouter = router({
           externalEventId: event.uid || '',
         }))
 
-        await ctx.prisma.blockedDate.deleteMany({
-          where: { externalCalendarId: calendar.id },
-        })
-
-        if (blockedDates.length > 0) {
-          await ctx.prisma.blockedDate.createMany({
-            data: blockedDates,
+        // Atomic delete + create to prevent race conditions
+        await ctx.prisma.$transaction(async (tx) => {
+          await tx.blockedDate.deleteMany({
+            where: { externalCalendarId: calendar.id },
           })
-        }
 
-        await ctx.prisma.externalCalendar.update({
-          where: { id: calendar.id },
-          data: {
-            lastSyncAt: new Date(),
-            lastSyncStatus: 'SUCCESS',
-            lastSyncError: null,
-          },
+          if (blockedDates.length > 0) {
+            await tx.blockedDate.createMany({
+              data: blockedDates,
+            })
+          }
+
+          await tx.externalCalendar.update({
+            where: { id: calendar.id },
+            data: {
+              lastSyncAt: new Date(),
+              lastSyncStatus: 'SUCCESS',
+              lastSyncError: null,
+            },
+          })
         })
 
         results.push({

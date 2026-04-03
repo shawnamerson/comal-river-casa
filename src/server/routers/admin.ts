@@ -10,18 +10,17 @@ import { DamageChargeEmail } from '@/emails/DamageCharge'
 import { PasswordChangeConfirmationEmail } from '@/emails/PasswordChangeConfirmation'
 import { TRPCError } from '@trpc/server'
 import { passwordSchema } from './auth'
-import { clearPropertySettingsCache } from './booking'
+import { clearPropertySettingsCache, PENDING_EXPIRY_MINUTES } from './booking'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.comalrivercasa.com'
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000 // 1 hour
+const PENDING_EXPIRY_MS = PENDING_EXPIRY_MINUTES * 60 * 1000
 
 function generateToken(): { raw: string; hashed: string } {
   const raw = crypto.randomBytes(32).toString('hex')
   const hashed = crypto.createHash('sha256').update(raw).digest('hex')
   return { raw, hashed }
 }
-
-const PENDING_EXPIRY_MS = 10 * 60 * 1000 // 10 minutes — must match booking.ts PENDING_EXPIRY_MINUTES
 
 async function auditLog(
   prisma: Parameters<typeof adminRouter.createCaller>[0]['prisma'],
@@ -650,9 +649,10 @@ export const adminRouter = router({
           status: damageCharge.status,
           createdAt: damageCharge.createdAt.toISOString(),
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Handle SCA / authentication_required errors
-        if (err.code === 'authentication_required') {
+        const stripeErr = err as { code?: string; message?: string }
+        if (stripeErr.code === 'authentication_required') {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'The card requires authentication and cannot be charged off-session. Contact the guest directly.',
@@ -660,7 +660,7 @@ export const adminRouter = router({
         }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: err.message ?? 'Failed to process damage charge',
+          message: stripeErr.message ?? 'Failed to process damage charge',
         })
       }
     }),
@@ -757,17 +757,19 @@ export const adminRouter = router({
   clearDateRatePrice: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      for (const d of input.dates) {
-        const dateVal = new Date(d + 'T00:00:00Z')
-        await ctx.prisma.dateRateOverride.updateMany({
-          where: { date: dateVal },
-          data: { pricePerNight: null },
-        })
-        // Delete rows where both fields are null
-        await ctx.prisma.dateRateOverride.deleteMany({
-          where: { date: dateVal, pricePerNight: null, minNights: null },
-        })
-      }
+      await ctx.prisma.$transaction(async (tx) => {
+        for (const d of input.dates) {
+          const dateVal = new Date(d + 'T00:00:00Z')
+          await tx.dateRateOverride.updateMany({
+            where: { date: dateVal },
+            data: { pricePerNight: null },
+          })
+          // Delete rows where both fields are null
+          await tx.dateRateOverride.deleteMany({
+            where: { date: dateVal, pricePerNight: null, minNights: null },
+          })
+        }
+      })
       return { success: true }
     }),
 
@@ -791,16 +793,18 @@ export const adminRouter = router({
   clearDateRateMinNights: verifiedAdminProcedure
     .input(z.object({ dates: z.array(z.string()) }))
     .mutation(async ({ ctx, input }) => {
-      for (const d of input.dates) {
-        const dateVal = new Date(d + 'T00:00:00Z')
-        await ctx.prisma.dateRateOverride.updateMany({
-          where: { date: dateVal },
-          data: { minNights: null },
-        })
-        await ctx.prisma.dateRateOverride.deleteMany({
-          where: { date: dateVal, pricePerNight: null, minNights: null },
-        })
-      }
+      await ctx.prisma.$transaction(async (tx) => {
+        for (const d of input.dates) {
+          const dateVal = new Date(d + 'T00:00:00Z')
+          await tx.dateRateOverride.updateMany({
+            where: { date: dateVal },
+            data: { minNights: null },
+          })
+          await tx.dateRateOverride.deleteMany({
+            where: { date: dateVal, pricePerNight: null, minNights: null },
+          })
+        }
+      })
       return { success: true }
     }),
 

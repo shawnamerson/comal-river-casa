@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
+import { Ratelimit } from '@upstash/ratelimit'
+import { redis } from '@/lib/redis'
+
+const leadsLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1m'),
+  prefix: 'rl:leads',
+})
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown'
+    const { success } = await leadsLimiter.limit(ip)
+    if (!success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
     const { email, source } = await request.json()
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {

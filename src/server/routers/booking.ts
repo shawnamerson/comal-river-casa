@@ -14,7 +14,7 @@ import type { PrismaClient } from '@prisma/client'
 const BOOKING_WINDOW_MONTHS = 12
 
 // Pending bookings older than this are expired (dates released for others to book)
-const PENDING_EXPIRY_MINUTES = 10
+export const PENDING_EXPIRY_MINUTES = 10
 
 // In-memory cache for PropertySettings (singleton, rarely changes)
 const SETTINGS_CACHE_TTL_MS = 60 * 1000 // 1 minute
@@ -530,7 +530,7 @@ export const bookingRouter = router({
       const booking = await ctx.prisma.booking.findFirst({
         where: {
           id: input.bookingId,
-          guestEmail: input.email,
+          guestEmail: { equals: input.email, mode: 'insensitive' },
         },
         include: {
           damageCharges: { orderBy: { createdAt: 'desc' } },
@@ -616,7 +616,7 @@ export const bookingRouter = router({
     .mutation(async ({ ctx, input }) => {
       // Verify ownership — require both booking ID and the guest's email to match
       const booking = await ctx.prisma.booking.findFirst({
-        where: { id: input.bookingId, guestEmail: input.guestEmail },
+        where: { id: input.bookingId, guestEmail: { equals: input.guestEmail, mode: 'insensitive' } },
       })
 
       if (!booking) {
