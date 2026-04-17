@@ -854,23 +854,24 @@ export const bookingRouter = router({
       const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId)
 
       if (paymentIntent.status === 'succeeded') {
-        // Update booking status and record funnel event in a single transaction
-        const [updated] = await ctx.prisma.$transaction([
-          ctx.prisma.booking.update({
-            where: { id: booking.id },
-            data: {
-              status: 'CONFIRMED',
-              paymentStatus: 'SUCCEEDED',
-            },
-          }),
-          ctx.prisma.funnelEvent.create({
-            data: {
-              sessionId: booking.id, // Use bookingId as session key for server-side events
-              event: 'booking_completed',
-              bookingId: booking.id,
-            },
-          }),
-        ])
+        const updateOp = ctx.prisma.booking.update({
+          where: { id: booking.id },
+          data: {
+            status: 'CONFIRMED',
+            paymentStatus: 'SUCCEEDED',
+          },
+        })
+        const funnelOp = ctx.prisma.funnelEvent.create({
+          data: {
+            sessionId: booking.id, // Use bookingId as session key for server-side events
+            event: 'booking_completed',
+            bookingId: booking.id,
+          },
+        })
+        const isAdmin = ctx.session?.user?.role === 'ADMIN'
+        const [updated] = isAdmin
+          ? await ctx.prisma.$transaction([updateOp])
+          : await ctx.prisma.$transaction([updateOp, funnelOp])
 
         return {
           success: true,
