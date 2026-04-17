@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { UAParser } from 'ua-parser-js'
 import { Ratelimit } from '@upstash/ratelimit'
 import { redis } from '@/lib/redis'
+import { auth } from '@/lib/auth'
 
 const analyticsLimiter = new Ratelimit({
   redis,
@@ -37,6 +38,12 @@ export async function POST(request: NextRequest) {
     // Skip bots
     const userAgent = request.headers.get('user-agent') || ''
     if (BOT_PATTERN.test(userAgent)) {
+      return new NextResponse(null, { status: 204 })
+    }
+
+    // Skip signed-in admins regardless of device or exclusion cookie
+    const session = await auth()
+    if (session?.user?.role === 'ADMIN') {
       return new NextResponse(null, { status: 204 })
     }
 

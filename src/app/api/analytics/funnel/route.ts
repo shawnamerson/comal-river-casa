@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { Ratelimit } from '@upstash/ratelimit'
 import { redis } from '@/lib/redis'
+import { auth } from '@/lib/auth'
 
 const funnelLimiter = new Ratelimit({
   redis,
@@ -36,6 +37,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!VALID_EVENTS.includes(event as (typeof VALID_EVENTS)[number])) {
+      return new NextResponse(null, { status: 204 })
+    }
+
+    // Skip signed-in admins regardless of device or exclusion cookie
+    const session = await auth()
+    if (session?.user?.role === 'ADMIN') {
       return new NextResponse(null, { status: 204 })
     }
 
