@@ -32,6 +32,12 @@ export default function Home() {
 
   const property = PROPERTY
 
+  const reviewCount = reviews?.length ?? 0
+  const averageRating =
+    reviews && reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0
+
   return (
     <main className="min-h-screen bg-white">
       <HeroSection
@@ -39,6 +45,8 @@ export default function Home() {
         city={property.city}
         state={property.state}
         onBookingClick={handleBookingClick}
+        averageRating={averageRating}
+        reviewCount={reviewCount}
       />
       <DiscoverSection />
       <HomeBaseSection property={property} />

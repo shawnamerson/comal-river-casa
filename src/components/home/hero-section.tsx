@@ -1,14 +1,24 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
+import { RatingBadge } from './rating-badge'
 
 interface HeroSectionProps {
   propertyName: string
   city: string
   state: string
   onBookingClick: () => void
+  averageRating?: number
+  reviewCount?: number
 }
 
-export function HeroSection({ propertyName, city, state, onBookingClick }: HeroSectionProps) {
+export function HeroSection({
+  propertyName,
+  city,
+  state,
+  onBookingClick,
+  averageRating,
+  reviewCount,
+}: HeroSectionProps) {
   return (
     <div className="relative h-screen w-full">
       <Image
@@ -27,9 +37,18 @@ export function HeroSection({ propertyName, city, state, onBookingClick }: HeroS
           <p className="text-xl md:text-2xl lg:text-3xl mb-4 font-light">
             Your Texas Hill Country Escape
           </p>
-          <p className="text-lg md:text-xl mb-8 text-gray-200">
+          <p className="text-lg md:text-xl mb-6 text-gray-200">
             {city}, {state}
           </p>
+          {reviewCount !== undefined && reviewCount > 0 && averageRating !== undefined && (
+            <div className="mb-8 flex justify-center">
+              <RatingBadge
+                averageRating={averageRating}
+                reviewCount={reviewCount}
+                variant="dark"
+              />
+            </div>
+          )}
           <Button
             size="lg"
             className="text-lg px-8 py-6 bg-white text-gray-900 hover:bg-gray-100"

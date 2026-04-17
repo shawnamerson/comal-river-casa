@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { RatingBadge } from './rating-badge'
 
 interface Review {
   id: string
@@ -16,6 +17,9 @@ interface ReviewsSectionProps {
 export function ReviewsSection({ reviews }: ReviewsSectionProps) {
   if (reviews.length === 0) return null
 
+  const averageRating =
+    reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+
   return (
     <section className="py-24 bg-gray-50 overflow-hidden">
       <div className="container mx-auto max-w-6xl px-4">
@@ -24,6 +28,13 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
             Guest Experiences
           </h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-8"></div>
+          <div className="flex justify-center mb-6">
+            <RatingBadge
+              averageRating={averageRating}
+              reviewCount={reviews.length}
+              variant="light"
+            />
+          </div>
           <p className="text-xl text-gray-600">
             Hear what our guests have to say
           </p>
