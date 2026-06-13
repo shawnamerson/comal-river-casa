@@ -134,6 +134,13 @@ export const reviewRouter = router({
         })
       }
 
+      if (new Date(booking.checkOut) > new Date()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Reviews can only be left after checkout',
+        })
+      }
+
       if (booking.review) {
         throw new TRPCError({
           code: 'CONFLICT',

@@ -34,8 +34,17 @@ export function clearPropertySettingsCache() {
   settingsCache = null
 }
 
-async function assertWithinBookingWindow(checkOut: Date) {
-  const { addMonths } = await import('date-fns')
+async function assertValidBookingDates(checkIn: Date, checkOut: Date) {
+  const { addMonths, startOfToday } = await import('date-fns')
+
+  if (checkIn < startOfToday()) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Check-in date cannot be in the past' })
+  }
+
+  if (checkOut <= checkIn) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Check-out must be after check-in' })
+  }
+
   const maxDate = addMonths(new Date(), BOOKING_WINDOW_MONTHS)
   if (checkOut > maxDate) {
     throw new TRPCError({
@@ -213,7 +222,7 @@ export const bookingRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      await assertWithinBookingWindow(input.checkOut)
+      await assertValidBookingDates(input.checkIn, input.checkOut)
       return computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
     }),
 
@@ -227,7 +236,7 @@ export const bookingRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { checkIn, checkOut } = input
-      await assertWithinBookingWindow(checkOut)
+      await assertValidBookingDates(checkIn, checkOut)
 
       // Clean up expired pending bookings before checking availability
       await cancelExpiredPendingBookings(ctx.prisma)
@@ -357,13 +366,20 @@ export const bookingRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await assertWithinBookingWindow(input.checkOut)
+      await assertValidBookingDates(input.checkIn, input.checkOut)
 
       // Clean up expired pending bookings before checking availability
       await cancelExpiredPendingBookings(ctx.prisma)
 
       // Compute pricing server-side — never trust client-supplied values
       const pricing = await computeBookingPrice(ctx.prisma, input.checkIn, input.checkOut)
+
+      if (pricing.numberOfNights < pricing.minNights) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Minimum stay is ${pricing.minNights} night${pricing.minNights === 1 ? '' : 's'}`,
+        })
+      }
 
       // Atomic availability check + booking creation to prevent race conditions
       const booking = await ctx.prisma.$transaction(async (tx) => {
