@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { PROPERTY } from '@/config/property'
+import { timingSafeEqual } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,8 @@ export async function GET(request: Request) {
     // Require secret token to prevent unauthorized access to booking data
     const { searchParams } = new URL(request.url)
     const token = searchParams.get('token')
-    if (!token || token !== process.env.CALENDAR_EXPORT_TOKEN) {
+    const exportToken = process.env.CALENDAR_EXPORT_TOKEN
+    if (!token || !exportToken || !timingSafeEqual(token, exportToken)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
