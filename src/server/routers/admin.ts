@@ -503,6 +503,7 @@ export const adminRouter = router({
           await resend.emails.send({
             from: process.env.EMAIL_FROM!,
             to: booking.guestEmail,
+            cc: process.env.ADMIN_EMAIL,
             subject: 'Booking Cancelled — Comal River Casa',
             react: BookingCancellationEmail({
               guestName: booking.guestName,
@@ -628,6 +629,7 @@ export const adminRouter = router({
           await resend.emails.send({
             from: process.env.EMAIL_FROM!,
             to: booking.guestEmail,
+            cc: process.env.ADMIN_EMAIL,
             subject: 'Damage Charge — Comal River Casa',
             react: DamageChargeEmail({
               guestName: booking.guestName,

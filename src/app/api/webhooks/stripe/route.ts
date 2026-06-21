@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
             const { error: confirmError } = await resend.emails.send({
               from: process.env.EMAIL_FROM!,
               to: booking.guestEmail,
+              cc: process.env.ADMIN_EMAIL,
               subject: `Booking Confirmed — Comal River Casa`,
               react: BookingConfirmationEmail({
                 guestName: booking.guestName,

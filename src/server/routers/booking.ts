@@ -191,6 +191,7 @@ export async function cancelExpiredPendingBookings(prisma: PrismaClient) {
       const { error } = await resend.emails.send({
         from: process.env.EMAIL_FROM!,
         to: booking.guestEmail,
+        cc: process.env.ADMIN_EMAIL,
         subject: 'Your reservation hold has expired — Comal River Casa',
         react: BookingExpiredEmail({
           guestName: booking.guestName,
@@ -700,6 +701,7 @@ export const bookingRouter = router({
         const { error: cancelError } = await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: updated.guestEmail,
+          cc: process.env.ADMIN_EMAIL,
           subject: 'Booking Cancelled — Comal River Casa',
           react: BookingCancellationEmail({
             guestName: updated.guestName,

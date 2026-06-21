@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
         const { error } = await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: booking.guestEmail,
+          cc: process.env.ADMIN_EMAIL,
           subject: 'Checkout Reminders — Comal River Casa',
           react: CheckOutReminderEmail({
             guestName: booking.guestName,

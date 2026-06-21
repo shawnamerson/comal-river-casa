@@ -63,6 +63,7 @@ async function sendEmail(
   const { error } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: booking.guestEmail,
+    cc: process.env.ADMIN_EMAIL,
     subject: type === 'first'
       ? 'Your dates are still available — Comal River Casa'
       : 'Last chance to book your river getaway — Comal River Casa',
