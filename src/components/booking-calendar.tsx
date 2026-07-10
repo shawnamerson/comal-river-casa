@@ -81,8 +81,11 @@ export function BookingCalendar() {
         // Add blocked dates
         bookedData.blockedDates.forEach((blocked) => {
           try {
-            const startDate = new Date(blocked.startDate)
-            const endDate = new Date(blocked.endDate)
+            // Parse as local midnight — blocked dates are date-only values stored
+            // as UTC midnight, which would shift to the prior day in US timezones
+            const parseLocalDate = (s: string) => new Date(s.slice(0, 10) + 'T00:00:00')
+            const startDate = parseLocalDate(String(blocked.startDate))
+            const endDate = parseLocalDate(String(blocked.endDate))
 
             // Validate dates
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
