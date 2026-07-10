@@ -338,7 +338,7 @@ export const bookingRouter = router({
     const blockedDates = await ctx.prisma.blockedDate.findMany({
       where: {
         endDate: {
-          gte: new Date(),
+          gte: new Date(new Date().setUTCHours(0, 0, 0, 0)),
         },
       },
       select: {

@@ -98,13 +98,18 @@ export const externalCalendarRouter = router({
         // Fetch and parse the iCal feed
         const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates = events.map((event) => ({
-          startDate: event.start,
-          endDate: event.end,
-          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-          externalCalendarId: calendar.id,
-          externalEventId: event.uid || '',
-        }))
+        const blockedDates = events.map((event) => {
+          // iCal DTEND is exclusive for all-day events — subtract 1 day for inclusive storage
+          const inclusiveEnd = new Date(event.end)
+          inclusiveEnd.setUTCDate(inclusiveEnd.getUTCDate() - 1)
+          return {
+            startDate: event.start,
+            endDate: inclusiveEnd,
+            reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+            externalCalendarId: calendar.id,
+            externalEventId: event.uid || '',
+          }
+        })
 
         // Atomic delete + create to prevent race conditions with booking availability checks
         await ctx.prisma.$transaction(async (tx) => {
@@ -163,13 +168,18 @@ export const externalCalendarRouter = router({
       try {
         const events = await fetchAndParseICal(calendar.icalUrl)
 
-        const blockedDates = events.map((event) => ({
-          startDate: event.start,
-          endDate: event.end,
-          reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
-          externalCalendarId: calendar.id,
-          externalEventId: event.uid || '',
-        }))
+        const blockedDates = events.map((event) => {
+          // iCal DTEND is exclusive for all-day events — subtract 1 day for inclusive storage
+          const inclusiveEnd = new Date(event.end)
+          inclusiveEnd.setUTCDate(inclusiveEnd.getUTCDate() - 1)
+          return {
+            startDate: event.start,
+            endDate: inclusiveEnd,
+            reason: `${calendar.name}: ${event.summary || 'Blocked'}`,
+            externalCalendarId: calendar.id,
+            externalEventId: event.uid || '',
+          }
+        })
 
         // Atomic delete + create to prevent race conditions
         await ctx.prisma.$transaction(async (tx) => {
