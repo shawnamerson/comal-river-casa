@@ -55,35 +55,40 @@ function getIp(req: NextRequest): string {
   )
 }
 
+function getLimiterForPath(pathname: string): Ratelimit | null {
+  switch (pathname) {
+    case "/api/trpc/booking.create":
+      return bookingCreateLimiter
+    case "/api/trpc/booking.lookup":
+      return bookingLookupLimiter
+    case "/api/trpc/booking.cancel":
+      return bookingCancelLimiter
+    case "/api/trpc/auth.requestPasswordReset":
+    case "/api/trpc/admin.changePassword":
+      return passwordResetLimiter
+    case "/api/trpc/auth.sendVerificationEmail":
+      return verifyEmailLimiter
+    default:
+      return null
+  }
+}
+
 async function isRateLimited(
   pathname: string,
   ip: string
 ): Promise<boolean> {
-  if (pathname === "/api/trpc/booking.create") {
-    const { success } = await bookingCreateLimiter.limit(ip)
+  const limiter = getLimiterForPath(pathname)
+  if (!limiter) return false
+
+  try {
+    const { success } = await limiter.limit(ip)
     return !success
+  } catch (error) {
+    // Fail open: a Redis outage (or mid-rotation credential mismatch)
+    // should never block bookings or auth flows.
+    console.error(`Rate limiter unavailable for ${pathname}:`, error)
+    return false
   }
-  if (pathname === "/api/trpc/booking.lookup") {
-    const { success } = await bookingLookupLimiter.limit(ip)
-    return !success
-  }
-  if (pathname === "/api/trpc/booking.cancel") {
-    const { success } = await bookingCancelLimiter.limit(ip)
-    return !success
-  }
-  if (pathname === "/api/trpc/auth.requestPasswordReset") {
-    const { success } = await passwordResetLimiter.limit(ip)
-    return !success
-  }
-  if (pathname === "/api/trpc/auth.sendVerificationEmail") {
-    const { success } = await verifyEmailLimiter.limit(ip)
-    return !success
-  }
-  if (pathname === "/api/trpc/admin.changePassword") {
-    const { success } = await passwordResetLimiter.limit(ip)
-    return !success
-  }
-  return false
 }
 
 export default auth(async (req) => {

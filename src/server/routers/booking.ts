@@ -532,16 +532,23 @@ export const bookingRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Exponential backoff: check if IP is temporarily blocked from failed attempts
+      // Exponential backoff: check if IP is temporarily blocked from failed attempts.
+      // Fail open on Redis errors — an outage (or mid-rotation credential
+      // mismatch) should never prevent a guest from looking up their booking.
       const failKey = `lookup-fail:${ctx.ip}`
       const blockKey = `lookup-block:${ctx.ip}`
 
-      const blocked = await redis.get(blockKey)
-      if (blocked) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message: 'Too many failed attempts. Please wait and try again.',
-        })
+      try {
+        const blocked = await redis.get(blockKey)
+        if (blocked) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Too many failed attempts. Please wait and try again.',
+          })
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        console.error('Redis unavailable while checking lookup block status:', error)
       }
 
       const booking = await ctx.prisma.booking.findFirst({
@@ -555,26 +562,30 @@ export const bookingRouter = router({
       })
 
       if (!booking) {
-        // Track failed attempt
-        const failCount = await redis.incr(failKey)
-        if (failCount === 1) {
-          await redis.expire(failKey, 1800) // 30 min TTL
-        }
+        try {
+          // Track failed attempt
+          const failCount = await redis.incr(failKey)
+          if (failCount === 1) {
+            await redis.expire(failKey, 1800) // 30 min TTL
+          }
 
-        // Apply exponential backoff after 3 failures: 10s, 20s, 40s, ... max 5min
-        if (failCount >= 3) {
-          const delaySec = Math.min(Math.pow(2, failCount - 3) * 10, 300)
-          await redis.set(blockKey, '1', { ex: delaySec })
-        }
+          // Apply exponential backoff after 3 failures: 10s, 20s, 40s, ... max 5min
+          if (failCount >= 3) {
+            const delaySec = Math.min(Math.pow(2, failCount - 3) * 10, 300)
+            await redis.set(blockKey, '1', { ex: delaySec })
+          }
 
-        // Alert admin at 10 failures
-        if (failCount === 10) {
-          resend.emails.send({
-            from: process.env.EMAIL_FROM!,
-            to: [process.env.ADMIN_EMAIL!, 'shawnamerson@gmail.com'],
-            subject: 'Security Alert: Repeated booking lookup failures',
-            text: `IP ${ctx.ip} has made ${failCount} failed booking lookup attempts in the last 30 minutes. This may indicate an enumeration attack.\n\nTimestamp: ${new Date().toISOString()}`,
-          }).catch((err) => console.error('Failed to send lookup alert email:', err))
+          // Alert admin at 10 failures
+          if (failCount === 10) {
+            resend.emails.send({
+              from: process.env.EMAIL_FROM!,
+              to: [process.env.ADMIN_EMAIL!, 'shawnamerson@gmail.com'],
+              subject: 'Security Alert: Repeated booking lookup failures',
+              text: `IP ${ctx.ip} has made ${failCount} failed booking lookup attempts in the last 30 minutes. This may indicate an enumeration attack.\n\nTimestamp: ${new Date().toISOString()}`,
+            }).catch((err) => console.error('Failed to send lookup alert email:', err))
+          }
+        } catch (error) {
+          console.error('Redis unavailable while tracking failed lookup attempt:', error)
         }
 
         throw new TRPCError({
@@ -584,7 +595,11 @@ export const bookingRouter = router({
       }
 
       // Clear failure state on successful lookup
-      await redis.del(failKey, blockKey)
+      try {
+        await redis.del(failKey, blockKey)
+      } catch (error) {
+        console.error('Redis unavailable while clearing lookup failure state:', error)
+      }
 
       // Convert Decimals to numbers and Dates to strings for serialization
       return {
