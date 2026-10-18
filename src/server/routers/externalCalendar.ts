@@ -2,19 +2,14 @@ import { z } from 'zod'
 import { router, verifiedAdminProcedure as adminProcedure } from '../trpc'
 import { fetchAndParseICal } from '@/lib/ical-parser'
 import { TRPCError } from '@trpc/server'
-import crypto from 'crypto'
 
 export const externalCalendarRouter = router({
-  // Generate a time-limited, HMAC-signed calendar export URL (expires in 1 hour)
+  // The calendar export URL (/api/calendar/export) checks this token directly
+  // against CALENDAR_EXPORT_TOKEN, so the admin UI needs the raw, stable value —
+  // external subscribers (Airbnb, VRBO) poll this URL indefinitely and can't
+  // handle a token that expires.
   getExportToken: adminProcedure.query(() => {
-    const secret = process.env.CALENDAR_EXPORT_TOKEN
-    if (!secret) return { token: '' }
-    const expires = Math.floor(Date.now() / 1000) + 3600 // 1 hour
-    const signature = crypto
-      .createHmac('sha256', secret)
-      .update(String(expires))
-      .digest('hex')
-    return { token: `${expires}.${signature}` }
+    return { token: process.env.CALENDAR_EXPORT_TOKEN || '' }
   }),
 
   // List all external calendars
