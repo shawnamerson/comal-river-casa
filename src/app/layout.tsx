@@ -104,9 +104,12 @@ export default async function RootLayout({
       <head>
         <script
           type="application/ld+json"
-        >
-          {JSON.stringify(jsonLd)}
-        </script>
+          // Raw JSX text children get HTML-escaped on the server (e.g. " -> &quot;),
+          // which browsers don't decode back inside <script> — producing invalid
+          // JSON for crawlers and a server/client hydration mismatch. innerHTML
+          // bypasses that escaping so server and client output match exactly.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
       </head>
       <body className={inter.className}>
         <TRPCProvider>{children}</TRPCProvider>
