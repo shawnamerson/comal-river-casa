@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { addDays, format, isBefore } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +13,27 @@ import { trackFunnelEvent } from '@/lib/analytics/funnel'
 
 type BookingStep = 'details' | 'payment'
 
+const DRAFT_STORAGE_KEY = 'booking_draft'
+// Matches PENDING_EXPIRY_MINUTES in src/server/routers/booking.ts — a restored
+// draft older than this points at a booking the server has already expired.
+const DRAFT_MAX_AGE_MS = 10 * 60 * 1000
+
+interface BookingDraft {
+  checkIn: string
+  checkOut: string
+  numberOfGuests: string
+  step: BookingStep
+  bookingId: string | null
+  clientSecret: string | null
+  formData: {
+    guestName: string
+    guestEmail: string
+    guestPhone: string
+    specialRequests: string
+  }
+  savedAt: number
+}
+
 function BookingForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -20,6 +41,7 @@ function BookingForm() {
   const [step, setStep] = useState<BookingStep>('details')
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     guestName: '',
@@ -42,33 +64,88 @@ function BookingForm() {
     ? JSON.parse(taxBreakdownParam)
     : null
 
+  // Restore an in-progress booking (bookingId/clientSecret/step/formData) if the
+  // guest reloaded, switched apps to grab a card, and came back to the same
+  // dates within the server's pending-booking hold window.
+  const restoredRef = useRef(false)
+  useEffect(() => {
+    if (restoredRef.current) return
+    restoredRef.current = true
+
+    const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY)
+    if (!raw) return
+
+    try {
+      const draft: BookingDraft = JSON.parse(raw)
+      const isFresh = Date.now() - draft.savedAt < DRAFT_MAX_AGE_MS
+      const isSameBooking =
+        draft.checkIn === checkIn &&
+        draft.checkOut === checkOut &&
+        draft.numberOfGuests === numberOfGuests
+
+      if (isFresh && isSameBooking) {
+        setStep(draft.step)
+        setBookingId(draft.bookingId)
+        setClientSecret(draft.clientSecret)
+        setFormData(draft.formData)
+      } else {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY)
+      }
+    } catch {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Keep the draft in sync so a reload/app-switch mid-checkout can resume
+  // instead of forcing the guest to start over.
+  useEffect(() => {
+    if (!checkIn || !checkOut || !numberOfGuests) return
+    if (!bookingId) return // nothing worth resuming until the booking is created
+
+    const draft: BookingDraft = {
+      checkIn,
+      checkOut,
+      numberOfGuests,
+      step,
+      bookingId,
+      clientSecret,
+      formData,
+      savedAt: Date.now(),
+    }
+    sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft))
+  }, [checkIn, checkOut, numberOfGuests, step, bookingId, clientSecret, formData])
+
   const createBooking = trpc.booking.create.useMutation({
     onSuccess: (booking) => {
+      setErrorMessage(null)
       setBookingId(booking.id)
       trackFunnelEvent('booking_created', { bookingId: booking.id })
       // Create payment intent after booking is created
       createPaymentIntent.mutate({ bookingId: booking.id })
     },
     onError: (error) => {
-      alert(`Error creating booking: ${error.message}`)
+      setErrorMessage(error.message || 'Something went wrong creating your booking. Please try again.')
     },
   })
 
   const createPaymentIntent = trpc.booking.createPaymentIntent.useMutation({
     onSuccess: (data) => {
       if (data.clientSecret) {
+        setErrorMessage(null)
         setClientSecret(data.clientSecret)
         setStep('payment')
       }
     },
     onError: (error) => {
-      alert(`Error setting up payment: ${error.message}`)
+      setErrorMessage(error.message || 'Something went wrong setting up payment. Please try again.')
     },
   })
 
   const confirmPayment = trpc.booking.confirmPayment.useMutation({
     onSuccess: (result) => {
       if (result.success) {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY)
         // Navigate to confirmation page (booking_completed tracked server-side)
         const confirmationParams = new URLSearchParams({
           bookingId: bookingId!,
@@ -81,7 +158,12 @@ function BookingForm() {
           total: totalPrice || '',
         })
         router.push(`/booking/confirmation?${confirmationParams.toString()}`)
+      } else {
+        setErrorMessage('Payment did not complete. Please try again or use a different payment method.')
       }
+    },
+    onError: (error) => {
+      setErrorMessage(error.message || 'We could not confirm your payment. Please contact us if you were charged.')
     },
   })
 
@@ -89,9 +171,11 @@ function BookingForm() {
     e.preventDefault()
 
     if (!checkIn || !checkOut || !numberOfGuests || !numberOfNights || !totalPrice) {
-      alert('Missing booking details')
+      setErrorMessage('Missing booking details. Please start your booking again from the calendar.')
       return
     }
+
+    setErrorMessage(null)
 
     const checkInDate = new Date(checkIn)
     const checkOutDate = new Date(checkOut)
@@ -160,6 +244,15 @@ function BookingForm() {
             <span className="ml-2 font-medium">Payment</span>
           </div>
         </div>
+
+        {errorMessage && (
+          <div className="mb-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            <svg className="h-5 w-5 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.75 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p className="text-sm font-medium">{errorMessage}</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form Section */}
