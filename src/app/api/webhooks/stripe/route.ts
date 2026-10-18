@@ -61,6 +61,41 @@ export async function POST(request: NextRequest) {
             break
           }
 
+          // The pending hold already expired and was cancelled (dates may be
+          // rebooked by someone else) — don't resurrect it. Refund the guest
+          // automatically since they were charged for a reservation that no
+          // longer stands, and alert the admin to follow up.
+          if (existing.status === 'CANCELLED') {
+            console.warn(`Webhook: booking ${bookingId} already cancelled, refunding instead of confirming`)
+
+            let refundError: string | null = null
+            try {
+              await stripe.refunds.create({ payment_intent: paymentIntent.id })
+              await prisma.booking.update({
+                where: { id: bookingId },
+                data: { paymentStatus: 'REFUNDED' },
+              })
+            } catch (err) {
+              refundError = err instanceof Error ? err.message : String(err)
+              console.error(`Failed to auto-refund cancelled booking ${bookingId}:`, refundError)
+            }
+
+            try {
+              await resend.emails.send({
+                from: process.env.EMAIL_FROM!,
+                to: process.env.ADMIN_EMAIL!,
+                subject: `Action needed: payment succeeded for expired booking ${bookingId}`,
+                text: refundError
+                  ? `Payment intent ${paymentIntent.id} succeeded for booking ${bookingId}, but the booking had already expired/cancelled and the automatic refund FAILED: ${refundError}\n\nGuest: ${existing.guestName} <${existing.guestEmail}>\nDates: ${existing.checkIn.toISOString()} to ${existing.checkOut.toISOString()}\n\nPlease refund this payment manually in the Stripe dashboard.`
+                  : `Payment intent ${paymentIntent.id} succeeded for booking ${bookingId}, but the booking had already expired/cancelled. The payment was automatically refunded.\n\nGuest: ${existing.guestName} <${existing.guestEmail}>\nDates: ${existing.checkIn.toISOString()} to ${existing.checkOut.toISOString()}\n\nIf the guest still wants these dates, check availability and have them rebook.`,
+              })
+            } catch (emailError) {
+              console.error('Failed to send cancelled-booking-paid admin alert:', emailError)
+            }
+
+            break
+          }
+
           const booking = await prisma.booking.update({
             where: { id: bookingId },
             data: {
