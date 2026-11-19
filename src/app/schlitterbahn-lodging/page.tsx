@@ -98,6 +98,82 @@ export default function SchlitterbahnLodgingPage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="bg-gray-50 px-4 py-16">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: 'How far is Comal River Casa from Schlitterbahn?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The condo is directly across the street from Schlitterbahn New Braunfels. Guests walk to the park gates, come home for lunch and naps, and skip daily parking fees and shuttle schedules.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How many people can stay near Schlitterbahn at Comal River Casa?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The condo sleeps 8 in 2 bedrooms and 2 bathrooms, with two king beds, a sleeper sofa, an air mattress, and a full kitchen, so families and groups can stay together in one place instead of splitting into hotel rooms.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What is there to do near Schlitterbahn besides the waterpark?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The condo has a resort-style pool and hot tub on site, private Comal River access steps away with free tubes included, and downtown New Braunfels and historic Gruene are minutes away for restaurants, shopping, and live music.',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="mb-8 text-3xl font-bold text-gray-900">
+            Schlitterbahn lodging questions
+          </h2>
+          <div className="space-y-8">
+            <div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">
+                How far is the condo from Schlitterbahn?
+              </h3>
+              <p className="text-lg leading-relaxed text-gray-600">
+                Directly across the street. Walk to the gates in the morning, come home
+                for lunch and naps, and head back for the afternoon. No daily parking
+                fees, no shuttle schedules.
+              </p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">
+                How many people can stay?
+              </h3>
+              <p className="text-lg leading-relaxed text-gray-600">
+                The condo sleeps 8 in 2 bedrooms and 2 bathrooms, with two king beds, a
+                sleeper sofa, an air mattress, and a full kitchen, so families and groups
+                stay together in one place instead of splitting into hotel rooms.
+              </p>
+            </div>
+            <div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900">
+                What else is there to do nearby?
+              </h3>
+              <p className="text-lg leading-relaxed text-gray-600">
+                The pool and hot tub are on site, private Comal River access is steps
+                away with free tubes included, and downtown New Braunfels and historic
+                Gruene are minutes away for restaurants, shopping, and live music.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 px-4 py-16 text-center text-white">
         <div className="container mx-auto max-w-3xl">

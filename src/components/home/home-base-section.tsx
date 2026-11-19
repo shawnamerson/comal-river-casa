@@ -15,7 +15,9 @@ export function HomeBaseSection({ property }: HomeBaseSectionProps) {
           </h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-8"></div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            After a day of adventure, retreat to your comfortable condo, steps away from the Comal River, with modern comforts
+            After a day of adventure, retreat to your comfortable condo, steps away from the Comal River, with modern comforts.
+            This New Braunfels vacation rental sleeps 8 with two king beds, a full kitchen, and a pool and hot tub on site,
+            made for family reunions, group getaways, and Schlitterbahn trips.
           </p>
         </div>
 

@@ -41,8 +41,11 @@ export function DiscoverSection() {
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">Schlitterbahn Waterpark</h3>
             <p className="text-lg text-gray-700 leading-relaxed text-center md:text-left">
               Home to America&apos;s #1 rated waterpark! Experience thrilling water slides, the world&apos;s
-              first uphill water coaster, lazy rivers, and family-friendly attractions. Just minutes from
-              your door to endless summer fun.
+              first uphill water coaster, lazy rivers, and family-friendly attractions. Our condo is directly
+              across the street, so you can walk to the gates.{' '}
+              <Link href="/schlitterbahn-lodging" className="font-semibold text-blue-600 underline">
+                Where to stay near Schlitterbahn
+              </Link>
             </p>
           </div>
           <div className="relative h-96 md:h-[450px] rounded-2xl overflow-hidden shadow-2xl order-1 md:order-2">
