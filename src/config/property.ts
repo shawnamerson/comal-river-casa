@@ -4,7 +4,7 @@ export const PROPERTY = {
   city: 'New Braunfels',
   state: 'TX',
   contactEmail: 'kodybyron@yahoo.com',
-  description: `Experience the perfect riverside getaway at Comal River Casa. This beautifully appointed condo offers stunning river views, modern amenities, and direct access to the crystal-clear waters of the Comal River.
+  description: `Experience the perfect getaway at Comal River Casa, steps away from the Comal River. This beautifully appointed condo offers modern amenities, a pool and hot tub, and room for 8 in the heart of New Braunfels.
 
 Our space features comfortable accommodations with a fully equipped kitchen, spacious living areas, and a private balcony overlooking the river. Whether you're looking to tube down the river, explore nearby attractions, or simply relax and enjoy the natural beauty, Comal River Casa is your ideal home base.
 

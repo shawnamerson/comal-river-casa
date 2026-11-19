@@ -4,7 +4,7 @@ import { PROPERTY } from '@/config/property'
 export const metadata = {
   title: 'Terms of Service',
   description:
-    'Terms of service for booking Comal River Casa — a riverfront vacation rental on the Comal River in New Braunfels, TX.',
+    'Terms of service for booking Comal River Casa — a New Braunfels vacation rental steps away from the Comal River.',
 }
 
 export default function TermsOfServicePage() {

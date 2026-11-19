@@ -3,17 +3,17 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Book Your Stay',
   description:
-    'Complete your booking at Comal River Casa — a riverfront vacation rental in New Braunfels, TX.',
+    'Complete your booking at Comal River Casa — a New Braunfels vacation rental steps away from the Comal River.',
   openGraph: {
     type: 'website',
     title: 'Book Your Stay at Comal River Casa',
-    description: '2BR/2BA riverfront condo in New Braunfels, TX — pool, hot tub, and river access.',
+    description: '2BR/2BA condo in New Braunfels, TX — steps away from the Comal River, pool, hot tub, free tubes.',
     images: ['/images/property/main.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Book Your Stay at Comal River Casa',
-    description: '2BR/2BA riverfront condo in New Braunfels, TX — pool, hot tub, and river access.',
+    description: '2BR/2BA condo in New Braunfels, TX — steps away from the Comal River, pool, hot tub, free tubes.',
     images: ['/images/property/main.jpg'],
   },
 }

@@ -20,7 +20,7 @@ export function StatsSection({ property }: StatsSectionProps) {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Space to Spread Out
+            Room for Everyone: Sleeps 8 With 2 King Beds
           </h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">

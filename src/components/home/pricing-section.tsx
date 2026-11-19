@@ -22,7 +22,7 @@ export function PricingSection({ property, onBookingClick }: PricingSectionProps
       <div className="container mx-auto max-w-5xl relative z-10">
         <div className="text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Ready to Book Your Stay?
+            Book Direct and Skip the Platform Fees
           </h2>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
           <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto">

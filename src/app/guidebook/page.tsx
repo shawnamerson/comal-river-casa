@@ -385,7 +385,7 @@ export default function GuidebookPage() {
 
         {/* Hero / Intro */}
         <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-3">NB Local Spots</h1>
+          <h1 className="text-4xl font-bold mb-3">New Braunfels Local Guide: Restaurants, Bars and Things to Do</h1>
           <p className="text-lg text-gray-500 mb-6">
             Our favorite places in New Braunfels — from Kody &amp; Dahlia
           </p>
