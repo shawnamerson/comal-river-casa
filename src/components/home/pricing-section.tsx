@@ -27,7 +27,7 @@ export function PricingSection({ property, onBookingClick }: PricingSectionProps
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
           <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto">
             Start planning your unforgettable Texas Hill Country getaway today.
-            Your perfect riverside escape is just a few clicks away.
+            Your perfect New Braunfels escape, steps away from the Comal River, is just a few clicks away.
           </p>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-2xl mb-8">
