@@ -32,20 +32,24 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
       altText: 'Comal River Casa - Main View',
     },
     {
-      url: '/images/property/river_view.jpg',
-      altText: 'The Comal River, steps away',
+      url: '/images/property/comal-river-access-new-braunfels.jpg',
+      altText: 'The Comal River at the private access point, steps away from the condo',
     },
     {
-      url: '/images/property/living_dining.jpg',
-      altText: 'Living and Dining Area',
+      url: '/images/property/new-braunfels-condo-living-room.jpg',
+      altText: 'Living and dining room with fireplace at Comal River Casa',
     },
     {
       url: '/images/property/pool.jpg',
       altText: 'Community Pool',
     },
     {
-      url: '/images/property/master_bedroom.jpg',
-      altText: 'Master Bedroom',
+      url: '/images/property/new-braunfels-condo-pool-loungers.jpg',
+      altText: 'Pool deck with loungers and shade umbrellas at Comal River Casa',
+    },
+    {
+      url: '/images/property/new-braunfels-condo-king-bedroom.jpg',
+      altText: 'King bedroom at Comal River Casa',
     },
     {
       url: '/images/property/hot_tub.jpg',
@@ -74,6 +78,10 @@ Perfect for families, couples, or groups of friends seeking a memorable Texas Hi
     {
       url: '/images/property/river_access.jpg',
       altText: 'Private River Access',
+    },
+    {
+      url: '/images/property/comal-river-casa-location-map.jpg',
+      altText: 'Aerial map of Comal River Casa between the Comal River and Schlitterbahn in New Braunfels',
     },
     {
       url: '/images/property/dining.jpg',

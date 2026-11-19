@@ -13,6 +13,7 @@ import { AmenitiesSection } from '@/components/home/amenities-section'
 import { GallerySection } from '@/components/home/gallery-section'
 import { ReviewsSection } from '@/components/home/reviews-section'
 import { PricingSection } from '@/components/home/pricing-section'
+import { FaqSection } from '@/components/home/faq-section'
 import { FooterSection } from '@/components/home/footer-section'
 
 export default function Home() {
@@ -48,7 +49,6 @@ export default function Home() {
         averageRating={averageRating}
         reviewCount={reviewCount}
       />
-      <DiscoverSection />
       <HomeBaseSection property={property} />
       <StatsSection property={property} />
       <AmenitiesSection property={property} />
@@ -57,6 +57,8 @@ export default function Home() {
         <ReviewsSection reviews={reviews} />
       )}
       <PricingSection property={property} onBookingClick={handleBookingClick} />
+      <FaqSection />
+      <DiscoverSection />
 
       {/* Booking Section */}
       {showBooking && (
