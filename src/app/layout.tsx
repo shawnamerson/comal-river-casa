@@ -13,17 +13,17 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.comalrivercasa.com'),
   title: {
     template: '%s | Comal River Casa',
-    default: 'Comal River Casa — Riverfront Vacation Rental in New Braunfels, TX',
+    default: 'New Braunfels Vacation Rental Sleeps 8 | Comal River Casa',
   },
   description:
-    'Book your stay at Comal River Casa — a riverfront vacation rental in New Braunfels, TX. 2BR/2BA condo with pool, hot tub, and direct Comal River access in the heart of Texas Hill Country.',
+    '2BR/2BA condo in New Braunfels, steps away from the Comal River and across from Schlitterbahn. Sleeps 8, 2 king beds, pool, hot tub, free tubes. Book direct.',
   keywords: [
     'Comal River',
     'New Braunfels',
     'vacation rental',
     'Hill Country',
     'Texas',
-    'riverfront condo',
+    'Schlitterbahn lodging',
     'Comal River tubing',
     'New Braunfels lodging',
   ],
@@ -31,16 +31,16 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'Comal River Casa',
-    title: 'Comal River Casa — Riverfront Vacation Rental in New Braunfels, TX',
+    title: 'New Braunfels Vacation Rental Sleeps 8 | Comal River Casa',
     description:
-      'Book your stay at Comal River Casa — a riverfront vacation rental in New Braunfels, TX. 2BR/2BA condo with pool, hot tub, and direct Comal River access.',
+      '2BR/2BA condo in New Braunfels, steps away from the Comal River and across from Schlitterbahn. Sleeps 8, 2 king beds, pool, hot tub, free tubes. Book direct.',
     images: ['/images/property/main.jpg'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Comal River Casa — Riverfront Vacation Rental in New Braunfels, TX',
+    title: 'New Braunfels Vacation Rental Sleeps 8 | Comal River Casa',
     description:
-      'Book your stay at Comal River Casa — a riverfront vacation rental in New Braunfels, TX. 2BR/2BA condo with pool, hot tub, and direct Comal River access.',
+      '2BR/2BA condo in New Braunfels, steps away from the Comal River and across from Schlitterbahn. Sleeps 8, 2 king beds, pool, hot tub, free tubes. Book direct.',
     images: ['/images/property/main.jpg'],
   },
   alternates: {
@@ -76,6 +76,20 @@ async function getJsonLd() {
       name: a,
       value: true,
     })),
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 29.70238,
+      longitude: -98.11803,
+    },
+    sameAs: [
+      'https://www.facebook.com/profile.php?id=100090102757752',
+      'https://www.instagram.com/comalrivercasa',
+      'https://www.airbnb.com/rooms/816620048732083081',
+      'https://www.vrbo.com/3227805',
+    ],
+    checkinTime: '16:00',
+    checkoutTime: '11:00',
+    priceRange: '$200+',
   }
 
   if (reviews.length > 0) {

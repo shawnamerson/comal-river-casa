@@ -22,12 +22,12 @@ export function PricingSection({ property, onBookingClick }: PricingSectionProps
       <div className="container mx-auto max-w-5xl relative z-10">
         <div className="text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Ready to Book Your Stay?
+            Book Direct and Skip the Platform Fees
           </h2>
           <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
           <p className="text-xl text-gray-200 mb-12 max-w-2xl mx-auto">
             Start planning your unforgettable Texas Hill Country getaway today.
-            Your perfect riverside escape is just a few clicks away.
+            Your perfect New Braunfels escape, steps away from the Comal River, is just a few clicks away.
           </p>
 
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-2xl mb-8">

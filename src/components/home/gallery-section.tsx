@@ -47,7 +47,7 @@ export function GallerySection({ images }: GallerySectionProps) {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              See Yourself Here
+              Tour the Casa
             </h2>
             <div className="w-24 h-1 bg-blue-500 mx-auto mb-8"></div>
             <p className="text-xl text-gray-300">

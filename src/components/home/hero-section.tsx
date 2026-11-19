@@ -31,8 +31,11 @@ export function HeroSection({
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
         <div className="text-center max-w-4xl">
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight">
+          <p className="text-base md:text-lg font-semibold uppercase tracking-[0.3em] mb-4">
             {propertyName}
+          </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
+            Vacation Rental in New Braunfels, Steps Away from the Comal River
           </h1>
           <p className="text-xl md:text-2xl lg:text-3xl mb-4 font-light">
             Your Texas Hill Country Escape
