@@ -57,6 +57,25 @@ export default function SchlitterbahnLodgingPage() {
         </div>
       </section>
 
+      {/* Location map */}
+      <section className="px-4 pb-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="relative h-80 overflow-hidden rounded-2xl shadow-xl md:h-[480px]">
+            <Image
+              src="/images/property/comal-river-casa-location-map.jpg"
+              alt="Aerial map of Comal River Casa between the Comal River and Schlitterbahn in New Braunfels"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <p className="mt-4 text-center text-gray-600">
+            The pin is the condo. Schlitterbahn is across the street, the Comal River is
+            steps away, and downtown New Braunfels and Wurstfest are minutes from the
+            door.
+          </p>
+        </div>
+      </section>
+
       {/* Room for the crew */}
       <section className="bg-gray-50 px-4 py-16">
         <div className="container mx-auto max-w-4xl">
