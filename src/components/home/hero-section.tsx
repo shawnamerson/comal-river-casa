@@ -22,8 +22,8 @@ export function HeroSection({
   return (
     <div className="relative h-screen w-full">
       <Image
-        src="/images/property/gruene.jpg"
-        alt="Historic Gruene, New Braunfels, Texas"
+        src="/images/property/pool.jpg"
+        alt="Resort-style pool at Comal River Casa in New Braunfels, Texas"
         fill
         className="object-cover"
         priority

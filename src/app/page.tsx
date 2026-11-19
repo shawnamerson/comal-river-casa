@@ -48,7 +48,6 @@ export default function Home() {
         averageRating={averageRating}
         reviewCount={reviewCount}
       />
-      <DiscoverSection />
       <HomeBaseSection property={property} />
       <StatsSection property={property} />
       <AmenitiesSection property={property} />
@@ -57,6 +56,7 @@ export default function Home() {
         <ReviewsSection reviews={reviews} />
       )}
       <PricingSection property={property} onBookingClick={handleBookingClick} />
+      <DiscoverSection />
 
       {/* Booking Section */}
       {showBooking && (
